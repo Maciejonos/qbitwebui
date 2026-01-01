@@ -41,6 +41,7 @@ export interface Torrent {
 	save_path: string
 	downloaded: number
 	uploaded: number
+	tracker: string
 }
 
 export interface TransferInfo {

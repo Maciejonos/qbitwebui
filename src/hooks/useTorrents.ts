@@ -1,12 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/qbittorrent'
-import type { AddTorrentOptions } from '../api/qbittorrent'
-import type { TorrentFilter } from '../types/qbittorrent'
+import type { AddTorrentOptions, TorrentFilterOptions } from '../api/qbittorrent'
 
-export function useTorrents(filter: TorrentFilter = 'all') {
+export function useTorrents(options: TorrentFilterOptions = {}) {
 	return useQuery({
-		queryKey: ['torrents', filter],
-		queryFn: () => api.getTorrents(filter),
+		queryKey: ['torrents', options],
+		queryFn: () => api.getTorrents(options),
 		refetchInterval: 2000,
 	})
 }

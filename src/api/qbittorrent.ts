@@ -40,9 +40,19 @@ export async function checkSession(): Promise<boolean> {
 	}
 }
 
-export async function getTorrents(filter?: TorrentFilter): Promise<Torrent[]> {
-	const params = filter && filter !== 'all' ? `?filter=${filter}` : ''
-	return request<Torrent[]>(`/torrents/info${params}`)
+export interface TorrentFilterOptions {
+	filter?: TorrentFilter
+	category?: string
+	tag?: string
+}
+
+export async function getTorrents(options: TorrentFilterOptions = {}): Promise<Torrent[]> {
+	const params = new URLSearchParams()
+	if (options.filter && options.filter !== 'all') params.set('filter', options.filter)
+	if (options.category) params.set('category', options.category)
+	if (options.tag) params.set('tag', options.tag)
+	const query = params.toString()
+	return request<Torrent[]>(`/torrents/info${query ? `?${query}` : ''}`)
 }
 
 export async function getTransferInfo(): Promise<TransferInfo> {

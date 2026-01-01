@@ -32,10 +32,9 @@ interface Props {
 	torrent: Torrent
 	selected: boolean
 	onSelect: (hash: string, multi: boolean) => void
-	onViewDetails: (hash: string) => void
 }
 
-export function TorrentRow({ torrent, selected, onSelect, onViewDetails }: Props) {
+export function TorrentRow({ torrent, selected, onSelect }: Props) {
 	const { label, color, bgColor, isDownloading } = getStateInfo(torrent.state)
 	const progress = Math.round(torrent.progress * 100)
 	const isComplete = progress >= 100
@@ -51,18 +50,18 @@ export function TorrentRow({ torrent, selected, onSelect, onViewDetails }: Props
 		>
 			<td className="px-4 py-3 max-w-xs xl:max-w-sm 2xl:max-w-md">
 				<div className="flex items-center gap-3">
-					<div className={`shrink-0 w-5 h-5 rounded-md border-2 transition-colors duration-150 flex items-center justify-center ${
+					<div className={`shrink-0 w-4 h-4 rounded border transition-colors duration-150 flex items-center justify-center ${
 						selected
-							? 'bg-[#00d4aa] border-[#00d4aa]'
-							: 'border-[#5a5a6e] group-hover:border-[#8b8b9e]'
+							? 'border-[#6e6e82] bg-white/[0.03]'
+							: 'border-[#3a3a44] group-hover:border-[#5a5a6e]'
 					}`}>
 						{selected && (
-							<svg className="w-3 h-3 text-[#07070a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+							<svg className="w-2.5 h-2.5 text-[#9090a0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
 								<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
 							</svg>
 						)}
 					</div>
-					<span className="truncate font-medium text-sm text-[#e8e8ed] group-hover:text-white" title={torrent.name}>
+					<span className="truncate font-medium text-sm text-[#b8b8c8] group-hover:text-[#d0d0dc]" title={torrent.name}>
 						{torrent.name}
 					</span>
 				</div>
@@ -121,19 +120,6 @@ export function TorrentRow({ torrent, selected, onSelect, onViewDetails }: Props
 				<span className="text-xs font-mono text-[#8b8b9e]">
 					{torrent.ratio.toFixed(2)}
 				</span>
-			</td>
-			<td className="px-2 py-3">
-				<button
-					onClick={(e) => { e.stopPropagation(); onViewDetails(torrent.hash) }}
-					className="relative p-2 rounded-xl text-[#6e6e82] transition-all duration-200 hover:text-[#00d4aa] hover:scale-110 active:scale-95 group/btn"
-					title="View details"
-				>
-					<span className="absolute inset-0 rounded-xl bg-[#00d4aa]/0 group-hover/btn:bg-[#00d4aa]/10 transition-colors duration-200" />
-					<span className="absolute inset-0 rounded-xl opacity-0 group-hover/btn:opacity-100 transition-opacity duration-200 shadow-[0_0_12px_rgba(0,212,170,0.3)]" />
-					<svg className="relative w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-						<path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
-					</svg>
-				</button>
 			</td>
 		</tr>
 	)
