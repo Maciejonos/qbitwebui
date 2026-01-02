@@ -22,13 +22,13 @@ export function formatEta(seconds: number): string {
 
 export function formatDate(timestamp: number): string {
 	if (timestamp <= 0 || timestamp === -1) return '—'
-	const d = new Date(timestamp * 1000)
-	const day = d.getDate().toString().padStart(2, '0')
-	const month = (d.getMonth() + 1).toString().padStart(2, '0')
-	const year = d.getFullYear()
-	const hours = d.getHours().toString().padStart(2, '0')
-	const mins = d.getMinutes().toString().padStart(2, '0')
-	return `${day}/${month}/${year} ${hours}:${mins}`
+	return new Date(timestamp * 1000).toLocaleString(undefined, {
+		year: 'numeric',
+		month: 'numeric',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: 'numeric',
+	})
 }
 
 export function formatDuration(seconds: number): string {
