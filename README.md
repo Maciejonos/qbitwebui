@@ -34,6 +34,24 @@ services:
     restart: unless-stopped
 ```
 
+### Bypass Authentication
+
+If your qBittorrent instance has authentication disabled, you can skip the login screen entirely:
+
+```yaml
+services:
+  qbitwebui:
+    image: ghcr.io/maciejonos/qbitwebui:latest
+    ports:
+      - "8080:80"
+    environment:
+      - QBITTORRENT_URL=http://localhost:8080
+      - BYPASS_AUTH=true
+    restart: unless-stopped
+```
+
+> **Note:** Only use this when qBittorrent's web API has authentication disabled (`WebUI\AuthSubnetWhitelist` or similar settings).
+
 Or build locally:
 
 ```bash

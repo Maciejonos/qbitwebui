@@ -5,6 +5,7 @@ import { Layout } from './components/Layout'
 import { LoginForm } from './components/LoginForm'
 import { TorrentList } from './components/TorrentList'
 import { checkSession } from './api/qbittorrent'
+import { getConfig } from './types/config'
 
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -19,7 +20,21 @@ export default function App() {
 	const [authenticated, setAuthenticated] = useState<boolean | null>(null)
 
 	useEffect(() => {
-		checkSession().then(setAuthenticated)
+		async function initAuth() {
+			const config = getConfig()
+
+			// If bypass auth is enabled, skip authentication entirely
+			if (config.bypassAuth) {
+				setAuthenticated(true)
+				return
+			}
+
+			// Check if already authenticated
+			const isAuthenticated = await checkSession()
+			setAuthenticated(isAuthenticated)
+		}
+
+		initAuth()
 	}, [])
 
 	if (authenticated === null) {
