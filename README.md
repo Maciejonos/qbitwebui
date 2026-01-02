@@ -14,10 +14,12 @@ A modern lightweight web interface for qBittorrent, built with Vite.
 
 - Real-time torrent monitoring with auto-refresh
 - Add torrents via magnet links or .torrent files
-- Detailed torrent view (general info, trackers, peers, files)
-- Filter by status (all, downloading, seeding, active, stopped), filter by tracker or category.
-- Multi-select with bulk actions (start, stop, delete)
-- Multiple themes to pick from
+- Detailed torrent view with file priority control, trackers, peers
+- Filter by status, category, tag, or tracker
+- Sortable columns, keyboard navigation
+- Context menu, multi-select, bulk actions
+- Tag/category management, configurable ratio thresholds
+- Multiple themes, update notifications
 
 ## Docker
 
