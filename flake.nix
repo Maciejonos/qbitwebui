@@ -20,12 +20,9 @@
       system: let
         pkgs = nixpkgs.legacyPackages.${system};
       in {
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            bun
-            bun2nix.packages.${system}.default
-            openssl
-          ];
+        devShells.default = pkgs.callPackage ./shell.nix {
+          inherit pkgs;
+          bun2nix = bun2nix.packages.${system}.default;
         };
         packages = rec {
           default = qbitwebui;
