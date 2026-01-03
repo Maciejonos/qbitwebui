@@ -22,6 +22,7 @@
           buildInputs = with pkgs; [
             bun
             bun2nix.packages.${system}.default
+            openssl
           ];
         };
         packages = rec {
