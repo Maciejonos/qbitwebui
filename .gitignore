@@ -9,3 +9,4 @@ data/
 *.db-wal
 *.db-shm
 .direnv
+.env
