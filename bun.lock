@@ -6,6 +6,7 @@
       "name": "qbitwebui",
       "dependencies": {
         "@tanstack/react-query": "^5.90.16",
+        "bun-types": "^1.3.5",
         "hono": "^4.6.0",
         "jszip": "^3.10.1",
         "react": "^19.2.0",
