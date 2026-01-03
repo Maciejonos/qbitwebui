@@ -1,11 +1,12 @@
 {
   pkgs ? import <nixpkgs> {},
+  system,
   bun2nix,
 }:
 pkgs.mkShell {
-  buildInputs = with pkgs; [
-    bun
+  buildInputs = [
     bun2nix.packages.${system}.default
-    openssl
+    pkgs.bun
+    pkgs.openssl
   ];
 }

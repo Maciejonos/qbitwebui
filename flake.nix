@@ -21,8 +21,7 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in {
         devShells.default = pkgs.callPackage ./shell.nix {
-          inherit pkgs;
-          bun2nix = bun2nix.packages.${system}.default;
+          inherit pkgs system bun2nix;
         };
         packages = rec {
           default = qbitwebui;
