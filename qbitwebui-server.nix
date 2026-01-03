@@ -7,6 +7,7 @@
     packageJson = ./package.json;
     src = ./.;
     buildPhase = ''
+      bun run build
       bun build --minify --target=bun ./src/server/index.ts --outfile=bin/qbitwebui-server
     '';
     startScript = ''
@@ -23,5 +24,6 @@ in
       DATABASE_PATH = "$HOME/.local/share/qbitwebui/data";
       SALT_PATH = "$HOME/.local/share/qbitwebui/data";
       PORT = 8182;
+      NODE_ENV = "production";
     };
   }
