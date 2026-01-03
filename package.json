@@ -10,7 +10,8 @@
     "build": "tsc -b && vite build",
     "start": "bun run src/server/index.ts",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "bun2nix -o bun.nix"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",

@@ -2,10 +2,14 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
 
+    bun2nix.url = "github:nix-community/bun2nix";
+    bun2nix.inputs.nixpkgs.follows = "nixpkgs";
+
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = {
+    bun2nix,
     nixpkgs,
     flake-utils,
     ...
@@ -16,8 +20,15 @@
       in {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            nodejs
+            bun
+            bun2nix.packages.${system}.default
           ];
+        };
+        packages = rec {
+          default = qbitwebui;
+          qbitwebui = pkgs.callPackage ./package.nix {
+            bun2nix = bun2nix.packages.${system}.default;
+          };
         };
       }
     );
