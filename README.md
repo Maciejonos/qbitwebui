@@ -53,6 +53,7 @@ Built with [React](https://react.dev/), [Hono](https://hono.dev/), and [Bun](htt
 - **Bulk actions** - Multi-select with context menu, keyboard navigation
 - **Themes** - Multiple color themes included
 - **Encrypted storage** - qBittorrent credentials stored with AES-256-GCM
+- **File browser** - Browse and download files from your downloads directory
 
 ## Docker
 
@@ -69,8 +70,12 @@ services:
       # - DISABLE_AUTH=true
       # Uncomment to allow HTTPS with self-signed certificates
       # - ALLOW_SELF_SIGNED_CERTS=true
+      # Uncomment to enable file browser
+      # - DOWNLOADS_PATH=/downloads
     volumes:
       - ./data:/data
+      # Uncomment to enable file browser
+      # - /path/to/your/downloads:/downloads:ro
     restart: unless-stopped
 ```
 
@@ -99,6 +104,7 @@ bun run dev
 | `SALT_PATH` | No | `./data/.salt` | Encryption salt file location |
 | `ALLOW_SELF_SIGNED_CERTS` | No | `false` | Set to `true` to allow HTTPS connections to qBittorrent instances with self-signed certificates |
 | `DISABLE_AUTH` | No | `false` | Set to `true` to disable login/registration |
+| `DOWNLOADS_PATH` | No | - | Path to downloads directory to enable file browser |
 
 ## Tech Stack
 

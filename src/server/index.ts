@@ -6,6 +6,7 @@ import auth from './routes/auth'
 import instances from './routes/instances'
 import proxy from './routes/proxy'
 import integrations from './routes/integrations'
+import files from './routes/files'
 import { log } from './utils/logger'
 
 const banner = `
@@ -22,12 +23,13 @@ app.use('*', cors({
 	credentials: true,
 }))
 
-app.get('/api/config', (c) => c.json({ authDisabled: AUTH_DISABLED }))
+app.get('/api/config', (c) => c.json({ authDisabled: AUTH_DISABLED, filesEnabled: !!process.env.DOWNLOADS_PATH }))
 
 app.route('/api/auth', auth)
 app.route('/api/instances', instances)
 app.route('/api/instances', proxy)
 app.route('/api/integrations', integrations)
+app.route('/api/files', files)
 
 if (process.env.NODE_ENV === 'production') {
 	app.use('/*', serveStatic({ root: './dist' }))

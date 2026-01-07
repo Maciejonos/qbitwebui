@@ -4,12 +4,13 @@ import { logout, changePassword } from '../api/auth'
 import { getPreferences, setPreferences, type SpeedPreferences } from '../api/qbittorrent'
 import { ThemeSwitcher } from './ThemeSwitcher'
 import { SearchPanel } from './SearchPanel'
+import { FileBrowser } from './FileBrowser'
 import { useUpdateCheck } from '../hooks/useUpdateCheck'
 import { formatSpeed, formatSize } from '../utils/format'
 
 declare const __APP_VERSION__: string
 
-type Tab = 'dashboard' | 'indexers'
+type Tab = 'dashboard' | 'indexers' | 'files'
 
 interface InstanceStats {
 	id: number
@@ -199,7 +200,12 @@ export function InstanceManager({ username, onSelectInstance, onLogout }: Props)
 	const [limitUtpRate, setLimitUtpRate] = useState(true)
 	const [limitTcpOverhead, setLimitTcpOverhead] = useState(false)
 	const [limitLanPeers, setLimitLanPeers] = useState(true)
+	const [filesEnabled, setFilesEnabled] = useState(false)
 	const { hasUpdate, latestVersion } = useUpdateCheck()
+
+	useEffect(() => {
+		fetch('/api/config').then(r => r.json()).then(c => setFilesEnabled(c.filesEnabled)).catch(() => {})
+	}, [])
 
 	const loadInstances = useCallback(async () => {
 		try {
@@ -437,6 +443,7 @@ export function InstanceManager({ username, onSelectInstance, onLogout }: Props)
 						{[
 							{ id: 'dashboard' as Tab, label: 'Dashboard' },
 							{ id: 'indexers' as Tab, label: 'Indexers' },
+							...(filesEnabled ? [{ id: 'files' as Tab, label: 'Files' }] : []),
 						].map((t) => (
 							<button
 								key={t.id}
@@ -521,6 +528,8 @@ export function InstanceManager({ username, onSelectInstance, onLogout }: Props)
 			<main className="max-w-6xl mx-auto p-6">
 				{tab === 'indexers' ? (
 					<SearchPanel />
+				) : tab === 'files' ? (
+					<FileBrowser />
 				) : (
 					<>
 				{stats.length > 0 && !showingPanel && (
