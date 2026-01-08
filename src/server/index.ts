@@ -7,6 +7,7 @@ import instances from './routes/instances'
 import proxy from './routes/proxy'
 import integrations from './routes/integrations'
 import files from './routes/files'
+import tools from './routes/tools'
 import { log } from './utils/logger'
 
 const banner = `
@@ -30,6 +31,7 @@ app.route('/api/instances', instances)
 app.route('/api/instances', proxy)
 app.route('/api/integrations', integrations)
 app.route('/api/files', files)
+app.route('/api/tools', tools)
 
 if (process.env.NODE_ENV === 'production') {
 	app.use('/*', serveStatic({ root: './dist' }))

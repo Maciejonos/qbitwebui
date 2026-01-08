@@ -5,12 +5,14 @@ import { getPreferences, setPreferences, type SpeedPreferences } from '../api/qb
 import { ThemeSwitcher } from './ThemeSwitcher'
 import { SearchPanel } from './SearchPanel'
 import { FileBrowser } from './FileBrowser'
+import { OrphanManager } from './OrphanManager'
 import { useUpdateCheck } from '../hooks/useUpdateCheck'
 import { formatSpeed, formatSize } from '../utils/format'
 
 declare const __APP_VERSION__: string
 
-type Tab = 'dashboard' | 'indexers' | 'files'
+type Tab = 'dashboard' | 'tools'
+type Tool = 'indexers' | 'files' | 'orphans' | null
 
 interface InstanceStats {
 	id: number
@@ -166,6 +168,7 @@ interface Props {
 
 export function InstanceManager({ username, onSelectInstance, onLogout }: Props) {
 	const [tab, setTab] = useState<Tab>('dashboard')
+	const [activeTool, setActiveTool] = useState<Tool>(null)
 	const [instances, setInstances] = useState<Instance[]>([])
 	const [stats, setStats] = useState<InstanceStats[]>([])
 	const [loading, setLoading] = useState(true)
@@ -442,12 +445,11 @@ export function InstanceManager({ username, onSelectInstance, onLogout }: Props)
 					<div className="flex items-center gap-1 p-1 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
 						{[
 							{ id: 'dashboard' as Tab, label: 'Dashboard' },
-							{ id: 'indexers' as Tab, label: 'Indexers' },
-							...(filesEnabled ? [{ id: 'files' as Tab, label: 'Files' }] : []),
+							{ id: 'tools' as Tab, label: 'Tools' },
 						].map((t) => (
 							<button
 								key={t.id}
-								onClick={() => setTab(t.id)}
+								onClick={() => { setTab(t.id); setActiveTool(null) }}
 								className="px-3 py-1 rounded-md text-xs font-medium transition-all"
 								style={{
 									backgroundColor: tab === t.id ? 'var(--bg-primary)' : 'transparent',
@@ -526,10 +528,91 @@ export function InstanceManager({ username, onSelectInstance, onLogout }: Props)
 			</header>
 
 			<main className="max-w-6xl mx-auto p-6">
-				{tab === 'indexers' ? (
-					<SearchPanel />
-				) : tab === 'files' ? (
-					<FileBrowser />
+				{tab === 'tools' ? (
+					activeTool === 'indexers' ? (
+						<>
+							<button
+								onClick={() => setActiveTool(null)}
+								className="flex items-center gap-2 mb-6 text-sm hover:underline"
+								style={{ color: 'var(--text-muted)' }}
+							>
+								<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+									<path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+								</svg>
+								Back to Tools
+							</button>
+							<SearchPanel />
+						</>
+					) : activeTool === 'files' ? (
+						<>
+							<button
+								onClick={() => setActiveTool(null)}
+								className="flex items-center gap-2 mb-6 text-sm hover:underline"
+								style={{ color: 'var(--text-muted)' }}
+							>
+								<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+									<path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+								</svg>
+								Back to Tools
+							</button>
+							<FileBrowser />
+						</>
+					) : activeTool === 'orphans' ? (
+						<>
+							<button
+								onClick={() => setActiveTool(null)}
+								className="flex items-center gap-2 mb-6 text-sm hover:underline"
+								style={{ color: 'var(--text-muted)' }}
+							>
+								<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+									<path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+								</svg>
+								Back to Tools
+							</button>
+							<OrphanManager instances={instances} />
+						</>
+					) : (
+						<>
+							<h1 className="text-xl font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>Tools</h1>
+							<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+								<button
+									onClick={() => setActiveTool('indexers')}
+									className="p-6 rounded-xl border text-left transition-all hover:border-[var(--accent)]"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+								>
+									<svg className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+										<path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+									</svg>
+									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>Prowlarr</div>
+									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Search indexers</div>
+								</button>
+								{filesEnabled && (
+									<button
+										onClick={() => setActiveTool('files')}
+										className="p-6 rounded-xl border text-left transition-all hover:border-[var(--accent)]"
+										style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+									>
+										<svg className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+											<path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+										</svg>
+										<div className="font-medium" style={{ color: 'var(--text-primary)' }}>File Browser</div>
+										<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Browse downloads</div>
+									</button>
+								)}
+								<button
+									onClick={() => setActiveTool('orphans')}
+									className="p-6 rounded-xl border text-left transition-all hover:border-[var(--accent)]"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+								>
+									<svg className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+										<path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+									</svg>
+									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>Orphan Manager</div>
+									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Clean up torrents</div>
+								</button>
+							</div>
+						</>
+					)
 				) : (
 					<>
 				{stats.length > 0 && !showingPanel && (
