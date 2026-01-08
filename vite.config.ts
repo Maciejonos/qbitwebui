@@ -9,6 +9,15 @@ export default defineConfig(() => {
 		define: {
 			__APP_VERSION__: JSON.stringify(pkg.version),
 		},
+		build: {
+			rollupOptions: {
+				output: {
+					manualChunks: {
+						vendor: ['react', 'react-dom', '@tanstack/react-query'],
+					},
+				},
+			},
+		},
 		server: {
 			proxy: {
 				'/api': {

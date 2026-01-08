@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { listFiles, getDownloadUrl, type FileEntry } from '../api/files'
+import { listFiles, getDownloadUrl, checkWritable, deleteFiles, moveFiles, copyFiles, renameFile, type FileEntry } from '../api/files'
 import { formatSize } from '../utils/format'
 
 function formatDate(timestamp: number): string {
@@ -12,11 +12,138 @@ function formatDate(timestamp: number): string {
 	})
 }
 
+interface FolderPickerProps {
+	title: string
+	onConfirm: (destination: string) => void
+	onCancel: () => void
+}
+
+function FolderPicker({ title, onConfirm, onCancel }: FolderPickerProps) {
+	const [pickerPath, setPickerPath] = useState('/')
+	const [folders, setFolders] = useState<FileEntry[]>([])
+	const [loading, setLoading] = useState(true)
+
+	useEffect(() => {
+		let cancelled = false
+		listFiles(pickerPath)
+			.then(files => { if (!cancelled) setFolders(files.filter(f => f.isDirectory)) })
+			.catch(() => { if (!cancelled) setFolders([]) })
+			.finally(() => { if (!cancelled) setLoading(false) })
+		return () => { cancelled = true }
+	}, [pickerPath])
+
+	function navigateTo(newPath: string) {
+		setLoading(true)
+		setPickerPath(newPath)
+	}
+
+	const pathParts = pickerPath.split('/').filter(Boolean)
+
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onCancel}>
+			<div
+				className="w-full max-w-md rounded-lg border shadow-xl"
+				style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border)' }}
+				onClick={e => e.stopPropagation()}
+			>
+				<div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border)' }}>
+					<h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>{title}</h3>
+					<button onClick={onCancel} className="p-1 rounded hover:bg-[var(--bg-tertiary)]">
+						<svg className="w-5 h-5" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+							<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</button>
+				</div>
+				<div className="p-4 space-y-3">
+					<div className="flex items-center gap-1 text-sm overflow-x-auto pb-2" style={{ color: 'var(--text-muted)' }}>
+						<button
+							onClick={() => navigateTo('/')}
+							className="px-1 py-0.5 rounded hover:bg-[var(--bg-tertiary)] shrink-0"
+							style={{ color: pickerPath === '/' ? 'var(--text-primary)' : 'var(--text-muted)' }}
+						>
+							/
+						</button>
+						{pathParts.map((part, i) => (
+							<div key={i} className="flex items-center shrink-0">
+								<button
+									onClick={() => navigateTo(`/${pathParts.slice(0, i + 1).join('/')}`)}
+									className="px-1 py-0.5 rounded hover:bg-[var(--bg-tertiary)]"
+									style={{ color: i === pathParts.length - 1 ? 'var(--text-primary)' : 'var(--text-muted)' }}
+								>
+									{part}
+								</button>
+								<span>/</span>
+							</div>
+						))}
+					</div>
+					<div
+						className="h-64 overflow-y-auto rounded-md border"
+						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+					>
+						{loading ? (
+							<div className="flex items-center justify-center h-full text-sm" style={{ color: 'var(--text-muted)' }}>
+								Loading...
+							</div>
+						) : folders.length === 0 ? (
+							<div className="flex items-center justify-center h-full text-sm" style={{ color: 'var(--text-muted)' }}>
+								No subfolders
+							</div>
+						) : (
+							<div className="p-2 space-y-1">
+								{folders.map(folder => (
+									<button
+										key={folder.name}
+										onClick={() => navigateTo(pickerPath === '/' ? `/${folder.name}` : `${pickerPath}/${folder.name}`)}
+										className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-left hover:bg-[var(--bg-tertiary)]"
+										style={{ color: 'var(--text-primary)' }}
+									>
+										<svg className="w-4 h-4 shrink-0" style={{ color: 'var(--warning)' }} fill="currentColor" viewBox="0 0 24 24">
+											<path d="M19.5 21a3 3 0 003-3v-4.5a3 3 0 00-3-3h-15a3 3 0 00-3 3V18a3 3 0 003 3h15zM1.5 10.146V6a3 3 0 013-3h5.379a2.25 2.25 0 011.59.659l2.122 2.121c.14.141.331.22.53.22H19.5a3 3 0 013 3v1.146A4.483 4.483 0 0019.5 9h-15a4.483 4.483 0 00-3 1.146z" />
+										</svg>
+										{folder.name}
+									</button>
+								))}
+							</div>
+						)}
+					</div>
+				</div>
+				<div className="flex justify-end gap-2 p-4 border-t" style={{ borderColor: 'var(--border)' }}>
+					<button
+						onClick={onCancel}
+						className="px-4 py-2 rounded-md text-sm font-medium"
+						style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+					>
+						Cancel
+					</button>
+					<button
+						onClick={() => onConfirm(pickerPath)}
+						className="px-4 py-2 rounded-md text-sm font-medium border"
+						style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--accent)', color: 'var(--accent)' }}
+					>
+						Select "{pickerPath}"
+					</button>
+				</div>
+			</div>
+		</div>
+	)
+}
+
 export function FileBrowser() {
 	const [path, setPath] = useState('/')
 	const [files, setFiles] = useState<FileEntry[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState('')
+	const [writable, setWritable] = useState(false)
+	const [selected, setSelected] = useState<Set<string>>(new Set())
+	const [folderPickerMode, setFolderPickerMode] = useState<'move' | 'copy' | null>(null)
+	const [renameTarget, setRenameTarget] = useState<string | null>(null)
+	const [renameValue, setRenameValue] = useState('')
+	const [deleteConfirm, setDeleteConfirm] = useState(false)
+	const [actionLoading, setActionLoading] = useState(false)
+
+	useEffect(() => {
+		checkWritable().then(setWritable)
+	}, [])
 
 	const loadFiles = useCallback(async () => {
 		setLoading(true)
@@ -34,6 +161,7 @@ export function FileBrowser() {
 
 	useEffect(() => {
 		loadFiles()
+		setSelected(new Set())
 	}, [loadFiles])
 
 	function handleNavigate(name: string) {
@@ -49,6 +177,77 @@ export function FileBrowser() {
 	function handleBreadcrumb(index: number) {
 		const parts = path.split('/').filter(Boolean)
 		setPath(index === -1 ? '/' : `/${parts.slice(0, index + 1).join('/')}`)
+	}
+
+	function getFullPath(name: string) {
+		return path === '/' ? `/${name}` : `${path}/${name}`
+	}
+
+	function toggleSelect(name: string) {
+		const next = new Set(selected)
+		if (next.has(name)) next.delete(name)
+		else next.add(name)
+		setSelected(next)
+	}
+
+	function toggleSelectAll() {
+		if (selected.size === files.length) setSelected(new Set())
+		else setSelected(new Set(files.map(f => f.name)))
+	}
+
+	async function handleDelete() {
+		setError('')
+		setActionLoading(true)
+		try {
+			await deleteFiles(Array.from(selected).map(getFullPath))
+			setSelected(new Set())
+			setDeleteConfirm(false)
+			await loadFiles()
+		} catch (e) {
+			setError(e instanceof Error ? e.message : 'Delete failed')
+		} finally {
+			setActionLoading(false)
+		}
+	}
+
+	async function handleMoveOrCopy(destination: string) {
+		const mode = folderPickerMode
+		setError('')
+		setActionLoading(true)
+		try {
+			const paths = Array.from(selected).map(getFullPath)
+			if (mode === 'move') await moveFiles(paths, destination)
+			else await copyFiles(paths, destination)
+			setSelected(new Set())
+			setFolderPickerMode(null)
+			await loadFiles()
+		} catch (e) {
+			setError(e instanceof Error ? e.message : `${mode} failed`)
+		} finally {
+			setActionLoading(false)
+		}
+	}
+
+	async function handleRename() {
+		if (!renameTarget || !renameValue.trim()) return
+		setError('')
+		setActionLoading(true)
+		try {
+			await renameFile(getFullPath(renameTarget), renameValue.trim())
+			setRenameTarget(null)
+			setRenameValue('')
+			await loadFiles()
+		} catch (e) {
+			setError(e instanceof Error ? e.message : 'Rename failed')
+		} finally {
+			setActionLoading(false)
+		}
+	}
+
+	function openRename() {
+		const name = Array.from(selected)[0]
+		setRenameTarget(name)
+		setRenameValue(name)
 	}
 
 	const pathParts = path.split('/').filter(Boolean)
@@ -99,6 +298,53 @@ export function FileBrowser() {
 				</button>
 			</div>
 
+			{writable && selected.size > 0 && (
+				<div
+					className="flex items-center gap-2 p-3 rounded-lg border"
+					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+				>
+					<span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+						{selected.size} selected
+					</span>
+					<div className="ml-auto flex items-center gap-2">
+						{selected.size === 1 && (
+							<button
+								onClick={openRename}
+								disabled={actionLoading}
+								className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors disabled:opacity-50 border"
+								style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+							>
+								Rename
+							</button>
+						)}
+						<button
+							onClick={() => setFolderPickerMode('move')}
+							disabled={actionLoading}
+							className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors disabled:opacity-50 border"
+							style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+						>
+							Move
+						</button>
+						<button
+							onClick={() => setFolderPickerMode('copy')}
+							disabled={actionLoading}
+							className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors disabled:opacity-50 border"
+							style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+						>
+							Copy
+						</button>
+						<button
+							onClick={() => setDeleteConfirm(true)}
+							disabled={actionLoading}
+							className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
+							style={{ backgroundColor: 'color-mix(in srgb, var(--error) 15%, transparent)', color: 'var(--error)' }}
+						>
+							Delete
+						</button>
+					</div>
+				</div>
+			)}
+
 			{error && (
 				<div className="p-4 rounded-lg text-sm" style={{ backgroundColor: 'color-mix(in srgb, var(--error) 10%, transparent)', color: 'var(--error)' }}>
 					{error}
@@ -109,6 +355,24 @@ export function FileBrowser() {
 				<table className="w-full">
 					<thead>
 						<tr className="border-b" style={{ borderColor: 'var(--border)' }}>
+							{writable && (
+								<th className="w-10 px-3 py-3">
+									<div
+										onClick={toggleSelectAll}
+										className="w-4 h-4 rounded flex items-center justify-center cursor-pointer border"
+										style={{
+											backgroundColor: files.length > 0 && selected.size === files.length ? 'var(--accent)' : 'transparent',
+											borderColor: files.length > 0 && selected.size === files.length ? 'var(--accent)' : 'var(--text-muted)'
+										}}
+									>
+										{files.length > 0 && selected.size === files.length && (
+											<svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+												<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+											</svg>
+										)}
+									</div>
+								</th>
+							)}
 							<th className="text-left px-4 py-3 text-[10px] font-medium uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Name</th>
 							<th className="text-right px-4 py-3 text-[10px] font-medium uppercase tracking-wider w-28" style={{ color: 'var(--text-muted)' }}>Size</th>
 							<th className="text-right px-4 py-3 text-[10px] font-medium uppercase tracking-wider w-44" style={{ color: 'var(--text-muted)' }}>Modified</th>
@@ -118,13 +382,13 @@ export function FileBrowser() {
 					<tbody>
 						{loading && files.length === 0 ? (
 							<tr>
-								<td colSpan={4} className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+								<td colSpan={writable ? 5 : 4} className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
 									Loading...
 								</td>
 							</tr>
 						) : files.length === 0 ? (
 							<tr>
-								<td colSpan={4} className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+								<td colSpan={writable ? 5 : 4} className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
 									Empty directory
 								</td>
 							</tr>
@@ -135,6 +399,24 @@ export function FileBrowser() {
 									className="border-b last:border-b-0 hover:bg-[var(--bg-tertiary)] transition-colors"
 									style={{ borderColor: 'var(--border)' }}
 								>
+									{writable && (
+										<td className="px-3 py-2.5">
+											<div
+												onClick={() => toggleSelect(file.name)}
+												className="w-4 h-4 rounded flex items-center justify-center cursor-pointer border"
+												style={{
+													backgroundColor: selected.has(file.name) ? 'var(--accent)' : 'transparent',
+													borderColor: selected.has(file.name) ? 'var(--accent)' : 'var(--text-muted)'
+												}}
+											>
+												{selected.has(file.name) && (
+													<svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+														<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+													</svg>
+												)}
+											</div>
+										</td>
+									)}
 									<td className="px-4 py-2.5">
 										{file.isDirectory ? (
 											<button
@@ -181,6 +463,99 @@ export function FileBrowser() {
 					</tbody>
 				</table>
 			</div>
+
+			{folderPickerMode && (
+				<FolderPicker
+					title={folderPickerMode === 'move' ? 'Move to...' : 'Copy to...'}
+					onConfirm={handleMoveOrCopy}
+					onCancel={() => setFolderPickerMode(null)}
+				/>
+			)}
+
+			{renameTarget && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setRenameTarget(null)}>
+					<div
+						className="w-full max-w-sm rounded-lg border shadow-xl"
+						style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border)' }}
+						onClick={e => e.stopPropagation()}
+					>
+						<div className="p-4 border-b" style={{ borderColor: 'var(--border)' }}>
+							<h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>Rename</h3>
+						</div>
+						<div className="p-4">
+							<input
+								type="text"
+								value={renameValue}
+								onChange={e => setRenameValue(e.target.value)}
+								onKeyDown={e => e.key === 'Enter' && handleRename()}
+								className="w-full px-3 py-2 rounded-md border text-sm"
+								style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+								autoFocus
+							/>
+						</div>
+						<div className="flex justify-end gap-2 p-4 border-t" style={{ borderColor: 'var(--border)' }}>
+							<button
+								onClick={() => setRenameTarget(null)}
+								className="px-4 py-2 rounded-md text-sm font-medium"
+								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+							>
+								Cancel
+							</button>
+							<button
+								onClick={handleRename}
+								disabled={!renameValue.trim() || renameValue === renameTarget || actionLoading}
+								className="px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+								style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+							>
+								Rename
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{deleteConfirm && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteConfirm(false)}>
+					<div
+						className="w-full max-w-sm rounded-lg border shadow-xl"
+						style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border)' }}
+						onClick={e => e.stopPropagation()}
+					>
+						<div className="p-4 border-b" style={{ borderColor: 'var(--border)' }}>
+							<h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>Confirm Delete</h3>
+						</div>
+						<div className="p-4">
+							<p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+								Delete {selected.size} item{selected.size > 1 ? 's' : ''}? This cannot be undone.
+							</p>
+							{selected.size <= 5 && (
+								<ul className="mt-3 text-sm space-y-1" style={{ color: 'var(--text-muted)' }}>
+									{Array.from(selected).map(name => (
+										<li key={name} className="truncate">• {name}</li>
+									))}
+								</ul>
+							)}
+						</div>
+						<div className="flex justify-end gap-2 p-4 border-t" style={{ borderColor: 'var(--border)' }}>
+							<button
+								onClick={() => setDeleteConfirm(false)}
+								className="px-4 py-2 rounded-md text-sm font-medium"
+								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+							>
+								Cancel
+							</button>
+							<button
+								onClick={handleDelete}
+								disabled={actionLoading}
+								className="px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+							>
+								Delete
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }

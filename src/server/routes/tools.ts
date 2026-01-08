@@ -37,7 +37,7 @@ async function qbtRequest<T>(instance: Instance, cookie: string | null, endpoint
 			headers: cookie ? { Cookie: cookie } : {},
 		})
 		if (!res.ok) return null
-		return res.json()
+		return res.json() as Promise<T>
 	} catch {
 		return null
 	}

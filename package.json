@@ -1,7 +1,7 @@
 {
   "name": "qbitwebui",
   "private": true,
-  "version": "2.2.0",
+  "version": "2.21.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"bun run dev:server\" \"vite\"",

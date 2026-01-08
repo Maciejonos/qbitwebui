@@ -74,8 +74,10 @@ services:
       # - DOWNLOADS_PATH=/downloads
     volumes:
       - ./data:/data
-      # Uncomment to enable file browser
+      # Uncomment to enable file browser (read-only: browse & download only)
       # - /path/to/your/downloads:/downloads:ro
+      # Or mount read-write to enable delete/move/copy/rename
+      # - /path/to/your/downloads:/downloads
     restart: unless-stopped
 ```
 
