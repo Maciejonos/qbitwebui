@@ -54,6 +54,7 @@ Built with [React](https://react.dev/), [Hono](https://hono.dev/), and [Bun](htt
 - **Themes** - Multiple color themes included
 - **Encrypted storage** - qBittorrent credentials stored with AES-256-GCM
 - **File browser** - Browse and download files from your downloads directory
+- **RSS management** - Define rules, add RSS feeds, manage folders
 
 ## Docker
 
