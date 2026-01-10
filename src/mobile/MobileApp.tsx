@@ -7,6 +7,9 @@ import { MobileStats } from './MobileStats'
 import { MobileTorrentList } from './MobileTorrentList'
 import { MobileTorrentDetail } from './MobileTorrentDetail'
 import { MobileTools } from './MobileTools'
+import { MobileThemeSwitcher } from './MobileThemeSwitcher'
+import { AddTorrentModal } from '../components/AddTorrentModal'
+import { InstanceProvider } from '../contexts/InstanceContext'
 
 type MainTab = 'torrents' | 'tools'
 
@@ -35,6 +38,7 @@ export function MobileApp({ username, onLogout }: Props) {
 	const [searchFocused, setSearchFocused] = useState(false)
 	const [mainTab, setMainTab] = useState<MainTab>('torrents')
 	const [compactMode, setCompactMode] = useState(() => localStorage.getItem('mobileCompactMode') === 'true')
+	const [showAddModal, setShowAddModal] = useState(false)
 	const searchInputRef = useRef<HTMLInputElement>(null)
 
 	const toggleCompactMode = useCallback(() => {
@@ -125,6 +129,8 @@ export function MobileApp({ username, onLogout }: Props) {
 								<span className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Tools</span>
 							)}
 						</div>
+						<div className="flex items-center gap-2">
+						<MobileThemeSwitcher />
 						<div className="relative">
 							<button
 								onClick={() => setShowUserMenu(!showUserMenu)}
@@ -158,6 +164,7 @@ export function MobileApp({ username, onLogout }: Props) {
 									</div>
 								</>
 							)}
+						</div>
 						</div>
 					</div>
 					{mainTab === 'torrents' && (
@@ -252,6 +259,16 @@ export function MobileApp({ username, onLogout }: Props) {
 							<span className="text-xs font-medium">Torrents</span>
 						</button>
 						<button
+							onClick={() => setShowAddModal(true)}
+							className="flex-1 flex flex-col items-center gap-1 py-3 transition-colors active:scale-95"
+							style={{ color: 'var(--text-muted)' }}
+						>
+							<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+							</svg>
+							<span className="text-xs font-medium">Add</span>
+						</button>
+						<button
 							onClick={() => setMainTab('tools')}
 							className="flex-1 flex flex-col items-center gap-1 py-3 transition-colors"
 							style={{ color: mainTab === 'tools' ? 'var(--accent)' : 'var(--text-muted)' }}
@@ -275,6 +292,11 @@ export function MobileApp({ username, onLogout }: Props) {
 					/>
 				)}
 
+				{showAddModal && (
+					<InstanceProvider instance={selectedInstance !== 'all' ? selectedInstance : instances[0]}>
+						<AddTorrentModal open={showAddModal} onClose={() => setShowAddModal(false)} />
+					</InstanceProvider>
+				)}
 			</div>
 		</QueryClientProvider>
 	)
