@@ -1,17 +1,18 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
 import type { TorrentFilter, Torrent } from '../types/qbittorrent'
 import { useTorrents, useStopTorrents, useStartTorrents, useDeleteTorrents, useCategories, useTags } from '../hooks/useTorrents'
 import { TorrentRow } from './TorrentRow'
 import { FilterBar, SearchInput, CategoryDropdown, TagDropdown, TrackerDropdown, ColumnSelector, ManageButton } from './FilterBar'
-import { AddTorrentModal } from './AddTorrentModal'
-import { CategoryTagManager } from './CategoryTagManager'
-import { TorrentDetailsPanel } from './TorrentDetailsPanel'
 import { ContextMenu } from './ContextMenu'
 import { RatioThresholdPopup } from './RatioThresholdPopup'
 import { loadRatioThreshold, saveRatioThreshold } from '../utils/ratioThresholds'
 import { normalizeSearch } from '../utils/format'
 import { COLUMNS, DEFAULT_VISIBLE_COLUMNS, DEFAULT_COLUMN_ORDER, type SortKey } from './columns'
 import { usePagination } from '../hooks/usePagination'
+
+const AddTorrentModal = lazy(() => import('./AddTorrentModal').then(m => ({ default: m.AddTorrentModal })))
+const CategoryTagManager = lazy(() => import('./CategoryTagManager').then(m => ({ default: m.CategoryTagManager })))
+const TorrentDetailsPanel = lazy(() => import('./TorrentDetailsPanel').then(m => ({ default: m.TorrentDetailsPanel })))
 
 const DEFAULT_PANEL_HEIGHT = 220
 
@@ -451,17 +452,27 @@ export function TorrentList() {
 				</div>
 			)}
 
-			<AddTorrentModal open={addModal} onClose={() => setAddModal(false)} />
-			<CategoryTagManager open={managerModal} onClose={() => setManagerModal(false)} />
+			{addModal && (
+				<Suspense fallback={null}>
+					<AddTorrentModal open={addModal} onClose={() => setAddModal(false)} />
+				</Suspense>
+			)}
+			{managerModal && (
+				<Suspense fallback={null}>
+					<CategoryTagManager open={managerModal} onClose={() => setManagerModal(false)} />
+				</Suspense>
+			)}
 
-			<TorrentDetailsPanel
-				hash={selectedHash}
-				name={selectedTorrent?.name ?? ''}
-				expanded={panelExpanded}
-				onToggle={() => setPanelExpanded(!panelExpanded)}
-				height={panelHeight}
-				onHeightChange={setPanelHeight}
-			/>
+			<Suspense fallback={null}>
+				<TorrentDetailsPanel
+					hash={selectedHash}
+					name={selectedTorrent?.name ?? ''}
+					expanded={panelExpanded}
+					onToggle={() => setPanelExpanded(!panelExpanded)}
+					height={panelHeight}
+					onHeightChange={setPanelHeight}
+				/>
+			</Suspense>
 
 			{contextMenu && (
 				<ContextMenu

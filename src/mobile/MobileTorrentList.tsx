@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useQueries, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/qbittorrent'
 import type { Instance } from '../api/instances'
@@ -7,7 +7,8 @@ import { formatSize, formatSpeed, formatDuration, formatEta, formatCompactSpeed,
 
 type TorrentWithInstance = Torrent & { instanceId: number; instanceLabel: string }
 
-type FilterTab = 'all' | 'downloading' | 'seeding' | 'paused'
+type StatusFilter = 'all' | 'downloading' | 'seeding' | 'paused'
+type SortField = 'dlspeed' | 'upspeed' | 'ratio' | 'seeding_time' | 'added_on' | 'last_activity'
 
 const DOWNLOADING_STATES: TorrentState[] = ['downloading', 'metaDL', 'forcedDL', 'stalledDL', 'allocating', 'queuedDL', 'checkingDL']
 const SEEDING_STATES: TorrentState[] = ['uploading', 'forcedUP', 'stalledUP', 'queuedUP', 'checkingUP']
@@ -29,6 +30,59 @@ function getStateInfo(state: TorrentState): { color: string; label: string; icon
 	if (PAUSED_STATES.includes(state)) return { color: 'var(--text-muted)', label: 'Paused', icon: 'pause' }
 	if (state === 'error' || state === 'missingFiles') return { color: 'var(--error)', label: 'Error', icon: 'error' }
 	return { color: 'var(--text-muted)', label: state, icon: 'pause' }
+}
+
+function MobileSelect<T extends string>({ value, options, onChange }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void }) {
+	const [open, setOpen] = useState(false)
+	const ref = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		if (!open) return
+		function handleClickOutside(e: MouseEvent) {
+			if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+		}
+		document.addEventListener('mousedown', handleClickOutside)
+		return () => document.removeEventListener('mousedown', handleClickOutside)
+	}, [open])
+
+	const selected = options.find(o => o.value === value)
+
+	return (
+		<div ref={ref} className="relative flex-1">
+			<button
+				type="button"
+				onClick={() => setOpen(!open)}
+				className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm font-medium"
+				style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+			>
+				<span className="truncate">{selected?.label}</span>
+				<svg className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+					<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+				</svg>
+			</button>
+			{open && (
+				<div
+					className="absolute top-full left-0 right-0 mt-1 max-h-64 overflow-auto rounded-xl border shadow-xl z-50"
+					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+				>
+					{options.map((o) => (
+						<button
+							key={o.value}
+							type="button"
+							onClick={() => { onChange(o.value); setOpen(false) }}
+							className="w-full px-3 py-2.5 text-left text-sm font-medium transition-colors active:bg-[var(--bg-tertiary)]"
+							style={{
+								color: value === o.value ? 'var(--accent)' : 'var(--text-primary)',
+								backgroundColor: value === o.value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+							}}
+						>
+							{o.label}
+						</button>
+					))}
+				</div>
+			)}
+		</div>
+	)
 }
 
 function StateIcon({ type, color }: { type: 'download' | 'upload' | 'pause' | 'error' | 'check'; color: string }) {
@@ -74,8 +128,25 @@ interface Props {
 	onSelectTorrent: (hash: string, instanceId: number) => void
 }
 
+const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
+	{ value: 'all', label: 'All' },
+	{ value: 'downloading', label: 'Downloading' },
+	{ value: 'seeding', label: 'Seeding' },
+	{ value: 'paused', label: 'Paused' },
+]
+
+const SORT_OPTIONS: { value: SortField; label: string }[] = [
+	{ value: 'added_on', label: 'Added' },
+	{ value: 'dlspeed', label: 'Down Speed' },
+	{ value: 'upspeed', label: 'Up Speed' },
+	{ value: 'ratio', label: 'Ratio' },
+	{ value: 'seeding_time', label: 'Seed Time' },
+	{ value: 'last_activity', label: 'Last Active' },
+]
+
 export function MobileTorrentList({ instances, search, compact, onToggleCompact, onSelectTorrent }: Props) {
-	const [filter, setFilter] = useState<FilterTab>('all')
+	const [status, setStatus] = useState<StatusFilter>('all')
+	const [sortBy, setSortBy] = useState<SortField>('added_on')
 	const [swipedHash, setSwipedHash] = useState<string | null>(null)
 	const queryClient = useQueryClient()
 
@@ -117,24 +188,19 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 			const q = normalizeSearch(search)
 			result = result.filter(t => normalizeSearch(t.name).includes(q))
 		}
-		switch (filter) {
+		switch (status) {
 			case 'downloading':
-				return result.filter(t => DOWNLOADING_STATES.includes(t.state))
+				result = result.filter(t => DOWNLOADING_STATES.includes(t.state))
+				break
 			case 'seeding':
-				return result.filter(t => SEEDING_STATES.includes(t.state))
+				result = result.filter(t => SEEDING_STATES.includes(t.state))
+				break
 			case 'paused':
-				return result.filter(t => PAUSED_STATES.includes(t.state))
-			default:
-				return result
+				result = result.filter(t => PAUSED_STATES.includes(t.state))
+				break
 		}
-	}, [torrents, filter, search])
-
-	const tabs: { id: FilterTab; label: string }[] = [
-		{ id: 'all', label: 'All' },
-		{ id: 'downloading', label: 'Downloading' },
-		{ id: 'seeding', label: 'Seeding' },
-		{ id: 'paused', label: 'Paused' },
-	]
+		return [...result].sort((a, b) => b[sortBy] - a[sortBy])
+	}, [torrents, status, sortBy, search])
 
 	function handleToggle(torrent: TorrentWithInstance, e: React.MouseEvent) {
 		e.stopPropagation()
@@ -152,30 +218,13 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 	return (
 		<div className="space-y-3">
 			<div className="flex gap-2">
-				<div
-					className="flex-1 flex gap-1 p-1 rounded-xl overflow-x-auto scrollbar-none"
-					style={{ backgroundColor: 'var(--bg-secondary)' }}
-				>
-					{tabs.map((tab) => (
-						<button
-							key={tab.id}
-							onClick={() => setFilter(tab.id)}
-							className="flex-1 min-w-fit px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap"
-							style={{
-								backgroundColor: filter === tab.id ? 'var(--bg-primary)' : 'transparent',
-								color: filter === tab.id ? 'var(--text-primary)' : 'var(--text-muted)',
-								boxShadow: filter === tab.id ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
-							}}
-						>
-							{tab.label}
-						</button>
-					))}
-				</div>
+				<MobileSelect value={status} options={STATUS_OPTIONS} onChange={setStatus} />
+				<MobileSelect value={sortBy} options={SORT_OPTIONS} onChange={setSortBy} />
 				{onToggleCompact && (
 					<button
 						onClick={onToggleCompact}
 						className="p-2.5 rounded-xl shrink-0"
-						style={{ backgroundColor: 'var(--bg-secondary)', color: compact ? 'var(--accent)' : 'var(--text-muted)' }}
+						style={{ backgroundColor: 'var(--bg-tertiary)', color: compact ? 'var(--accent)' : 'var(--text-muted)' }}
 					>
 						{compact ? (
 							<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

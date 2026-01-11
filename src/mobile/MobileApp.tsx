@@ -1,15 +1,16 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { getInstances, type Instance } from '../api/instances'
 import { logout } from '../api/auth'
 import { MobileInstancePicker } from './MobileInstancePicker'
 import { MobileStats } from './MobileStats'
 import { MobileTorrentList } from './MobileTorrentList'
-import { MobileTorrentDetail } from './MobileTorrentDetail'
-import { MobileTools } from './MobileTools'
 import { MobileThemeSwitcher } from './MobileThemeSwitcher'
-import { AddTorrentModal } from '../components/AddTorrentModal'
 import { InstanceProvider } from '../contexts/InstanceContext'
+
+const MobileTorrentDetail = lazy(() => import('./MobileTorrentDetail').then(m => ({ default: m.MobileTorrentDetail })))
+const MobileTools = lazy(() => import('./MobileTools').then(m => ({ default: m.MobileTools })))
+const AddTorrentModal = lazy(() => import('../components/AddTorrentModal').then(m => ({ default: m.AddTorrentModal })))
 
 type MainTab = 'torrents' | 'tools'
 
@@ -235,7 +236,9 @@ export function MobileApp({ username, onLogout }: Props) {
 						</div>
 					)}
 					{mainTab === 'tools' && (
-						<MobileTools instances={instances} />
+						<Suspense fallback={null}>
+							<MobileTools instances={instances} />
+						</Suspense>
 					)}
 				</main>
 
@@ -282,20 +285,24 @@ export function MobileApp({ username, onLogout }: Props) {
 				</nav>
 
 				{selectedTorrentHash && selectedTorrentInstanceId && (
-					<MobileTorrentDetail
-						torrentHash={selectedTorrentHash}
-						instanceId={selectedTorrentInstanceId}
-						onClose={() => {
-							setSelectedTorrentHash(null)
-							setSelectedTorrentInstanceId(null)
-						}}
-					/>
+					<Suspense fallback={null}>
+						<MobileTorrentDetail
+							torrentHash={selectedTorrentHash}
+							instanceId={selectedTorrentInstanceId}
+							onClose={() => {
+								setSelectedTorrentHash(null)
+								setSelectedTorrentInstanceId(null)
+							}}
+						/>
+					</Suspense>
 				)}
 
 				{showAddModal && (
-					<InstanceProvider instance={selectedInstance !== 'all' ? selectedInstance : instances[0]}>
-						<AddTorrentModal open={showAddModal} onClose={() => setShowAddModal(false)} />
-					</InstanceProvider>
+					<Suspense fallback={null}>
+						<InstanceProvider instance={selectedInstance !== 'all' ? selectedInstance : instances[0]}>
+							<AddTorrentModal open={showAddModal} onClose={() => setShowAddModal(false)} />
+						</InstanceProvider>
+					</Suspense>
 				)}
 			</div>
 		</QueryClientProvider>

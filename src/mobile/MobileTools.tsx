@@ -1,41 +1,49 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react'
 import { type Instance } from '../api/instances'
-import { MobileSearchPanel } from './MobileSearchPanel'
-import { MobileFileBrowser } from './MobileFileBrowser'
-import { MobileOrphanManager } from './MobileOrphanManager'
-import { MobileRSSManager } from './MobileRSSManager'
-import { MobileLogViewer } from './MobileLogViewer'
+
+const MobileSearchPanel = lazy(() => import('./MobileSearchPanel').then(m => ({ default: m.MobileSearchPanel })))
+const MobileFileBrowser = lazy(() => import('./MobileFileBrowser').then(m => ({ default: m.MobileFileBrowser })))
+const MobileOrphanManager = lazy(() => import('./MobileOrphanManager').then(m => ({ default: m.MobileOrphanManager })))
+const MobileRSSManager = lazy(() => import('./MobileRSSManager').then(m => ({ default: m.MobileRSSManager })))
+const MobileLogViewer = lazy(() => import('./MobileLogViewer').then(m => ({ default: m.MobileLogViewer })))
 
 type Tool = 'search' | 'files' | 'orphans' | 'rss' | 'logs' | null
+
+const Spinner = (
+	<div className="flex items-center justify-center p-8">
+		<div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'color-mix(in srgb, var(--accent) 20%, transparent)', borderTopColor: 'var(--accent)' }} />
+	</div>
+)
+
+function LazyTool({ children }: { children: ReactNode }): ReactNode {
+	return <Suspense fallback={Spinner}>{children}</Suspense>
+}
 
 interface Props {
 	instances: Instance[]
 }
 
-export function MobileTools({ instances }: Props) {
+export function MobileTools({ instances }: Props): ReactNode {
 	const [activeTool, setActiveTool] = useState<Tool>(null)
 	const [filesEnabled, setFilesEnabled] = useState(false)
 
 	useEffect(() => {
-		fetch('/api/config')
-			.then(r => r.json())
-			.then(c => setFilesEnabled(c.filesEnabled))
-			.catch(() => {})
+		fetch('/api/config').then(r => r.json()).then(c => setFilesEnabled(c.filesEnabled)).catch(() => {})
 	}, [])
 
 	const handleBack = () => setActiveTool(null)
 
 	switch (activeTool) {
 		case 'search':
-			return <MobileSearchPanel instances={instances} onBack={handleBack} />
+			return <LazyTool><MobileSearchPanel instances={instances} onBack={handleBack} /></LazyTool>
 		case 'files':
-			return <MobileFileBrowser onBack={handleBack} />
+			return <LazyTool><MobileFileBrowser onBack={handleBack} /></LazyTool>
 		case 'orphans':
-			return <MobileOrphanManager instances={instances} onBack={handleBack} />
+			return <LazyTool><MobileOrphanManager instances={instances} onBack={handleBack} /></LazyTool>
 		case 'rss':
-			return <MobileRSSManager instances={instances} onBack={handleBack} />
+			return <LazyTool><MobileRSSManager instances={instances} onBack={handleBack} /></LazyTool>
 		case 'logs':
-			return <MobileLogViewer instances={instances} onBack={handleBack} />
+			return <LazyTool><MobileLogViewer instances={instances} onBack={handleBack} /></LazyTool>
 	}
 
 	return (
