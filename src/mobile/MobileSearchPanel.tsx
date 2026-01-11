@@ -13,6 +13,7 @@ import {
 } from '../api/integrations'
 import { type Instance } from '../api/instances'
 import { formatSize } from '../utils/format'
+import { extractTags, sortResults, filterResults, type SortKey } from '../utils/search'
 
 function formatAge(dateStr: string): string {
 	const date = new Date(dateStr)
@@ -51,6 +52,11 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 	const [showIntegrationPicker, setShowIntegrationPicker] = useState(false)
 	const [showGrabSheet, setShowGrabSheet] = useState<SearchResult | null>(null)
 	const [deleteConfirm, setDeleteConfirm] = useState<Integration | null>(null)
+	const [sortKey, setSortKey] = useState<SortKey>('seeders')
+	const [sortAsc, setSortAsc] = useState(false)
+	const [filter, setFilter] = useState('')
+	const [showSortPicker, setShowSortPicker] = useState(false)
+	const [showFilterPicker, setShowFilterPicker] = useState(false)
 	const searchInputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
@@ -79,7 +85,8 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 		setResults([])
 		try {
 			const data = await search(selectedIntegration.id, query, { indexerIds: selectedIndexer })
-			setResults(data.sort((a, b) => (b.seeders || 0) - (a.seeders || 0)))
+			setResults(data)
+			setFilter('')
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Search failed')
 		} finally {
@@ -158,6 +165,9 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 	}
 
 	const torrentIndexers = indexers.filter(i => i.enable && i.protocol === 'torrent')
+	const availableTags = extractTags(results.map(r => r.title))
+	const filteredResults = filterResults(results, filter)
+	const sortedResults = sortResults(filteredResults, sortKey, sortAsc)
 
 	if (showAddForm) {
 		return (
@@ -372,10 +382,47 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 
 				{!searching && results.length > 0 && (
 					<div className="space-y-2">
-						<div className="text-xs font-medium py-2" style={{ color: 'var(--text-muted)' }}>
-							{results.length} results
+						<div className="flex items-center gap-2 py-2">
+							<button
+								onClick={() => setShowSortPicker(true)}
+								className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs"
+								style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+							>
+								<svg className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+									<path strokeLinecap="round" strokeLinejoin="round" d="M3 7h6M3 12h9m-9 5h12M17 3v18m0 0l-4-4m4 4l4-4" />
+								</svg>
+								<span>{sortKey === 'seeders' ? 'Seeders' : sortKey === 'size' ? 'Size' : 'Age'}</span>
+								<span style={{ color: 'var(--text-muted)' }}>{sortAsc ? '↑' : '↓'}</span>
+							</button>
+							{availableTags.length > 0 && (
+								<button
+									onClick={() => setShowFilterPicker(true)}
+									className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+								>
+									<svg className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+										<path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+									</svg>
+									<span>Filter</span>
+								</button>
+							)}
+							{filter && (
+								<button
+									onClick={() => setFilter('')}
+									className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
+									style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}
+								>
+									{filter}
+									<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+										<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+									</svg>
+								</button>
+							)}
+							<span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
+								{filter ? `${sortedResults.length}/${results.length}` : results.length}
+							</span>
 						</div>
-						{results.map((result) => (
+						{sortedResults.map((result) => (
 							<div
 								key={result.guid}
 								onClick={() => instances.length > 0 && setShowGrabSheet(result)}
@@ -589,6 +636,85 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							>
 								Delete
 							</button>
+						</div>
+					</div>
+				</>
+			)}
+
+			{showSortPicker && (
+				<>
+					<div className="fixed inset-0 z-50" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setShowSortPicker(false)} />
+					<div
+						className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl border-t"
+						style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+					>
+						<div className="flex justify-center pt-3 pb-2">
+							<div className="w-10 h-1 rounded-full" style={{ backgroundColor: 'var(--text-muted)' }} />
+						</div>
+						<div className="px-5 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
+							<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Sort By</h3>
+						</div>
+						<div className="p-2">
+							{(['seeders', 'size', 'age'] as SortKey[]).map((key) => (
+								<button
+									key={key}
+									onClick={() => {
+										if (sortKey === key) setSortAsc(!sortAsc)
+										else { setSortKey(key); setSortAsc(false) }
+										setShowSortPicker(false)
+									}}
+									className="w-full flex items-center justify-between px-4 py-3 rounded-xl"
+									style={{ backgroundColor: sortKey === key ? 'var(--bg-tertiary)' : 'transparent' }}
+								>
+									<span style={{ color: 'var(--text-primary)' }}>
+										{key === 'seeders' ? 'Seeders' : key === 'size' ? 'Size' : 'Age'}
+									</span>
+									{sortKey === key && (
+										<span style={{ color: 'var(--accent)' }}>{sortAsc ? '↑ Ascending' : '↓ Descending'}</span>
+									)}
+								</button>
+							))}
+						</div>
+					</div>
+				</>
+			)}
+
+			{showFilterPicker && (
+				<>
+					<div className="fixed inset-0 z-50" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setShowFilterPicker(false)} />
+					<div
+						className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl border-t max-h-[70vh] overflow-hidden"
+						style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+					>
+						<div className="flex justify-center pt-3 pb-2">
+							<div className="w-10 h-1 rounded-full" style={{ backgroundColor: 'var(--text-muted)' }} />
+						</div>
+						<div className="px-5 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
+							<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Filter</h3>
+						</div>
+						<div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
+							<input
+								type="text"
+								placeholder="Type to filter..."
+								value={filter}
+								onChange={(e) => setFilter(e.target.value)}
+								className="w-full px-4 py-2.5 rounded-xl border text-base"
+								style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+								autoFocus
+							/>
+						</div>
+						<div className="overflow-y-auto max-h-[40vh] p-2">
+							{availableTags.slice(0, 20).map(({ tag, count }) => (
+								<button
+									key={tag}
+									onClick={() => { setFilter(filter === tag ? '' : tag); setShowFilterPicker(false) }}
+									className="w-full flex items-center justify-between px-4 py-3 rounded-xl"
+									style={{ backgroundColor: filter === tag ? 'var(--bg-tertiary)' : 'transparent' }}
+								>
+									<span style={{ color: filter === tag ? 'var(--accent)' : 'var(--text-primary)' }}>{tag}</span>
+									<span className="text-xs" style={{ color: 'var(--text-muted)' }}>{count}</span>
+								</button>
+							))}
 						</div>
 					</div>
 				</>

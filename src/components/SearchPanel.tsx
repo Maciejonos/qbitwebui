@@ -12,6 +12,7 @@ import {
 	type SearchResult,
 } from '../api/integrations'
 import { getInstances, type Instance } from '../api/instances'
+import { extractTags, sortResults, filterResults, type SortKey } from '../utils/search'
 
 function formatSize(bytes: number): string {
 	if (bytes < 1024) return `${bytes} B`
@@ -32,35 +33,6 @@ function formatAge(dateStr: string): string {
 	return `${Math.floor(days / 365)} years`
 }
 
-const PATTERNS = [
-	/\b(2160p|1080p|720p|480p|4K|UHD)\b/gi,
-	/\b(x264|x265|HEVC|AVC|H\.?264|H\.?265|AV1)\b/gi,
-	/\b(BluRay|BDRip|WEB-DL|WEBRip|HDRip|DVDRip|HDTV|WEB)\b/gi,
-	/\b(REMUX|HDR|HDR10|DV|Dolby\.?Vision|ATMOS)\b/gi,
-	/\b(MKV|MP4|AVI|ISO|FLAC|MP3|AAC)\b/gi,
-]
-
-function extractTags(titles: string[]): { tag: string; count: number }[] {
-	const counts = new Map<string, number>()
-	for (const title of titles) {
-		const found = new Set<string>()
-		for (const pattern of PATTERNS) {
-			const matches = title.match(pattern)
-			if (matches) {
-				for (const m of matches) {
-					found.add(m.toUpperCase())
-				}
-			}
-		}
-		for (const tag of found) {
-			counts.set(tag, (counts.get(tag) || 0) + 1)
-		}
-	}
-	return Array.from(counts.entries())
-		.map(([tag, count]) => ({ tag, count }))
-		.sort((a, b) => b.count - a.count)
-}
-
 export function SearchPanel() {
 	const [integrations, setIntegrations] = useState<Integration[]>([])
 	const [instances, setInstances] = useState<Instance[]>([])
@@ -76,7 +48,7 @@ export function SearchPanel() {
 	const [submitting, setSubmitting] = useState(false)
 	const [grabbing, setGrabbing] = useState<string | null>(null)
 	const [grabResult, setGrabResult] = useState<{ guid: string; success: boolean; message?: string } | null>(null)
-	const [sortKey, setSortKey] = useState<'seeders' | 'size' | 'age'>('seeders')
+	const [sortKey, setSortKey] = useState<SortKey>('seeders')
 	const [sortAsc, setSortAsc] = useState(false)
 	const [testing, setTesting] = useState(false)
 	const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
@@ -211,7 +183,7 @@ export function SearchPanel() {
 		}
 	}
 
-	function handleSort(key: 'seeders' | 'size' | 'age') {
+	function handleSort(key: SortKey) {
 		if (sortKey === key) {
 			setSortAsc(!sortAsc)
 		} else {
@@ -220,21 +192,8 @@ export function SearchPanel() {
 		}
 	}
 
-	const filteredResults = filter
-		? results.filter(r => r.title.toLowerCase().includes(filter.toLowerCase()))
-		: results
-
-	const sortedResults = [...filteredResults].sort((a, b) => {
-		let cmp = 0
-		if (sortKey === 'seeders') {
-			cmp = (b.seeders || 0) - (a.seeders || 0)
-		} else if (sortKey === 'size') {
-			cmp = b.size - a.size
-		} else if (sortKey === 'age') {
-			cmp = new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
-		}
-		return sortAsc ? -cmp : cmp
-	})
+	const filteredResults = filterResults(results, filter)
+	const sortedResults = sortResults(filteredResults, sortKey, sortAsc)
 
 	const totalPages = Math.ceil(sortedResults.length / itemsPerPage)
 	const paginatedResults = sortedResults.slice((page - 1) * itemsPerPage, page * itemsPerPage)
@@ -489,9 +448,22 @@ export function SearchPanel() {
 									<>
 										<div className="fixed inset-0 z-10" onClick={() => setFilterDropdownOpen(false)} />
 										<div
-											className="absolute left-0 top-full mt-1 z-20 min-w-[180px] max-h-64 overflow-y-auto rounded-lg border shadow-lg p-1"
+											className="absolute left-0 top-full mt-1 z-20 min-w-[200px] max-h-72 overflow-y-auto rounded-lg border shadow-lg"
 											style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 										>
+											<div className="p-2 border-b" style={{ borderColor: 'var(--border)' }}>
+												<input
+													type="text"
+													placeholder="Type to filter..."
+													value={filter}
+													onChange={(e) => setFilter(e.target.value)}
+													onClick={(e) => e.stopPropagation()}
+													className="w-full px-2.5 py-1.5 rounded border text-sm"
+													style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+													autoFocus
+												/>
+											</div>
+											<div className="p-1">
 											{availableTags.slice(0, 20).map(({ tag, count }) => (
 												<button
 													key={tag}
@@ -504,6 +476,7 @@ export function SearchPanel() {
 													<span className="text-xs" style={{ color: 'var(--text-muted)' }}>{count}</span>
 												</button>
 											))}
+											</div>
 										</div>
 									</>
 								)}
