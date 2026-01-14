@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { setCookie, deleteCookie, getCookie } from 'hono/cookie'
-import { db, type User } from '../db'
+import { db, type User, REGISTRATION_DISABLED } from '../db'
 import { hashPassword, verifyPassword, generateSessionId } from '../utils/crypto'
 import { checkRateLimit, resetRateLimit } from '../utils/rateLimit'
 import { authMiddleware } from '../middleware/auth'
@@ -27,6 +27,9 @@ function validatePassword(password: string): string | null {
 }
 
 auth.post('/register', async (c) => {
+	if (REGISTRATION_DISABLED) {
+		return c.json({ error: 'Registration is disabled' }, 403)
+	}
 	const body = await c.req.json<{ username: string; password: string }>()
 	const { username, password } = body
 

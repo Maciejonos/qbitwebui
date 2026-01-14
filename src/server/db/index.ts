@@ -1,4 +1,5 @@
 import { Database } from 'bun:sqlite'
+import { randomBytes } from 'crypto'
 
 const dbPath = process.env.DATABASE_PATH || './data/qbitwebui.db'
 
@@ -115,6 +116,7 @@ cleanupExpiredSessions()
 setInterval(cleanupExpiredSessions, 60 * 60 * 1000)
 
 export const AUTH_DISABLED = process.env.DISABLE_AUTH === 'true'
+export const REGISTRATION_DISABLED = process.env.DISABLE_REGISTRATION === 'true'
 
 if (AUTH_DISABLED) {
 	const guest = db.query<{ id: number }, []>('SELECT id FROM users WHERE id = 1').get()
@@ -122,3 +124,39 @@ if (AUTH_DISABLED) {
 		db.run('INSERT INTO users (id, username, password_hash) VALUES (1, ?, ?)', ['guest', 'disabled'])
 	}
 }
+
+export let defaultCredentials: { username: string; password: string } | null = null
+
+function generateSecurePassword(): string {
+	const lower = 'abcdefghijklmnopqrstuvwxyz'
+	const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	const digits = '0123456789'
+	const all = lower + upper + digits
+	const bytes = randomBytes(16)
+	let password = ''
+	password += lower[bytes[0] % lower.length]
+	password += upper[bytes[1] % upper.length]
+	password += digits[bytes[2] % digits.length]
+	for (let i = 3; i < 16; i++) {
+		password += all[bytes[i] % all.length]
+	}
+	return password.split('').sort(() => randomBytes(1)[0] - 128).join('')
+}
+
+async function initDefaultAdmin() {
+	if (!REGISTRATION_DISABLED || AUTH_DISABLED) return
+	const userCount = db.query<{ count: number }, []>('SELECT COUNT(*) as count FROM users').get()
+	if (!userCount || userCount.count === 0) {
+		const { hashPassword } = await import('../utils/crypto')
+		const password = generateSecurePassword()
+		const passwordHash = await hashPassword(password)
+		db.run('INSERT INTO users (username, password_hash) VALUES (?, ?)', ['admin', passwordHash])
+		defaultCredentials = { username: 'admin', password }
+	}
+}
+
+export function clearDefaultCredentials() {
+	defaultCredentials = null
+}
+
+await initDefaultAdmin()

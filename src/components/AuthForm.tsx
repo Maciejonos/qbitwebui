@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { register, login, type User } from '../api/auth'
 
 interface Props {
@@ -7,6 +7,14 @@ interface Props {
 
 export function AuthForm({ onSuccess }: Props) {
 	const [mode, setMode] = useState<'login' | 'register'>('login')
+	const [registrationDisabled, setRegistrationDisabled] = useState<boolean | null>(null)
+
+	useEffect(() => {
+		fetch('/api/config')
+			.then(r => r.json())
+			.then(c => setRegistrationDisabled(c.registrationDisabled ?? false))
+			.catch(() => setRegistrationDisabled(true))
+	}, [])
 	const [username, setUsername] = useState('')
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
@@ -54,30 +62,32 @@ export function AuthForm({ onSuccess }: Props) {
 						</div>
 					</div>
 
-					<div className="flex mb-6 rounded-lg p-1" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-						<button
-							type="button"
-							onClick={() => { setMode('login'); setError('') }}
-							className="flex-1 py-2 text-sm font-medium rounded-md transition-colors"
-							style={{
-								backgroundColor: mode === 'login' ? 'var(--bg-secondary)' : 'transparent',
-								color: mode === 'login' ? 'var(--text-primary)' : 'var(--text-muted)',
-							}}
-						>
-							Sign In
-						</button>
-						<button
-							type="button"
-							onClick={() => { setMode('register'); setError('') }}
-							className="flex-1 py-2 text-sm font-medium rounded-md transition-colors"
-							style={{
-								backgroundColor: mode === 'register' ? 'var(--bg-secondary)' : 'transparent',
-								color: mode === 'register' ? 'var(--text-primary)' : 'var(--text-muted)',
-							}}
-						>
-							Register
-						</button>
-					</div>
+					{registrationDisabled === false && (
+						<div className="flex mb-6 rounded-lg p-1" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+							<button
+								type="button"
+								onClick={() => { setMode('login'); setError('') }}
+								className="flex-1 py-2 text-sm font-medium rounded-md transition-colors"
+								style={{
+									backgroundColor: mode === 'login' ? 'var(--bg-secondary)' : 'transparent',
+									color: mode === 'login' ? 'var(--text-primary)' : 'var(--text-muted)',
+								}}
+							>
+								Sign In
+							</button>
+							<button
+								type="button"
+								onClick={() => { setMode('register'); setError('') }}
+								className="flex-1 py-2 text-sm font-medium rounded-md transition-colors"
+								style={{
+									backgroundColor: mode === 'register' ? 'var(--bg-secondary)' : 'transparent',
+									color: mode === 'register' ? 'var(--text-primary)' : 'var(--text-muted)',
+								}}
+							>
+								Register
+							</button>
+						</div>
+					)}
 
 					{error && (
 						<div className="mb-6 px-4 py-3 rounded-lg text-sm font-medium" style={{ backgroundColor: 'color-mix(in srgb, var(--error) 10%, transparent)', color: 'var(--error)' }}>
@@ -149,7 +159,11 @@ export function AuthForm({ onSuccess }: Props) {
 					</button>
 
 					<p className="mt-6 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
-						{mode === 'register' ? 'Create an account to manage your instances' : 'Sign in to manage your qBittorrent instances'}
+						{mode === 'register' && registrationDisabled === false
+							? 'Create an account to manage your instances'
+							: registrationDisabled
+								? 'Registration is disabled. Contact administrator for access.'
+								: 'Sign in to manage your qBittorrent instances'}
 					</p>
 				</div>
 			</form>

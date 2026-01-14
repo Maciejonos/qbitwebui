@@ -69,6 +69,8 @@ services:
       - ENCRYPTION_KEY=your-secret-key-here
       # Uncomment to disable login (single-user mode)
       # - DISABLE_AUTH=true
+      # Uncomment to disable registration (creates default admin account)
+      # - DISABLE_REGISTRATION=true
       # Uncomment to allow HTTPS with self-signed certificates
       # - ALLOW_SELF_SIGNED_CERTS=true
       # Uncomment to enable file browser
@@ -106,7 +108,8 @@ bun run dev
 | `DATABASE_PATH` | No | `./data/qbitwebui.db` | SQLite database location |
 | `SALT_PATH` | No | `./data/.salt` | Encryption salt file location |
 | `ALLOW_SELF_SIGNED_CERTS` | No | `false` | Set to `true` to allow HTTPS connections to qBittorrent instances with self-signed certificates |
-| `DISABLE_AUTH` | No | `false` | Set to `true` to disable login/registration |
+| `DISABLE_AUTH` | No | `false` | Set to `true` to disable login/registration (guest mode) |
+| `DISABLE_REGISTRATION` | No | `false` | Set to `true` to disable new registrations. Creates default `admin` account on first run (password shown in logs) |
 | `DOWNLOADS_PATH` | No | - | Path to downloads directory to enable file browser |
 
 ## Tech Stack

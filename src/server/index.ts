@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { serveStatic } from 'hono/bun'
 import { cors } from 'hono/cors'
-import { AUTH_DISABLED } from './db'
+import { AUTH_DISABLED, REGISTRATION_DISABLED, defaultCredentials, clearDefaultCredentials } from './db'
 import auth from './routes/auth'
 import instances from './routes/instances'
 import proxy from './routes/proxy'
@@ -24,7 +24,11 @@ app.use('*', cors({
 	credentials: true,
 }))
 
-app.get('/api/config', (c) => c.json({ authDisabled: AUTH_DISABLED, filesEnabled: !!process.env.DOWNLOADS_PATH }))
+app.get('/api/config', (c) => c.json({
+	authDisabled: AUTH_DISABLED,
+	registrationDisabled: REGISTRATION_DISABLED,
+	filesEnabled: !!process.env.DOWNLOADS_PATH,
+}))
 
 app.route('/api/auth', auth)
 app.route('/api/instances', instances)
@@ -43,6 +47,16 @@ const env = process.env.NODE_ENV || 'development'
 
 console.log(banner)
 log.info(`Server running on port ${port} (${env})`)
+
+if (defaultCredentials) {
+	log.info('='.repeat(50))
+	log.info('Default admin account created:')
+	log.info(`  Username: ${defaultCredentials.username}`)
+	log.info(`  Password: ${defaultCredentials.password}`)
+	log.info('Please change your password after first login!')
+	log.info('='.repeat(50))
+	clearDefaultCredentials()
+}
 
 export default {
 	port,
