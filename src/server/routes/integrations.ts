@@ -10,7 +10,7 @@ const integrations = new Hono()
 
 integrations.use('*', authMiddleware)
 
-interface IntegrationResponse {
+export interface IntegrationResponse {
 	id: number
 	type: string
 	label: string
@@ -18,7 +18,7 @@ interface IntegrationResponse {
 	created_at: number
 }
 
-function toResponse(i: Integration): IntegrationResponse {
+export function integrationToResponse(i: Integration): IntegrationResponse {
 	return {
 		id: i.id,
 		type: i.type,
@@ -33,7 +33,7 @@ integrations.get('/', (c) => {
 	const list = db.query<Integration, [number]>(
 		'SELECT * FROM integrations WHERE user_id = ? ORDER BY created_at'
 	).all(user.id)
-	return c.json(list.map(toResponse))
+	return c.json(list.map(integrationToResponse))
 })
 
 integrations.post('/', async (c) => {
@@ -76,7 +76,7 @@ integrations.post('/', async (c) => {
 			return c.json({ error: 'Failed to create integration' }, 500)
 		}
 
-		return c.json(toResponse(integration), 201)
+		return c.json(integrationToResponse(integration), 201)
 	} catch (e: unknown) {
 		if (e instanceof Error && e.message.includes('UNIQUE')) {
 			return c.json({ error: 'Integration with this label already exists' }, 400)

@@ -19,8 +19,8 @@ function isPathSafe(requestedPath: string): string | null {
 	return resolved
 }
 
-function sanitizeFilename(name: string): string {
-	return name.replace(/["\r\n]/g, '_')
+export function sanitizeFilename(name: string): string {
+	return name.replace(/["\\r\\n]/g, '_')
 }
 
 interface FileEntry {

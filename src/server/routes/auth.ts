@@ -10,7 +10,7 @@ const auth = new Hono()
 
 const SESSION_DURATION = 7 * 24 * 60 * 60
 
-function validatePassword(password: string): string | null {
+export function validatePassword(password: string): string | null {
 	if (!password || password.length < 8) {
 		return 'Password must be at least 8 characters'
 	}
@@ -22,6 +22,13 @@ function validatePassword(password: string): string | null {
 	}
 	if (!/[0-9]/.test(password)) {
 		return 'Password must contain a number'
+	}
+	return null
+}
+
+export function validateUsername(username: string): string | null {
+	if (!username || username.length < 3 || username.length > 32) {
+		return 'Username must be 3-32 characters'
 	}
 	return null
 }
