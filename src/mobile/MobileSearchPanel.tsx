@@ -65,7 +65,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 				setIntegrations(data)
 				if (data.length > 0) setSelectedIntegration(prev => prev ?? data[0])
 			})
-			.catch(() => { })
+			.catch(() => {})
 	}, [])
 
 	useEffect(() => {
