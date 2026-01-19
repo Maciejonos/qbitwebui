@@ -167,7 +167,7 @@ export default class PrettyReporter implements Reporter {
 
             // Progress bar (throttled)
             const now = Date.now();
-            if (now - this.lastProgressRender < 80) return;
+            if (now - this.lastProgressRender < 1) return;
             this.lastProgressRender = now;
 
             this.renderProgressLine();

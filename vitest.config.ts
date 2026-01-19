@@ -1,5 +1,10 @@
 import { defineConfig } from 'vitest/config'
+import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+
+// Load .env at config time
+const env = loadEnv('', process.cwd(), '')
+const isCI = env.CI === 'true' || process.env.CI === 'true'
 
 export default defineConfig({
     plugins: [react()],
@@ -7,7 +12,7 @@ export default defineConfig({
         globals: true,
         environment: 'jsdom',
         include: ['__tests__/**/*.{test,spec}.{ts,tsx}'],
-        reporters: ['./__tests__/reporter.ts'],
+        reporters: isCI ? ['default'] : ['./__tests__/reporter.ts'],
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json', 'html'],
