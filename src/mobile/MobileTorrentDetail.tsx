@@ -104,15 +104,9 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 	}
 
 	return (
-		<Drawer.Root
-			open={true}
-			onOpenChange={(open) => !open && onClose()}
-		>
+		<Drawer.Root open={true} onOpenChange={(open) => !open && onClose()}>
 			<Drawer.Portal>
-				<Drawer.Overlay
-					className="fixed inset-0 z-50"
-					style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-				/>
+				<Drawer.Overlay className="fixed inset-0 z-50" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} />
 				<Drawer.Content
 					className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl border-t flex flex-col outline-none h-[90vh]"
 					style={{
@@ -127,7 +121,10 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 
 					{/* Header */}
 					<div className="px-5 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-						<Drawer.Title className="text-base font-semibold leading-snug line-clamp-2" style={{ color: 'var(--text-primary)' }}>
+						<Drawer.Title
+							className="text-base font-semibold leading-snug line-clamp-2"
+							style={{ color: 'var(--text-primary)' }}
+						>
 							{torrent.name}
 						</Drawer.Title>
 						<div className="flex items-center gap-2 mt-2">
@@ -198,10 +195,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 
 					{/* Tabs */}
 					<div className="mx-4 mt-3">
-						<div
-							className="flex p-1.5 rounded-xl"
-							style={{ backgroundColor: 'var(--bg-secondary)' }}
-						>
+						<div className="flex p-1.5 rounded-xl" style={{ backgroundColor: 'var(--bg-secondary)' }}>
 							{tabs.map((t) => (
 								<button
 									key={t.id}
@@ -317,10 +311,10 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									))}
 								{(!trackers ||
 									trackers.filter((t) => t.url.startsWith('http') || t.url.startsWith('udp')).length === 0) && (
-										<div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-											No trackers
-										</div>
-									)}
+									<div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+										No trackers
+									</div>
+								)}
 							</div>
 						)}
 
