@@ -8,6 +8,7 @@ import proxy from './routes/proxy'
 import integrations from './routes/integrations'
 import files from './routes/files'
 import tools from './routes/tools'
+import { crossSeed, startScheduler } from './routes/crossSeed'
 import { log } from './utils/logger'
 
 const banner = `
@@ -41,6 +42,7 @@ app.route('/api/instances', proxy)
 app.route('/api/integrations', integrations)
 app.route('/api/files', files)
 app.route('/api/tools', tools)
+app.route('/api/cross-seed', crossSeed)
 
 if (process.env.NODE_ENV === 'production') {
 	app.use('/*', serveStatic({ root: './dist' }))
@@ -62,6 +64,8 @@ if (defaultCredentials) {
 	log.info('='.repeat(50))
 	clearDefaultCredentials()
 }
+
+startScheduler()
 
 export default {
 	port,

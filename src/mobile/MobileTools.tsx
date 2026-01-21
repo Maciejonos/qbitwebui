@@ -8,8 +8,11 @@ const MobileOrphanManager = lazy(() =>
 )
 const MobileRSSManager = lazy(() => import('./MobileRSSManager').then((m) => ({ default: m.MobileRSSManager })))
 const MobileLogViewer = lazy(() => import('./MobileLogViewer').then((m) => ({ default: m.MobileLogViewer })))
+const MobileCrossSeedManager = lazy(() =>
+	import('./MobileCrossSeedManager').then((m) => ({ default: m.MobileCrossSeedManager }))
+)
 
-type Tool = 'search' | 'files' | 'orphans' | 'rss' | 'logs' | null
+type Tool = 'search' | 'files' | 'orphans' | 'rss' | 'logs' | 'cross-seed' | null
 
 const Spinner = (
 	<div className="flex items-center justify-center p-8">
@@ -70,6 +73,12 @@ export function MobileTools({ instances }: Props): ReactNode {
 			return (
 				<LazyTool>
 					<MobileLogViewer instances={instances} onBack={handleBack} />
+				</LazyTool>
+			)
+		case 'cross-seed':
+			return (
+				<LazyTool>
+					<MobileCrossSeedManager instances={instances} onBack={handleBack} />
 				</LazyTool>
 			)
 	}
@@ -293,6 +302,52 @@ export function MobileTools({ instances }: Props): ReactNode {
 						</h3>
 						<p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
 							View application and peer logs
+						</p>
+					</div>
+					<svg
+						className="w-5 h-5 mt-1 shrink-0"
+						style={{ color: 'var(--text-muted)' }}
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						strokeWidth={2}
+					>
+						<path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+					</svg>
+				</div>
+			</button>
+
+			<button
+				onClick={() => setActiveTool('cross-seed')}
+				className="w-full p-4 rounded-2xl border text-left active:scale-[0.98] transition-transform"
+				style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+			>
+				<div className="flex items-start gap-4">
+					<div
+						className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+						style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 15%, transparent)' }}
+					>
+						<svg
+							className="w-6 h-6"
+							style={{ color: 'var(--accent)' }}
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							strokeWidth={1.5}
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+							/>
+						</svg>
+					</div>
+					<div className="flex-1 min-w-0">
+						<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+							Cross-Seed
+						</h3>
+						<p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
+							Find matching torrents across trackers
 						</p>
 					</div>
 					<svg

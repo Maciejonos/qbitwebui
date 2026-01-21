@@ -15,6 +15,7 @@ import { FileBrowser } from './FileBrowser'
 import { OrphanManager } from './OrphanManager'
 import { RSSManager } from './RSSManager'
 import { LogViewer } from './LogViewer'
+import { CrossSeedManager } from './CrossSeedManager'
 import { Checkbox } from './ui'
 import { useUpdateCheck } from '../hooks/useUpdateCheck'
 import { formatSpeed, formatSize } from '../utils/format'
@@ -22,7 +23,7 @@ import { formatSpeed, formatSize } from '../utils/format'
 declare const __APP_VERSION__: string
 
 type Tab = 'dashboard' | 'tools'
-type Tool = 'indexers' | 'files' | 'orphans' | 'rss' | 'logs' | null
+type Tool = 'indexers' | 'files' | 'orphans' | 'rss' | 'logs' | 'cross-seed' | null
 
 interface InstanceStats {
 	id: number
@@ -431,6 +432,7 @@ export function InstanceManager({ username, onSelectInstance, onLogout, authDisa
 							{activeTool === 'orphans' && <OrphanManager instances={instances} />}
 							{activeTool === 'rss' && <RSSManager instances={instances} />}
 							{activeTool === 'logs' && <LogViewer instances={instances} />}
+							{activeTool === 'cross-seed' && <CrossSeedManager instances={instances} />}
 						</>
 					) : (
 						<>
@@ -568,6 +570,32 @@ export function InstanceManager({ username, onSelectInstance, onLogout, authDisa
 									</div>
 									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
 										Application logs
+									</div>
+								</button>
+								<button
+									onClick={() => setActiveTool('cross-seed')}
+									className="p-6 rounded-xl border text-left transition-all hover:border-[var(--accent)]"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+								>
+									<svg
+										className="w-8 h-8 mb-3"
+										style={{ color: 'var(--accent)' }}
+										fill="none"
+										viewBox="0 0 24 24"
+										stroke="currentColor"
+										strokeWidth={1.5}
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+										/>
+									</svg>
+									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>
+										Cross-Seed
+									</div>
+									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+										Find matching torrents
 									</div>
 								</button>
 							</div>
