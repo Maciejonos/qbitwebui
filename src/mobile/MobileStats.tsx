@@ -1,4 +1,5 @@
 import { useQueries } from '@tanstack/react-query'
+import { ArrowDown, ArrowUp } from 'lucide-react'
 import * as api from '../api/qbittorrent'
 import type { Instance } from '../api/instances'
 import { formatSpeed, formatSize } from '../utils/format'
@@ -59,16 +60,7 @@ export function MobileStats({ instances }: Props) {
 							className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
 							style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 15%, transparent)' }}
 						>
-							<svg
-								className="w-5 h-5"
-								style={{ color: 'var(--accent)' }}
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								strokeWidth={2}
-							>
-								<path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-							</svg>
+							<ArrowDown className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 						</div>
 						<div className="min-w-0">
 							<div className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
@@ -93,16 +85,7 @@ export function MobileStats({ instances }: Props) {
 							className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
 							style={{ backgroundColor: 'color-mix(in srgb, #a6e3a1 15%, transparent)' }}
 						>
-							<svg
-								className="w-5 h-5"
-								style={{ color: '#a6e3a1' }}
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								strokeWidth={2}
-							>
-								<path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-							</svg>
+							<ArrowUp className="w-5 h-5" style={{ color: '#a6e3a1' }} strokeWidth={2} />
 						</div>
 						<div className="min-w-0">
 							<div className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>

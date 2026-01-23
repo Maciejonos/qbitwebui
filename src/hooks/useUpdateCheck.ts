@@ -4,6 +4,8 @@ declare const __APP_VERSION__: string
 
 interface GitHubRelease {
 	tag_name: string
+	body?: string
+	html_url?: string
 }
 
 function compareVersions(current: string, latest: string): number {
@@ -31,5 +33,12 @@ export function useUpdateCheck() {
 	const latestVersion = data?.tag_name?.replace(/^v/, '')
 	const hasUpdate = latestVersion ? compareVersions(__APP_VERSION__, latestVersion) > 0 : false
 
-	return { hasUpdate, latestVersion, isLoading, error }
+	return {
+		hasUpdate,
+		latestVersion,
+		releaseNotes: data?.body ?? '',
+		releaseUrl: data?.html_url ?? '',
+		isLoading,
+		error,
+	}
 }

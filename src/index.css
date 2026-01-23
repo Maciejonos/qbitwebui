@@ -18,7 +18,7 @@
 
 * {
 	scrollbar-width: thin;
-	scrollbar-color: var(--bg-tertiary) transparent;
+	scrollbar-color: var(--text-muted) transparent;
 }
 
 body {
@@ -110,7 +110,64 @@ label {
 	cursor: pointer;
 }
 
+button:not([data-dropdown]),
+[role='button'],
+input[type='button'],
+input[type='submit'] {
+	transition:
+		filter 0.15s ease,
+		transform 0.1s ease;
+}
+
+button:not([data-dropdown]):hover:not(:disabled),
+[role='button']:hover:not(:disabled),
+input[type='button']:hover:not(:disabled),
+input[type='submit']:hover:not(:disabled) {
+	filter: brightness(1.15);
+}
+
+button:not([data-dropdown]):active:not(:disabled),
+[role='button']:active:not(:disabled),
+input[type='button']:active:not(:disabled),
+input[type='submit']:active:not(:disabled) {
+	filter: brightness(0.9);
+	transform: scale(0.97);
+}
+
 ::selection {
 	background: color-mix(in srgb, var(--accent) 30%, transparent);
 	color: var(--text-primary);
+}
+
+.resize-handle {
+	position: absolute;
+	right: -4px;
+	top: 0;
+	bottom: 0;
+	width: 9px;
+	cursor: col-resize;
+	user-select: none;
+	z-index: 10;
+}
+
+.resize-handle::before {
+	content: '';
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 1px;
+	height: 40%;
+	background: transparent;
+	border-radius: 1px;
+	transition: all 0.2s ease;
+}
+
+.resize-handle:hover::before {
+	height: 60%;
+	width: 2px;
+	background: var(--accent);
+	box-shadow:
+		0 0 8px var(--accent),
+		0 0 4px var(--accent);
 }

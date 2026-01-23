@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { ChevronLeft, SlidersHorizontal, RefreshCw, Server, FileText } from 'lucide-react'
 import { type Instance } from '../api/instances'
 import { getLog, getPeerLog, type LogEntry, type PeerLogEntry } from '../api/qbittorrent'
 
@@ -133,9 +134,7 @@ export function MobileLogViewer({ instances, onBack }: Props) {
 					className="p-2 -ml-2 rounded-xl active:scale-95 transition-transform"
 					style={{ color: 'var(--text-muted)' }}
 				>
-					<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-						<path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-					</svg>
+					<ChevronLeft className="w-5 h-5" strokeWidth={2} />
 				</button>
 				<div className="flex-1">
 					<h1 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -156,13 +155,7 @@ export function MobileLogViewer({ instances, onBack }: Props) {
 						backgroundColor: showFilters ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
 					}}
 				>
-					<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
-						/>
-					</svg>
+					<SlidersHorizontal className="w-5 h-5" strokeWidth={1.5} />
 					{activeFilterCount < 4 && (
 						<span
 							className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-xs flex items-center justify-center font-medium"
@@ -178,19 +171,7 @@ export function MobileLogViewer({ instances, onBack }: Props) {
 					className="p-2 rounded-xl disabled:opacity-50 active:scale-95 transition-transform"
 					style={{ color: 'var(--accent)' }}
 				>
-					<svg
-						className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`}
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						strokeWidth={2}
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-						/>
-					</svg>
+					<RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} strokeWidth={2} />
 				</button>
 			</div>
 
@@ -331,40 +312,14 @@ export function MobileLogViewer({ instances, onBack }: Props) {
 			<div ref={containerRef} className="flex-1 overflow-auto">
 				{!selectedInstance ? (
 					<div className="text-center py-16">
-						<svg
-							className="w-12 h-12 mx-auto mb-3"
-							style={{ color: 'var(--text-muted)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={1}
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 1 0 0 6h13.5a3 3 0 1 0 0-6m-16.5-3a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3m-19.5 0a4.5 4.5 0 0 1 .9-2.7L5.737 5.1a3.375 3.375 0 0 1 2.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 0 1 .9 2.7m0 0a3 3 0 0 1-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z"
-							/>
-						</svg>
+						<Server className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} strokeWidth={1} />
 						<p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
 							No instances
 						</p>
 					</div>
 				) : logCount === 0 && !loading ? (
 					<div className="text-center py-16">
-						<svg
-							className="w-12 h-12 mx-auto mb-3"
-							style={{ color: 'var(--text-muted)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={1}
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-							/>
-						</svg>
+						<FileText className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} strokeWidth={1} />
 						<p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
 							No logs
 						</p>

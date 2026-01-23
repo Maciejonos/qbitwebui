@@ -1,23 +1,43 @@
+export type MatchMode = 'strict' | 'flexible'
+
 export interface CrossSeedConfig {
 	instance_id: number
 	enabled: boolean
 	interval_hours: number
+	delay_seconds: number
 	dry_run: boolean
 	category_suffix: string
 	tag: string
 	skip_recheck: boolean
 	integration_id: number | null
+	indexer_ids: number[]
+	match_mode: MatchMode
+	link_dir: string | null
+	blocklist: string[]
+	include_single_episodes: boolean
 	last_run: number | null
 	next_run: number | null
 }
 
+export interface TorznabIndexer {
+	id: number
+	name: string
+	protocol: string
+	supportsSearch: boolean
+	categories: number[]
+}
+
 export interface ScanResult {
+	instanceId: number
+	torrentsTotal: number
 	torrentsScanned: number
-	newSearchees: number
-	skippedSearchees: number
+	torrentsSkipped: number
 	matchesFound: number
 	torrentsAdded: number
 	errors: string[]
+	dryRun: boolean
+	startedAt: number
+	completedAt: number
 }
 
 export interface SchedulerStatus {
@@ -71,7 +91,7 @@ export async function getCrossSeedConfig(instanceId: number): Promise<CrossSeedC
 export async function updateCrossSeedConfig(
 	instanceId: number,
 	config: Partial<Omit<CrossSeedConfig, 'instance_id' | 'last_run' | 'next_run'>>
-): Promise<void> {
+): Promise<{ linkDirValid?: boolean }> {
 	const res = await fetch(`/api/cross-seed/config/${instanceId}`, {
 		method: 'PUT',
 		headers: { 'Content-Type': 'application/json' },
@@ -82,6 +102,17 @@ export async function updateCrossSeedConfig(
 		const err = await res.json()
 		throw new Error(err.error || 'Failed to update config')
 	}
+	return res.json()
+}
+
+export async function getIndexers(instanceId: number, integrationId?: number): Promise<TorznabIndexer[]> {
+	const params = integrationId ? `?integrationId=${integrationId}` : ''
+	const res = await fetch(`/api/cross-seed/indexers/${instanceId}${params}`, { credentials: 'include' })
+	if (!res.ok) {
+		const err = await res.json()
+		throw new Error(err.error || 'Failed to fetch indexers')
+	}
+	return res.json()
 }
 
 export async function triggerScan(instanceId: number, force = false): Promise<ScanResult> {
@@ -144,11 +175,26 @@ export async function getDecisions(instanceId: number, searcheeId: number): Prom
 	return res.json()
 }
 
-export async function clearHistory(instanceId: number): Promise<{ deleted: number }> {
-	const res = await fetch(`/api/cross-seed/history/${instanceId}`, {
-		method: 'DELETE',
+export async function stopScan(instanceId: number): Promise<{ stopped: boolean }> {
+	const res = await fetch(`/api/cross-seed/stop/${instanceId}`, {
+		method: 'POST',
 		credentials: 'include',
 	})
-	if (!res.ok) throw new Error('Failed to clear history')
+	if (!res.ok) {
+		const err = await res.json()
+		throw new Error(err.error || 'Failed to stop scan')
+	}
+	return res.json()
+}
+
+export interface LogEntry {
+	timestamp: string
+	level: 'INFO' | 'WARN' | 'ERROR'
+	message: string
+}
+
+export async function getLogs(limit = 100): Promise<LogEntry[]> {
+	const res = await fetch(`/api/cross-seed/logs?limit=${limit}`, { credentials: 'include' })
+	if (!res.ok) throw new Error('Failed to fetch logs')
 	return res.json()
 }

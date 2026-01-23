@@ -79,6 +79,10 @@ export async function testIntegrationConnection(
 		credentials: 'include',
 		body: JSON.stringify({ url, api_key: apiKey }),
 	})
+	if (!res.ok) {
+		const err = await res.json().catch(() => ({}))
+		return { success: false, error: err.error || 'Connection test failed' }
+	}
 	return res.json()
 }
 

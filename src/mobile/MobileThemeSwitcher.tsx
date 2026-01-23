@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { Palette, Settings, Check } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { MobileThemeManager } from './MobileThemeManager'
 
@@ -24,20 +25,7 @@ export function MobileThemeSwitcher() {
 					className="w-9 h-9 rounded-full flex items-center justify-center active:scale-95 transition-transform"
 					style={{ backgroundColor: 'var(--bg-secondary)' }}
 				>
-					<svg
-						className="w-5 h-5"
-						style={{ color: 'var(--text-muted)' }}
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						strokeWidth={1.5}
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z"
-						/>
-					</svg>
+					<Palette className="w-5 h-5" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
 				</button>
 				{open && (
 					<>
@@ -93,20 +81,7 @@ export function MobileThemeSwitcher() {
 								className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm font-medium active:bg-[var(--bg-tertiary)] transition-colors"
 								style={{ color: 'var(--text-secondary)' }}
 							>
-								<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-									/>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-									/>
-								</svg>
+								<Settings className="w-4 h-4" strokeWidth={2} />
 								Manage Themes
 							</button>
 						</div>
@@ -143,18 +118,7 @@ function ThemeRow({
 				<div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.colors.warning }} />
 			</div>
 			<span className="text-sm font-medium flex-1">{t.name}</span>
-			{isActive && (
-				<svg
-					className="w-4 h-4"
-					style={{ color: 'var(--accent)' }}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2.5}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-				</svg>
-			)}
+			{isActive && <Check className="w-4 h-4" style={{ color: 'var(--accent)' }} strokeWidth={2.5} />}
 		</button>
 	)
 }

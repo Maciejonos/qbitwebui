@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { ChevronLeft, ChevronDown, Search, X, Check, Plus, Trash2, ArrowUpDown, Filter } from 'lucide-react'
 import {
 	getIntegrations,
 	createIntegration,
@@ -231,16 +232,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						}}
 						className="p-2 -ml-2 rounded-xl active:bg-[var(--bg-tertiary)]"
 					>
-						<svg
-							className="w-5 h-5"
-							style={{ color: 'var(--text-primary)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={2}
-						>
-							<path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-						</svg>
+						<ChevronLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} strokeWidth={2} />
 					</button>
 					<h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
 						Add Prowlarr
@@ -360,16 +352,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 			<div className="p-4">
 				<div className="flex items-center gap-3 mb-6">
 					<button onClick={onBack} className="p-2 -ml-2 rounded-xl active:bg-[var(--bg-tertiary)]">
-						<svg
-							className="w-5 h-5"
-							style={{ color: 'var(--text-primary)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={2}
-						>
-							<path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-						</svg>
+						<ChevronLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} strokeWidth={2} />
 					</button>
 					<h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
 						Prowlarr Search
@@ -383,20 +366,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
 						style={{ backgroundColor: 'var(--bg-tertiary)' }}
 					>
-						<svg
-							className="w-8 h-8"
-							style={{ color: 'var(--text-muted)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={1.5}
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-							/>
-						</svg>
+						<Search className="w-8 h-8" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
 					</div>
 					<p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
 						No Prowlarr configured
@@ -418,16 +388,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 			<div className="p-4 space-y-3">
 				<div className="flex items-center gap-3">
 					<button onClick={onBack} className="p-2 -ml-2 rounded-xl active:bg-[var(--bg-tertiary)]">
-						<svg
-							className="w-5 h-5"
-							style={{ color: 'var(--text-primary)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={2}
-						>
-							<path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-						</svg>
+						<ChevronLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} strokeWidth={2} />
 					</button>
 					<h2 className="text-lg font-semibold flex-1" style={{ color: 'var(--text-primary)' }}>
 						Prowlarr Search
@@ -438,16 +399,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
 					>
 						{selectedIntegration?.label}
-						<svg
-							className="w-4 h-4"
-							style={{ color: 'var(--text-muted)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={2}
-						>
-							<path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-						</svg>
+						<ChevronDown className="w-4 h-4" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 					</button>
 				</div>
 
@@ -456,20 +408,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						className="flex items-center gap-3 px-4 py-3 rounded-xl border"
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
-						<svg
-							className="w-5 h-5 shrink-0"
-							style={{ color: 'var(--text-muted)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={2}
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-							/>
-						</svg>
+						<Search className="w-5 h-5 shrink-0" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 						<input
 							ref={searchInputRef}
 							type="text"
@@ -483,16 +422,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						/>
 						{query && (
 							<button type="button" onClick={() => setQuery('')} className="p-1">
-								<svg
-									className="w-4 h-4"
-									style={{ color: 'var(--text-muted)' }}
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-									strokeWidth={2}
-								>
-									<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-								</svg>
+								<X className="w-4 h-4" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 							</button>
 						)}
 					</div>
@@ -512,16 +442,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 									? 'All Indexers'
 									: torrentIndexers.find((i) => String(i.id) === selectedIndexer)?.name || 'All'}
 							</span>
-							<svg
-								className="w-4 h-4 shrink-0 ml-2"
-								style={{ color: 'var(--text-muted)' }}
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								strokeWidth={2}
-							>
-								<path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-							</svg>
+							<ChevronDown className="w-4 h-4 shrink-0 ml-2" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 						</button>
 						<button
 							type="button"
@@ -599,20 +520,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 									color: 'var(--text-primary)',
 								}}
 							>
-								<svg
-									className="w-3.5 h-3.5"
-									style={{ color: 'var(--text-muted)' }}
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-									strokeWidth={2}
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d="M3 7h6M3 12h9m-9 5h12M17 3v18m0 0l-4-4m4 4l4-4"
-									/>
-								</svg>
+								<ArrowUpDown className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 								<span>{sortKey === 'seeders' ? 'Seeders' : sortKey === 'size' ? 'Size' : 'Age'}</span>
 								<span style={{ color: 'var(--text-muted)' }}>{sortAsc ? '↑' : '↓'}</span>
 							</button>
@@ -626,20 +534,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 										color: 'var(--text-primary)',
 									}}
 								>
-									<svg
-										className="w-3.5 h-3.5"
-										style={{ color: 'var(--text-muted)' }}
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										strokeWidth={2}
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-										/>
-									</svg>
+									<Filter className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 									<span>Filter</span>
 								</button>
 							)}
@@ -653,9 +548,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 									}}
 								>
 									{filter}
-									<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-										<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-									</svg>
+									<X className="w-3 h-3" strokeWidth={2.5} />
 								</button>
 							)}
 							<span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
@@ -758,16 +651,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							>
 								<span style={{ color: 'var(--text-primary)' }}>All Indexers</span>
 								{selectedIndexer === '-2' && (
-									<svg
-										className="w-5 h-5"
-										style={{ color: 'var(--accent)' }}
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										strokeWidth={2}
-									>
-										<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-									</svg>
+									<Check className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 								)}
 							</button>
 							{torrentIndexers.map((indexer) => (
@@ -784,16 +668,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								>
 									<span style={{ color: 'var(--text-primary)' }}>{indexer.name}</span>
 									{String(indexer.id) === selectedIndexer && (
-										<svg
-											className="w-5 h-5"
-											style={{ color: 'var(--accent)' }}
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-											strokeWidth={2}
-										>
-											<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-										</svg>
+										<Check className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 									)}
 								</button>
 							))}
@@ -913,9 +788,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								className="p-2 -mr-2 rounded-xl"
 								style={{ color: 'var(--accent)' }}
 							>
-								<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-									<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-								</svg>
+								<Plus className="w-5 h-5" strokeWidth={2} />
 							</button>
 						</div>
 						<div className="overflow-y-auto max-h-[50vh] p-2">
@@ -934,16 +807,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 									>
 										<span style={{ color: 'var(--text-primary)' }}>{integration.label}</span>
 										{selectedIntegration?.id === integration.id && (
-											<svg
-												className="w-5 h-5"
-												style={{ color: 'var(--accent)' }}
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												strokeWidth={2}
-											>
-												<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-											</svg>
+											<Check className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 										)}
 									</button>
 									<button
@@ -954,13 +818,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 										className="p-3 rounded-xl"
 										style={{ color: 'var(--error)' }}
 									>
-										<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-											<path
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-											/>
-										</svg>
+										<Trash2 className="w-4 h-4" strokeWidth={1.5} />
 									</button>
 								</div>
 							))}
@@ -1016,16 +874,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 											>
 												<span style={{ color: 'var(--text-primary)' }}>{instance.label}</span>
 												{grabInstance === instance.id && (
-													<svg
-														className="w-5 h-5"
-														style={{ color: 'var(--accent)' }}
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={2}
-													>
-														<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-													</svg>
+													<Check className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 												)}
 											</button>
 										))}
@@ -1048,16 +897,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 									}}
 								>
 									<span>{loadingCategories ? 'Loading...' : grabCategory || 'None'}</span>
-									<svg
-										className="w-4 h-4 shrink-0"
-										style={{ color: 'var(--text-muted)' }}
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										strokeWidth={2}
-									>
-										<path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-									</svg>
+									<ChevronDown className="w-4 h-4 shrink-0" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 								</button>
 							</div>
 							<div>
@@ -1272,18 +1112,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								style={{ backgroundColor: !grabCategory ? 'var(--bg-tertiary)' : 'transparent' }}
 							>
 								<span style={{ color: !grabCategory ? 'var(--accent)' : 'var(--text-primary)' }}>None</span>
-								{!grabCategory && (
-									<svg
-										className="w-5 h-5"
-										style={{ color: 'var(--accent)' }}
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										strokeWidth={2}
-									>
-										<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-									</svg>
-								)}
+								{!grabCategory && <Check className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2} />}
 							</button>
 							{Object.keys(grabCategories).map((cat) => (
 								<button
@@ -1297,16 +1126,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								>
 									<span style={{ color: grabCategory === cat ? 'var(--accent)' : 'var(--text-primary)' }}>{cat}</span>
 									{grabCategory === cat && (
-										<svg
-											className="w-5 h-5"
-											style={{ color: 'var(--accent)' }}
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-											strokeWidth={2}
-										>
-											<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-										</svg>
+										<Check className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 									)}
 								</button>
 							))}

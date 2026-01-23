@@ -1,4 +1,16 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
+import {
+	ChevronDown,
+	ArrowDown,
+	ArrowUp,
+	Pause,
+	AlertCircle,
+	RefreshCw,
+	Play,
+	LayoutGrid,
+	List,
+	Archive,
+} from 'lucide-react'
 import { useQueries, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/qbittorrent'
 import type { Instance } from '../api/instances'
@@ -85,16 +97,11 @@ function MobileSelect<T extends string>({
 				style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
 			>
 				<span className="truncate">{selected?.label}</span>
-				<svg
+				<ChevronDown
 					className={`w-4 h-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
 					style={{ color: 'var(--text-muted)' }}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
 					strokeWidth={2}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-				</svg>
+				/>
 			</button>
 			{open && (
 				<div
@@ -128,78 +135,15 @@ function MobileSelect<T extends string>({
 function StateIcon({ type, color }: { type: 'download' | 'upload' | 'pause' | 'error' | 'check'; color: string }) {
 	switch (type) {
 		case 'download':
-			return (
-				<svg
-					className="w-4 h-4"
-					style={{ color }}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2.5}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-				</svg>
-			)
+			return <ArrowDown className="w-4 h-4" style={{ color }} strokeWidth={2.5} />
 		case 'upload':
-			return (
-				<svg
-					className="w-4 h-4"
-					style={{ color }}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2.5}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-				</svg>
-			)
+			return <ArrowUp className="w-4 h-4" style={{ color }} strokeWidth={2.5} />
 		case 'pause':
-			return (
-				<svg
-					className="w-4 h-4"
-					style={{ color }}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2.5}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
-				</svg>
-			)
+			return <Pause className="w-4 h-4" style={{ color }} strokeWidth={2.5} />
 		case 'error':
-			return (
-				<svg
-					className="w-4 h-4"
-					style={{ color }}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2.5}
-				>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-					/>
-				</svg>
-			)
+			return <AlertCircle className="w-4 h-4" style={{ color }} strokeWidth={2.5} />
 		case 'check':
-			return (
-				<svg
-					className="w-4 h-4 animate-spin"
-					style={{ color }}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2.5}
-				>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-					/>
-				</svg>
-			)
+			return <RefreshCw className="w-4 h-4 animate-spin" style={{ color }} strokeWidth={2.5} />
 	}
 }
 
@@ -310,21 +254,9 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 						style={{ backgroundColor: 'var(--bg-tertiary)', color: compact ? 'var(--accent)' : 'var(--text-muted)' }}
 					>
 						{compact ? (
-							<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
-								/>
-							</svg>
+							<LayoutGrid className="w-5 h-5" strokeWidth={1.5} />
 						) : (
-							<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-								/>
-							</svg>
+							<List className="w-5 h-5" strokeWidth={1.5} />
 						)}
 					</button>
 				)}
@@ -341,20 +273,11 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 					className="py-12 text-center rounded-2xl border"
 					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 				>
-					<svg
+					<Archive
 						className="w-12 h-12 mx-auto mb-3"
 						style={{ color: 'var(--text-muted)', opacity: 0.5 }}
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
 						strokeWidth={1}
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
-						/>
-					</svg>
+					/>
 					<div className="text-sm" style={{ color: 'var(--text-muted)' }}>
 						No torrents found
 					</div>
@@ -467,31 +390,9 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 								>
 									<button onClick={(e) => handleToggle(torrent, e)} className="p-2">
 										{isPaused ? (
-											<svg
-												className="w-6 h-6"
-												style={{ color: 'var(--accent-contrast)' }}
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												strokeWidth={2}
-											>
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
-												/>
-											</svg>
+											<Play className="w-6 h-6" style={{ color: 'var(--accent-contrast)' }} strokeWidth={2} />
 										) : (
-											<svg
-												className="w-6 h-6"
-												style={{ color: '#000' }}
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												strokeWidth={2}
-											>
-												<path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
-											</svg>
+											<Pause className="w-6 h-6" style={{ color: '#000' }} strokeWidth={2} />
 										)}
 									</button>
 								</div>

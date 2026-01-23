@@ -2,15 +2,25 @@ import { createCipheriv, createDecipheriv, randomBytes, pbkdf2Sync } from 'crypt
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { dirname } from 'path'
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
-if (!ENCRYPTION_KEY) {
-	throw new Error('ENCRYPTION_KEY environment variable is required')
-}
-if (ENCRYPTION_KEY.length < 32) {
-	throw new Error('ENCRYPTION_KEY must be at least 32 characters')
-}
-
 const SALT_PATH = process.env.SALT_PATH || './data/.salt'
+
+let _key: Buffer | null = null
+
+function getKey(): Buffer {
+	if (_key) return _key
+
+	const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
+	if (!ENCRYPTION_KEY) {
+		throw new Error('ENCRYPTION_KEY environment variable is required')
+	}
+	if (ENCRYPTION_KEY.length < 32) {
+		throw new Error('ENCRYPTION_KEY must be at least 32 characters')
+	}
+
+	const salt = getOrCreateSalt()
+	_key = pbkdf2Sync(ENCRYPTION_KEY, salt, 100000, 32, 'sha256')
+	return _key
+}
 
 function getOrCreateSalt(): Buffer {
 	if (existsSync(SALT_PATH)) {
@@ -22,8 +32,6 @@ function getOrCreateSalt(): Buffer {
 	return salt
 }
 
-const KEY = pbkdf2Sync(ENCRYPTION_KEY, getOrCreateSalt(), 100000, 32, 'sha256')
-
 export async function hashPassword(password: string): Promise<string> {
 	return Bun.password.hash(password, { algorithm: 'bcrypt', cost: 12 })
 }
@@ -34,7 +42,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 
 export function encrypt(text: string): string {
 	const iv = randomBytes(16)
-	const cipher = createCipheriv('aes-256-gcm', KEY, iv)
+	const cipher = createCipheriv('aes-256-gcm', getKey(), iv)
 	const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()])
 	const authTag = cipher.getAuthTag()
 	return `${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted.toString('base64')}`
@@ -59,7 +67,7 @@ export function decrypt(encrypted: string): string {
 		const iv = Buffer.from(ivB64, 'base64')
 		const authTag = Buffer.from(authTagB64, 'base64')
 		const data = Buffer.from(dataB64, 'base64')
-		const decipher = createDecipheriv('aes-256-gcm', KEY, iv)
+		const decipher = createDecipheriv('aes-256-gcm', getKey(), iv)
 		decipher.setAuthTag(authTag)
 		return decipher.update(data) + decipher.final('utf8')
 	} catch {

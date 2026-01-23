@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChevronDown, ChevronLeft, ChevronRight, RefreshCw, Rss, X } from 'lucide-react'
 import { type Instance } from '../api/instances'
 import { useRSSManager } from '../hooks/useRSSManager'
 import type { RSSArticle } from '../types/rss'
@@ -59,9 +60,7 @@ function MobileArticleDownload({ article, idx, instances, rss }: MobileArticleDo
 				style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 			>
 				{isGrabbing ? 'Adding...' : 'Download'}
-				<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-					<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-				</svg>
+				<ChevronDown className="w-3 h-3" strokeWidth={2.5} />
 			</button>
 			{isOpen && (
 				<>
@@ -120,9 +119,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 		<div className="flex flex-col h-full" style={{ backgroundColor: 'var(--bg-primary)' }}>
 			<header className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
 				<button onClick={handleBackButton} className="p-1 -ml-1" style={{ color: 'var(--text-muted)' }}>
-					<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-						<path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-					</svg>
+					<ChevronLeft className="w-6 h-6" strokeWidth={2} />
 				</button>
 				<h1 className="text-lg font-semibold flex-1" style={{ color: 'var(--text-primary)' }}>
 					{view === 'articles' && rss.selectedFeed
@@ -316,31 +313,13 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 										}}
 									>
 										{feed.isFolder ? (
-											<svg
+											<ChevronRight
 												className={`w-5 h-5 shrink-0 transition-transform ${rss.expandedFolders.has(feed.path) ? 'rotate-90' : ''}`}
 												style={{ color: 'var(--text-muted)' }}
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
 												strokeWidth={2}
-											>
-												<path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-											</svg>
+											/>
 										) : (
-											<svg
-												className="w-5 h-5 shrink-0"
-												style={{ color: 'var(--accent)' }}
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												strokeWidth={1.5}
-											>
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
-												/>
-											</svg>
+											<Rss className="w-5 h-5 shrink-0" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
 										)}
 										<span className="text-sm flex-1 truncate" style={{ color: 'var(--text-primary)' }}>
 											{feed.name}
@@ -356,19 +335,10 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 													className="p-1.5 rounded-lg"
 													style={{ color: 'var(--text-muted)' }}
 												>
-													<svg
+													<RefreshCw
 														className={`w-4 h-4 ${rss.refreshing === feed.path ? 'animate-spin' : ''}`}
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
 														strokeWidth={2}
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-														/>
-													</svg>
+													/>
 												</button>
 												<button
 													onClick={(e) => {
@@ -378,15 +348,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 													className="p-1.5 rounded-lg"
 													style={{ color: 'var(--error)' }}
 												>
-													<svg
-														className="w-4 h-4"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={2}
-													>
-														<path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-													</svg>
+													<X className="w-4 h-4" strokeWidth={2} />
 												</button>
 											</div>
 										)}
@@ -399,9 +361,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 												className="p-1.5 rounded-lg"
 												style={{ color: 'var(--error)' }}
 											>
-												<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-													<path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-												</svg>
+												<X className="w-4 h-4" strokeWidth={2} />
 											</button>
 										)}
 									</div>
@@ -538,9 +498,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											className="p-1.5 rounded-lg"
 											style={{ color: 'var(--error)' }}
 										>
-											<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-												<path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-											</svg>
+											<X className="w-4 h-4" strokeWidth={2} />
 										</button>
 									</div>
 								))

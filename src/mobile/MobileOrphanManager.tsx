@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Check, CheckCircle, ChevronLeft, HardDrive, Search } from 'lucide-react'
 import { type Instance } from '../api/instances'
 import { deleteTorrents } from '../api/qbittorrent'
 import { formatSize } from '../utils/format'
@@ -102,16 +103,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 			<div className="p-4 space-y-3">
 				<div className="flex items-center gap-3">
 					<button onClick={onBack} className="p-2 -ml-2 rounded-xl active:bg-[var(--bg-tertiary)]">
-						<svg
-							className="w-5 h-5"
-							style={{ color: 'var(--text-primary)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={2}
-						>
-							<path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-						</svg>
+						<ChevronLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} strokeWidth={2} />
 					</button>
 					<div className="flex-1">
 						<h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -139,13 +131,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 						</>
 					) : (
 						<>
-							<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-								/>
-							</svg>
+							<Search className="w-5 h-5" strokeWidth={2} />
 							Scan All Instances
 						</>
 					)}
@@ -186,20 +172,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 							className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
 							style={{ backgroundColor: 'var(--bg-tertiary)' }}
 						>
-							<svg
-								className="w-8 h-8"
-								style={{ color: 'var(--text-muted)' }}
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								strokeWidth={1.5}
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z"
-								/>
-							</svg>
+							<HardDrive className="w-8 h-8" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
 						</div>
 						<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
 							No instances configured
@@ -216,20 +189,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 							className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
 							style={{ backgroundColor: 'color-mix(in srgb, #a6e3a1 15%, transparent)' }}
 						>
-							<svg
-								className="w-8 h-8"
-								style={{ color: '#a6e3a1' }}
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								strokeWidth={1.5}
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-								/>
-							</svg>
+							<CheckCircle className="w-8 h-8" style={{ color: '#a6e3a1' }} strokeWidth={1.5} />
 						</div>
 						<p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
 							All clear!
@@ -254,20 +214,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 						{Object.entries(groupedByInstance).map(([instanceLabel, items]) => (
 							<div key={instanceLabel}>
 								<div className="flex items-center gap-2 px-1 py-2">
-									<svg
-										className="w-4 h-4"
-										style={{ color: 'var(--text-muted)' }}
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										strokeWidth={1.5}
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z"
-										/>
-									</svg>
+									<HardDrive className="w-4 h-4" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
 									<span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
 										{instanceLabel}
 									</span>
@@ -292,17 +239,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 														borderColor: selected.has(key) ? 'var(--accent)' : 'var(--text-muted)',
 													}}
 												>
-													{selected.has(key) && (
-														<svg
-															className="w-3 h-3 text-white"
-															fill="none"
-															viewBox="0 0 24 24"
-															stroke="currentColor"
-															strokeWidth={3}
-														>
-															<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-														</svg>
-													)}
+													{selected.has(key) && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
 												</div>
 												<div className="flex-1 min-w-0">
 													<div
@@ -385,17 +322,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 									borderColor: deleteFiles ? 'var(--error)' : 'var(--text-muted)',
 								}}
 							>
-								{deleteFiles && (
-									<svg
-										className="w-3 h-3 text-white"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										strokeWidth={3}
-									>
-										<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-									</svg>
-								)}
+								{deleteFiles && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
 							</div>
 							<span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
 								Also delete files
