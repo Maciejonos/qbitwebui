@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 
-const { state, db } = vi.hoisted(() => {
+const { state, db, fsMocks } = vi.hoisted(() => {
 	const state = {
 		config: null as null | {
 			instance_id: number
@@ -13,6 +13,10 @@ const { state, db } = vi.hoisted(() => {
 			skip_recheck: number
 			integration_id: number | null
 			indexer_ids: string | null
+			match_mode: 'strict' | 'flexible'
+			link_dir: string | null
+			blocklist: string | null
+			include_single_episodes: number
 			last_run: number | null
 			next_run: number | null
 			updated_at: number
@@ -158,7 +162,14 @@ const { state, db } = vi.hoisted(() => {
 		}),
 	}
 
-	return { state, db }
+	const fsMocks = {
+		link: vi.fn().mockResolvedValue(undefined),
+		mkdir: vi.fn().mockResolvedValue(undefined),
+		stat: vi.fn().mockResolvedValue({ dev: 1 }),
+		access: vi.fn().mockResolvedValue(undefined),
+	}
+
+	return { state, db, fsMocks }
 })
 
 vi.mock('../../src/server/db', () => ({
@@ -196,6 +207,11 @@ vi.mock('../../src/server/utils/crossSeedCache', () => ({
 	saveTorrentToOutput: vi.fn(() => '/tmp/output.torrent'),
 }))
 
+vi.mock('fs/promises', () => ({
+	...fsMocks,
+	default: fsMocks,
+}))
+
 vi.mock('../../src/server/utils/fetch', () => ({
 	fetchWithTls: vi.fn(),
 }))
@@ -225,6 +241,49 @@ function makeTorrentData(name: string, length: number): Buffer {
 	return Buffer.from(`d4:infod4:name${name.length}:${name}6:lengthi${length}eee`)
 }
 
+type BencodeValue = number | string | Buffer | BencodeValue[] | { [key: string]: BencodeValue }
+
+function encodeBencode(data: BencodeValue): Buffer {
+	if (typeof data === 'number') {
+		return Buffer.from(`i${data}e`)
+	}
+	if (Buffer.isBuffer(data)) {
+		return Buffer.concat([Buffer.from(`${data.length}:`), data])
+	}
+	if (typeof data === 'string') {
+		const buf = Buffer.from(data)
+		return Buffer.concat([Buffer.from(`${buf.length}:`), buf])
+	}
+	if (Array.isArray(data)) {
+		const parts: Buffer[] = [Buffer.from('l')]
+		for (const item of data) {
+			parts.push(encodeBencode(item))
+		}
+		parts.push(Buffer.from('e'))
+		return Buffer.concat(parts)
+	}
+	const parts: Buffer[] = [Buffer.from('d')]
+	const keys = Object.keys(data).sort()
+	for (const key of keys) {
+		parts.push(encodeBencode(key))
+		parts.push(encodeBencode(data[key]))
+	}
+	parts.push(Buffer.from('e'))
+	return Buffer.concat(parts)
+}
+
+function makeMultiFileTorrentData(
+	name: string,
+	files: Array<{ path: string[]; length: number }>
+): Buffer {
+	return encodeBencode({
+		info: {
+			name,
+			files: files.map((file) => ({ length: file.length, path: file.path })),
+		},
+	})
+}
+
 function resetState() {
 	state.config = {
 		instance_id: 1,
@@ -237,6 +296,10 @@ function resetState() {
 		skip_recheck: 0,
 		integration_id: 10,
 		indexer_ids: null,
+		match_mode: 'strict',
+		link_dir: null,
+		blocklist: null,
+		include_single_episodes: 0,
 		last_run: null,
 		next_run: null,
 		updated_at: Math.floor(Date.now() / 1000),
@@ -359,6 +422,97 @@ describe('crossSeedWorker', () => {
 		expect(mockCacheTorrent).toHaveBeenCalledTimes(1)
 		expect(mockSaveTorrentToOutput).not.toHaveBeenCalled()
 		expect(mockFetchWithTls.mock.calls.some((call) => String(call[0]).endsWith('/api/v2/torrents/add'))).toBe(true)
+	})
+
+	it('matches multi-file torrents in strict mode using basenames', async () => {
+		state.config!.match_mode = 'strict'
+
+		const torrents = [
+			{
+				hash: 'HASH2',
+				name: 'Show.S01',
+				size: 3000,
+				state: 'uploading',
+				category: 'shows',
+				tags: '',
+				save_path: '/downloads',
+				content_path: '/downloads/Show.S01',
+				progress: 1,
+			},
+		]
+		const files = [
+			{ name: 'Show.S01/E01.mkv', size: 1000 },
+			{ name: 'Show.S01/E02.mkv', size: 2000 },
+		]
+		mockQbtResponses(torrents, files)
+
+		mockSearchAllIndexers.mockResolvedValue([
+			{
+				guid: 'guid-2',
+				title: 'Show S01',
+				link: 'http://indexer/download/2',
+				size: 3000,
+				pubDate: '',
+				indexer: 'Test',
+				indexerId: 1,
+			},
+		])
+
+		mockDownloadTorrentDirect.mockResolvedValue(
+			makeMultiFileTorrentData('Show.S01', [
+				{ path: ['Show.S01', 'E01.mkv'], length: 1000 },
+				{ path: ['Show.S01', 'E02.mkv'], length: 2000 },
+			])
+		)
+
+		const result = await runCrossSeedScan({ instanceId: 1, userId: 1, force: false })
+
+		expect(result.matchesFound).toBe(1)
+		expect(result.torrentsAdded).toBe(1)
+		expect(mockFetchWithTls.mock.calls.some((call) => String(call[0]).endsWith('/api/v2/torrents/add'))).toBe(true)
+	})
+
+	it('adds size-only matches in flexible mode using hardlinks', async () => {
+		state.config!.match_mode = 'flexible'
+		state.config!.link_dir = '/links'
+
+		const torrents = [
+			{
+				hash: 'HASH3',
+				name: 'Movie.2024.1080p.mkv',
+				size: 1000,
+				state: 'uploading',
+				category: 'movies',
+				tags: '',
+				save_path: '/downloads',
+				content_path: '/downloads/Movie.2024.1080p.mkv',
+				progress: 1,
+			},
+		]
+		const files = [{ name: 'Movie.2024.1080p.mkv', size: 1000 }]
+		mockQbtResponses(torrents, files)
+
+		mockSearchAllIndexers.mockResolvedValue([
+			{
+				guid: 'guid-3',
+				title: 'Movie 2024 1080p',
+				link: 'http://indexer/download/3',
+				size: 1000,
+				pubDate: '',
+				indexer: 'Test',
+				indexerId: 1,
+			},
+		])
+
+		mockDownloadTorrentDirect.mockResolvedValue(makeTorrentData('Movie.2024.1080p.REPACK.mkv', 1000))
+
+		const result = await runCrossSeedScan({ instanceId: 1, userId: 1, force: false })
+
+		expect(result.matchesFound).toBe(1)
+		expect(result.torrentsAdded).toBe(1)
+		expect(fsMocks.link.mock.calls.length).toBeGreaterThan(0)
+		expect(fsMocks.link.mock.calls[0][0]).toBe('/downloads/Movie.2024.1080p.mkv')
+		expect(fsMocks.link.mock.calls[0][1]).toBe('/links/Movie.2024.1080p.REPACK.mkv')
 	})
 
 	it('saves to output in dry-run mode', async () => {
