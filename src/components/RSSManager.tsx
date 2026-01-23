@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Plus, ChevronDown, ChevronRight, Rss, RefreshCw, X } from 'lucide-react'
 import { type Instance } from '../api/instances'
 import { useRSSManager } from '../hooks/useRSSManager'
 import type { RSSArticle } from '../types/rss'
@@ -58,9 +59,7 @@ function ArticleDownload({ article, idx, instances, rss }: ArticleDownloadProps)
 				style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 			>
 				{isGrabbing ? '...' : 'Download'}
-				<svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-					<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-				</svg>
+				<ChevronDown className="w-2.5 h-2.5" strokeWidth={2.5} />
 			</button>
 			{isOpen && (
 				<>
@@ -168,9 +167,7 @@ export function RSSManager({ instances }: Props) {
 							className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
 							style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 						>
-							<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-								<path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-							</svg>
+							<Plus className="w-3.5 h-3.5" strokeWidth={2} />
 							Add Feed
 						</button>
 						<button
@@ -178,9 +175,7 @@ export function RSSManager({ instances }: Props) {
 							className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border"
 							style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 						>
-							<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-								<path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-							</svg>
+							<Plus className="w-3.5 h-3.5" strokeWidth={2} />
 							Add Folder
 						</button>
 					</div>
@@ -328,31 +323,13 @@ export function RSSManager({ instances }: Props) {
 											onClick={() => (feed.isFolder ? rss.toggleFolder(feed.path) : rss.setSelectedFeed(feed))}
 										>
 											{feed.isFolder ? (
-												<svg
+												<ChevronRight
 													className={`w-4 h-4 shrink-0 transition-transform ${rss.expandedFolders.has(feed.path) ? 'rotate-90' : ''}`}
 													style={{ color: 'var(--text-muted)' }}
-													fill="none"
-													viewBox="0 0 24 24"
-													stroke="currentColor"
 													strokeWidth={2}
-												>
-													<path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-												</svg>
+												/>
 											) : (
-												<svg
-													className="w-4 h-4 shrink-0"
-													style={{ color: 'var(--accent)' }}
-													fill="none"
-													viewBox="0 0 24 24"
-													stroke="currentColor"
-													strokeWidth={1.5}
-												>
-													<path
-														strokeLinecap="round"
-														strokeLinejoin="round"
-														d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
-													/>
-												</svg>
+												<Rss className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
 											)}
 											<span
 												className="text-xs truncate flex-1"
@@ -373,19 +350,10 @@ export function RSSManager({ instances }: Props) {
 														className="p-1 rounded hover:bg-[var(--bg-primary)]"
 														style={{ color: 'var(--text-muted)' }}
 													>
-														<svg
+														<RefreshCw
 															className={`w-3 h-3 ${rss.refreshing === feed.path ? 'animate-spin' : ''}`}
-															fill="none"
-															viewBox="0 0 24 24"
-															stroke="currentColor"
 															strokeWidth={2}
-														>
-															<path
-																strokeLinecap="round"
-																strokeLinejoin="round"
-																d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-															/>
-														</svg>
+														/>
 													</button>
 													<button
 														onClick={(e) => {
@@ -395,15 +363,7 @@ export function RSSManager({ instances }: Props) {
 														className="p-1 rounded hover:bg-[var(--bg-primary)]"
 														style={{ color: 'var(--error)' }}
 													>
-														<svg
-															className="w-3 h-3"
-															fill="none"
-															viewBox="0 0 24 24"
-															stroke="currentColor"
-															strokeWidth={2}
-														>
-															<path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-														</svg>
+														<X className="w-3 h-3" strokeWidth={2} />
 													</button>
 												</div>
 											)}
@@ -416,15 +376,7 @@ export function RSSManager({ instances }: Props) {
 													className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--bg-primary)]"
 													style={{ color: 'var(--error)' }}
 												>
-													<svg
-														className="w-3 h-3"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={2}
-													>
-														<path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-													</svg>
+													<X className="w-3 h-3" strokeWidth={2} />
 												</button>
 											)}
 										</div>
@@ -504,9 +456,7 @@ export function RSSManager({ instances }: Props) {
 							className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
 							style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 						>
-							<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-								<path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-							</svg>
+							<Plus className="w-3.5 h-3.5" strokeWidth={2} />
 							New Rule
 						</button>
 					</div>
@@ -601,9 +551,7 @@ export function RSSManager({ instances }: Props) {
 												className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--bg-primary)]"
 												style={{ color: 'var(--error)' }}
 											>
-												<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-													<path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-												</svg>
+												<X className="w-3 h-3" strokeWidth={2} />
 											</button>
 										</div>
 									))

@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { Plus, X, Upload, CheckCircle, Check } from 'lucide-react'
 import { useAddTorrent, useCategories } from '../hooks/useTorrents'
 
 interface Props {
@@ -97,16 +98,7 @@ export function AddTorrentModal({ open, onClose }: Props) {
 								className="w-10 h-10 rounded-xl flex items-center justify-center"
 								style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}
 							>
-								<svg
-									className="w-5 h-5"
-									style={{ color: 'var(--accent)' }}
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-									strokeWidth={2}
-								>
-									<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-								</svg>
+								<Plus className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 							</div>
 							<h3 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
 								Add Torrent
@@ -117,9 +109,7 @@ export function AddTorrentModal({ open, onClose }: Props) {
 							className="p-2 rounded-lg transition-colors hover:opacity-80"
 							style={{ color: 'var(--text-muted)' }}
 						>
-							<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-								<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-							</svg>
+							<X className="w-5 h-5" strokeWidth={2} />
 						</button>
 					</div>
 
@@ -190,13 +180,7 @@ export function AddTorrentModal({ open, onClose }: Props) {
 									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 								>
 									<div className="flex flex-col items-center gap-2" style={{ color: 'var(--text-muted)' }}>
-										<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-											<path
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-											/>
-										</svg>
+										<Upload className="w-6 h-6" strokeWidth={1.5} />
 										<span>Click or drop .torrent files</span>
 									</div>
 								</button>
@@ -208,20 +192,7 @@ export function AddTorrentModal({ open, onClose }: Props) {
 												className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs"
 												style={{ backgroundColor: 'var(--bg-secondary)' }}
 											>
-												<svg
-													className="w-4 h-4 shrink-0"
-													style={{ color: 'var(--accent)' }}
-													fill="none"
-													viewBox="0 0 24 24"
-													stroke="currentColor"
-													strokeWidth={2}
-												>
-													<path
-														strokeLinecap="round"
-														strokeLinejoin="round"
-														d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-													/>
-												</svg>
+												<CheckCircle className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 												<span className="truncate flex-1" style={{ color: 'var(--text-primary)' }}>
 													{f.name}
 												</span>
@@ -231,15 +202,7 @@ export function AddTorrentModal({ open, onClose }: Props) {
 													className="p-0.5 rounded hover:opacity-70"
 													style={{ color: 'var(--text-muted)' }}
 												>
-													<svg
-														className="w-3.5 h-3.5"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={2}
-													>
-														<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-													</svg>
+													<X className="w-3.5 h-3.5" strokeWidth={2} />
 												</button>
 											</div>
 										))}
@@ -324,16 +287,7 @@ export function AddTorrentModal({ open, onClose }: Props) {
 									}}
 								>
 									{startTorrent && (
-										<svg
-											className="w-2.5 h-2.5"
-											style={{ color: 'var(--accent-contrast)' }}
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-											strokeWidth={4}
-										>
-											<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-										</svg>
+										<Check className="w-2.5 h-2.5" style={{ color: 'var(--accent-contrast)' }} strokeWidth={4} />
 									)}
 								</div>
 								<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -355,16 +309,7 @@ export function AddTorrentModal({ open, onClose }: Props) {
 									}}
 								>
 									{sequential && (
-										<svg
-											className="w-2.5 h-2.5"
-											style={{ color: 'var(--accent-contrast)' }}
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-											strokeWidth={4}
-										>
-											<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-										</svg>
+										<Check className="w-2.5 h-2.5" style={{ color: 'var(--accent-contrast)' }} strokeWidth={4} />
 									)}
 								</div>
 								<span className="text-xs" style={{ color: 'var(--text-muted)' }}>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Check, Server } from 'lucide-react'
 import { type Instance } from '../api/instances'
 import { deleteTorrents } from '../api/qbittorrent'
 import { formatSize } from '../utils/format'
@@ -144,20 +145,7 @@ export function OrphanManager({ instances }: Props) {
 					className="text-center py-12 rounded-xl border"
 					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 				>
-					<svg
-						className="w-12 h-12 mx-auto mb-3"
-						style={{ color: '#a6e3a1' }}
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						strokeWidth={1.5}
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
+					<Check className="w-12 h-12 mx-auto mb-3" style={{ color: '#a6e3a1' }} strokeWidth={1.5} />
 					<p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
 						All clear!
 					</p>
@@ -192,20 +180,7 @@ export function OrphanManager({ instances }: Props) {
 					{Object.entries(groupedByInstance).map(([instanceLabel, items]) => (
 						<div key={instanceLabel} className="mb-6">
 							<h2 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-								<svg
-									className="w-4 h-4"
-									style={{ color: 'var(--text-muted)' }}
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-									strokeWidth={1.5}
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z"
-									/>
-								</svg>
+								<Server className="w-4 h-4" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
 								{instanceLabel}
 								<span className="font-normal" style={{ color: 'var(--text-muted)' }}>
 									({items.length})
@@ -231,18 +206,7 @@ export function OrphanManager({ instances }: Props) {
 													borderColor: selected.has(key) ? 'var(--accent)' : 'var(--border)',
 												}}
 											>
-												{selected.has(key) && (
-													<svg
-														className="w-3 h-3"
-														style={{ color: 'white' }}
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={3}
-													>
-														<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-													</svg>
-												)}
+												{selected.has(key) && <Check className="w-3 h-3" style={{ color: 'white' }} strokeWidth={3} />}
 											</div>
 											<div className="flex-1 min-w-0">
 												<div className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
@@ -294,18 +258,7 @@ export function OrphanManager({ instances }: Props) {
 								}}
 								onClick={() => setDeleteFiles(!deleteFiles)}
 							>
-								{deleteFiles && (
-									<svg
-										className="w-3 h-3"
-										style={{ color: 'white' }}
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										strokeWidth={3}
-									>
-										<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-									</svg>
-								)}
+								{deleteFiles && <Check className="w-3 h-3" style={{ color: 'white' }} strokeWidth={3} />}
 							</div>
 							<span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
 								Also delete downloaded files

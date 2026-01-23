@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Check } from 'lucide-react'
 import type { Torrent, TorrentState } from '../types/qbittorrent'
 import { formatSpeed, formatSize, formatEta, formatDate, formatRelativeTime, formatDuration } from '../utils/format'
 
@@ -59,16 +60,7 @@ function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): React
 						className="w-5 h-5 rounded-full flex items-center justify-center"
 						style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)' }}
 					>
-						<svg
-							className="w-3 h-3"
-							style={{ color: 'var(--accent)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={3}
-						>
-							<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-						</svg>
+						<Check className="w-3 h-3" style={{ color: 'var(--accent)' }} strokeWidth={3} />
 					</div>
 					<span className="text-xs font-medium" style={{ color: 'var(--accent)' }}>
 						Complete
@@ -179,9 +171,12 @@ function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): React
 			)
 		case 'tags':
 			return torrent.tags ? (
-				<div className="flex flex-wrap gap-1 max-w-[200px]">
+				<div className="flex gap-1">
 					{torrent.tags.split(',').map((tag, i) => (
-						<span key={i} className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 text-white/70 border border-white/10">
+						<span
+							key={i}
+							className="px-1.5 py-0.5 rounded text-[10px] bg-white/5 text-white/70 border border-white/10 whitespace-nowrap"
+						>
 							{tag.trim()}
 						</span>
 					))}
@@ -240,6 +235,8 @@ interface Props {
 	ratioThreshold: number
 	visibleColumns: Set<string>
 	columnOrder: string[]
+	columnWidths: Record<string, number>
+	hasCustomWidths: boolean
 }
 
 export function TorrentRow({
@@ -250,6 +247,8 @@ export function TorrentRow({
 	ratioThreshold,
 	visibleColumns,
 	columnOrder,
+	columnWidths,
+	hasCustomWidths,
 }: Props) {
 	const { label, type, isDownloading } = getStateInfo(torrent.state)
 	const progress = Math.round(torrent.progress * 100)
@@ -269,7 +268,10 @@ export function TorrentRow({
 				backgroundColor: selected ? 'color-mix(in srgb, var(--accent) 8%, transparent)' : 'transparent',
 			}}
 		>
-			<td className="px-4 py-3 max-w-xs xl:max-w-sm 2xl:max-w-md">
+			<td
+				className="px-4 py-3 max-w-xs xl:max-w-sm 2xl:max-w-md"
+				style={columnWidths.name ? { width: columnWidths.name, maxWidth: columnWidths.name } : undefined}
+			>
 				<div className="flex items-center gap-3">
 					<div
 						className="shrink-0 w-4 h-4 rounded border transition-colors duration-150 flex items-center justify-center"
@@ -278,18 +280,7 @@ export function TorrentRow({
 							backgroundColor: selected ? 'color-mix(in srgb, white 3%, transparent)' : 'transparent',
 						}}
 					>
-						{selected && (
-							<svg
-								className="w-2.5 h-2.5"
-								style={{ color: 'var(--text-muted)' }}
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								strokeWidth={3}
-							>
-								<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-							</svg>
-						)}
+						{selected && <Check className="w-2.5 h-2.5" style={{ color: 'var(--text-muted)' }} strokeWidth={3} />}
 					</div>
 					<span
 						className="truncate font-medium text-sm"
@@ -303,10 +294,15 @@ export function TorrentRow({
 			{columnOrder
 				.filter((id) => visibleColumns.has(id))
 				.map((id) => (
-					<td key={id} className="px-3 py-3">
+					<td
+						key={id}
+						className="px-3 py-3"
+						style={columnWidths[id] ? { width: columnWidths[id], maxWidth: columnWidths[id] } : undefined}
+					>
 						{renderCell(id, torrent, cellContext)}
 					</td>
 				))}
+			{hasCustomWidths && <td className="w-8" />}
 		</tr>
 	)
 }

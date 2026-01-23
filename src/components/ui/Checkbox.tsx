@@ -1,3 +1,5 @@
+import { Check } from 'lucide-react'
+
 export function Checkbox({
 	checked,
 	onChange,
@@ -16,18 +18,7 @@ export function Checkbox({
 					borderColor: checked ? 'var(--accent)' : 'var(--border)',
 				}}
 			>
-				{checked && (
-					<svg
-						className="w-2.5 h-2.5"
-						style={{ color: 'white' }}
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						strokeWidth={3}
-					>
-						<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-					</svg>
-				)}
+				{checked && <Check className="w-2.5 h-2.5" style={{ color: 'white' }} strokeWidth={3} />}
 			</div>
 			{label && (
 				<span className="text-xs" style={{ color: 'var(--text-secondary)' }}>

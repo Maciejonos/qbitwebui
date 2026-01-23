@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { ChevronRight } from 'lucide-react'
 import {
 	useCategories,
 	useTags,
@@ -262,18 +263,7 @@ function MenuItem({
 			style={{ color: 'var(--text-primary)', backgroundColor: 'transparent' }}
 		>
 			<span>{children}</span>
-			{hasSubmenu && (
-				<svg
-					className="w-3 h-3"
-					style={{ color: 'var(--text-muted)' }}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-				</svg>
-			)}
+			{hasSubmenu && <ChevronRight className="w-3 h-3" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />}
 		</button>
 	)
 }

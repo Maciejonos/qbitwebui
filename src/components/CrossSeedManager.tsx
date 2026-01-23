@@ -1,342 +1,211 @@
-import { useState, useEffect } from 'react'
 import { type Instance } from '../api/instances'
-import { getIntegrations, type Integration } from '../api/integrations'
-import {
-	getCrossSeedConfig,
-	updateCrossSeedConfig,
-	triggerScan,
-	getInstanceStatus,
-	clearCache,
-	clearHistory,
-	getCacheStats,
-	type CrossSeedConfig,
-	type SchedulerStatus,
-	type CacheStats,
-} from '../api/crossSeed'
-import { formatSize } from '../utils/format'
-import { Toggle, Select } from './ui'
+import { formatSize, formatCountdown } from '../utils/format'
+import { Toggle, Select, MultiSelect } from './ui'
+import { useCrossSeed, formatTimestamp, LOG_LEVEL_COLORS } from '../hooks/useCrossSeed'
 
 interface Props {
 	instances: Instance[]
 }
 
 export function CrossSeedManager({ instances }: Props) {
-	const [selectedInstance, setSelectedInstance] = useState<number | null>(instances[0]?.id ?? null)
-	const [config, setConfig] = useState<CrossSeedConfig | null>(null)
-	const [status, setStatus] = useState<SchedulerStatus | null>(null)
-	const [cacheStats, setCacheStats] = useState<CacheStats | null>(null)
-	const [integrations, setIntegrations] = useState<Integration[]>([])
-	const [loading, setLoading] = useState(false)
-	const [scanning, setScanning] = useState(false)
-	const [error, setError] = useState('')
-	const [success, setSuccess] = useState('')
-	const [saving, setSaving] = useState(false)
+	const {
+		selectedInstance,
+		setSelectedInstance,
+		config,
+		setConfig,
+		status,
+		cacheStats,
+		availableIndexers,
+		logs,
+		loading,
+		error,
+		success,
+		saving,
+		autoScroll,
+		setAutoScroll,
+		logsContainerRef,
+		prowlarrIntegrations,
+		isRunning,
+		handleSave,
+		handleScan,
+		handleStop,
+		handleClearCache,
+	} = useCrossSeed(instances)
 
-	useEffect(() => {
-		getIntegrations().then(setIntegrations).catch(() => {})
-	}, [])
-
-	useEffect(() => {
-		if (!selectedInstance) return
-		setLoading(true)
-		setError('')
-		Promise.all([
-			getCrossSeedConfig(selectedInstance),
-			getInstanceStatus(selectedInstance),
-			getCacheStats(selectedInstance),
-		])
-			.then(([cfg, st, cs]) => {
-				setConfig(cfg)
-				setStatus(st)
-				setCacheStats(cs)
-			})
-			.catch((e) => setError(e.message))
-			.finally(() => setLoading(false))
-	}, [selectedInstance])
-
-	useEffect(() => {
-		if (!selectedInstance || !status?.running) return
-		const interval = setInterval(() => {
-			getInstanceStatus(selectedInstance).then(setStatus).catch(() => {})
-		}, 2000)
-		return () => clearInterval(interval)
-	}, [selectedInstance, status?.running])
-
-	async function handleSave() {
-		if (!selectedInstance || !config) return
-		setSaving(true)
-		setError('')
-		setSuccess('')
-		try {
-			await updateCrossSeedConfig(selectedInstance, {
-				enabled: config.enabled,
-				interval_hours: config.interval_hours,
-				dry_run: config.dry_run,
-				category_suffix: config.category_suffix,
-				tag: config.tag,
-				skip_recheck: config.skip_recheck,
-				integration_id: config.integration_id,
-			})
-			setSuccess('Configuration saved')
-			setTimeout(() => setSuccess(''), 3000)
-		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Failed to save')
-		} finally {
-			setSaving(false)
-		}
+	if (instances.length === 0) {
+		return (
+			<div
+				className="text-center py-12 rounded-lg border"
+				style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+			>
+				<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+					No instances configured
+				</p>
+			</div>
+		)
 	}
 
-	async function handleScan(force: boolean) {
-		if (!selectedInstance) return
-		setScanning(true)
-		setError('')
-		setSuccess('')
-		try {
-			const result = await triggerScan(selectedInstance, force)
-			setSuccess(
-				`Scan complete: ${result.torrentsScanned} scanned, ${result.matchesFound} matches, ${result.torrentsAdded} added`
-			)
-			getInstanceStatus(selectedInstance).then(setStatus).catch(() => {})
-			getCacheStats(selectedInstance).then(setCacheStats).catch(() => {})
-		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Scan failed')
-		} finally {
-			setScanning(false)
-		}
+	if (loading) {
+		return (
+			<div
+				className="p-6 rounded-lg border flex items-center gap-3"
+				style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+			>
+				<div
+					className="w-5 h-5 border-2 rounded-full animate-spin"
+					style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }}
+				/>
+				<span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+					Loading...
+				</span>
+			</div>
+		)
 	}
 
-	async function handleClearCache() {
-		if (!selectedInstance) return
-		try {
-			const result = await clearCache(selectedInstance)
-			setSuccess(`Cleared ${result.cacheCleared} cache files and ${result.outputCleared} output files`)
-			getCacheStats(selectedInstance).then(setCacheStats).catch(() => {})
-			setTimeout(() => setSuccess(''), 3000)
-		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Failed to clear cache')
-		}
-	}
-
-	async function handleClearHistory() {
-		if (!selectedInstance) return
-		try {
-			const result = await clearHistory(selectedInstance)
-			setSuccess(`Cleared ${result.deleted} search history entries`)
-			setTimeout(() => setSuccess(''), 3000)
-		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Failed to clear history')
-		}
-	}
-
-	function formatTimestamp(ts: number | null): string {
-		if (!ts) return 'Never'
-		return new Date(ts * 1000).toLocaleString()
-	}
-
-	function formatNextRun(ts: number | null): string {
-		if (!ts) return 'Not scheduled'
-		const now = Math.floor(Date.now() / 1000)
-		const diff = ts - now
-		if (diff <= 0) return 'Imminent'
-		const hours = Math.floor(diff / 3600)
-		const mins = Math.floor((diff % 3600) / 60)
-		if (hours > 0) return `in ${hours}h ${mins}m`
-		return `in ${mins}m`
-	}
-
-	const prowlarrIntegrations = integrations.filter((i) => i.type === 'prowlarr')
+	if (!config) return null
 
 	return (
-		<div>
-			<div className="flex items-center justify-between mb-6">
-				<div>
-					<h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+		<div className="flex flex-col h-full relative">
+			<a
+				href="https://github.com/Maciejonos/qbitwebui/issues"
+				target="_blank"
+				rel="noopener noreferrer"
+				className="absolute top-0 right-0 px-3 py-2 rounded-lg border text-xs"
+				style={{ borderColor: 'var(--error)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+			>
+				<span style={{ color: 'var(--error)' }}>Experimental</span> · Report issues
+			</a>
+			<div
+				className="shrink-0 flex items-center justify-between pb-4 border-b mb-4"
+				style={{ borderColor: 'var(--border)' }}
+			>
+				<div className="flex items-center gap-4">
+					<h1 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
 						Cross-Seed
 					</h1>
-					<p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-						Find matching torrents across trackers
-					</p>
+					{instances.length > 1 && (
+						<Select
+							value={String(selectedInstance ?? '')}
+							onChange={(v) => setSelectedInstance(Number(v))}
+							options={instances.map((i) => ({ value: String(i.id), label: i.label }))}
+							minWidth="140px"
+						/>
+					)}
 				</div>
-				{instances.length > 1 && (
-					<Select
-						value={String(selectedInstance ?? '')}
-						onChange={(v) => setSelectedInstance(Number(v))}
-						options={instances.map((i) => ({ value: String(i.id), label: i.label }))}
-					/>
-				)}
+				<div className="flex items-center gap-3">
+					{(error || success) && (
+						<span
+							className="text-xs px-3 py-1 rounded"
+							style={{
+								backgroundColor: error
+									? 'color-mix(in srgb, var(--error) 15%, transparent)'
+									: 'color-mix(in srgb, #a6e3a1 15%, transparent)',
+								color: error ? 'var(--error)' : '#a6e3a1',
+							}}
+						>
+							{error || success}
+						</span>
+					)}
+					{prowlarrIntegrations.length === 0 && (
+						<span
+							className="text-xs px-3 py-1 rounded"
+							style={{
+								backgroundColor: 'color-mix(in srgb, var(--warning) 15%, transparent)',
+								color: 'var(--warning)',
+							}}
+						>
+							No Prowlarr
+						</span>
+					)}
+				</div>
 			</div>
 
-			{error && (
-				<div
-					className="mb-6 px-4 py-3 rounded-lg text-sm"
-					style={{ backgroundColor: 'color-mix(in srgb, var(--error) 10%, transparent)', color: 'var(--error)' }}
-				>
-					{error}
-				</div>
-			)}
-
-			{success && (
-				<div
-					className="mb-6 px-4 py-3 rounded-lg text-sm"
-					style={{ backgroundColor: 'color-mix(in srgb, #a6e3a1 10%, transparent)', color: '#a6e3a1' }}
-				>
-					{success}
-				</div>
-			)}
-
-			{instances.length === 0 ? (
-				<div
-					className="text-center py-12 rounded-xl border"
-					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
-				>
-					<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-						No instances configured
-					</p>
-				</div>
-			) : loading ? (
-				<div
-					className="p-6 rounded-xl border flex items-center gap-3"
-					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
-				>
-					<div
-						className="w-5 h-5 border-2 rounded-full animate-spin"
-						style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }}
-					/>
-					<span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-						Loading configuration...
-					</span>
-				</div>
-			) : config ? (
-				<div className="space-y-6">
-					{prowlarrIntegrations.length === 0 && (
-						<div
-							className="px-4 py-3 rounded-lg text-sm"
-							style={{ backgroundColor: 'color-mix(in srgb, var(--warning) 10%, transparent)', color: 'var(--warning)' }}
-						>
-							No Prowlarr integration configured. Add one in Tools → Prowlarr to enable cross-seeding.
-						</div>
-					)}
-
-					<div
-						className="p-6 rounded-xl border"
-						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
-					>
-						<h2 className="text-sm font-medium mb-4" style={{ color: 'var(--text-primary)' }}>
-							Status
-						</h2>
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-							<div>
-								<div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
-									Scheduler
-								</div>
-								<div
-									className="text-sm font-medium"
-									style={{ color: status?.enabled ? '#a6e3a1' : 'var(--text-muted)' }}
-								>
-									{status?.enabled ? 'Enabled' : 'Disabled'}
-								</div>
-							</div>
-							<div>
-								<div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
-									Last Run
-								</div>
-								<div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-									{formatTimestamp(status?.lastRun ?? null)}
-								</div>
-							</div>
-							<div>
-								<div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
-									Next Run
-								</div>
-								<div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-									{status?.enabled ? formatNextRun(status?.nextRun ?? null) : 'Disabled'}
-								</div>
-							</div>
-							<div>
-								<div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
-									Cache
-								</div>
-								<div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-									{cacheStats ? `${cacheStats.cache.count} files (${formatSize(cacheStats.cache.totalSize)})` : '0 files'}
-								</div>
-							</div>
-						</div>
-
-						{status?.running && (
-							<div className="mt-4 flex items-center gap-3">
-								<div
-									className="w-4 h-4 border-2 rounded-full animate-spin"
-									style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }}
-								/>
-								<span className="text-sm" style={{ color: 'var(--accent)' }}>
-									Scan in progress...
-								</span>
-							</div>
-						)}
-
-						{status?.lastResult && !status.running && (
-							<div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
-								<div className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
-									Last Result
-								</div>
-								<div className="flex gap-4 text-sm">
-									<span style={{ color: 'var(--text-secondary)' }}>
-										Scanned: <strong style={{ color: 'var(--text-primary)' }}>{status.lastResult.torrentsScanned}</strong>
-									</span>
-									<span style={{ color: 'var(--text-secondary)' }}>
-										Matches: <strong style={{ color: 'var(--accent)' }}>{status.lastResult.matchesFound}</strong>
-									</span>
-									<span style={{ color: 'var(--text-secondary)' }}>
-										Added: <strong style={{ color: '#a6e3a1' }}>{status.lastResult.torrentsAdded}</strong>
-									</span>
-								</div>
-							</div>
-						)}
+			<div
+				className="shrink-0 grid grid-cols-5 gap-4 p-4 rounded-lg border mb-4"
+				style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+			>
+				<div>
+					<div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
+						Scheduler
 					</div>
-
+					<div className="text-sm font-medium" style={{ color: status?.enabled ? '#a6e3a1' : 'var(--text-muted)' }}>
+						{status?.enabled ? 'On' : 'Off'}
+					</div>
+				</div>
+				<div>
+					<div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
+						Status
+					</div>
 					<div
-						className="p-6 rounded-xl border"
+						className="text-sm font-medium flex items-center gap-2"
+						style={{ color: isRunning ? 'var(--accent)' : 'var(--text-secondary)' }}
+					>
+						{isRunning && (
+							<span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent)' }} />
+						)}
+						{isRunning ? 'Running' : 'Idle'}
+					</div>
+				</div>
+				<div>
+					<div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
+						Last Run
+					</div>
+					<div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+						{formatTimestamp(status?.lastRun ?? null)}
+					</div>
+				</div>
+				<div>
+					<div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
+						Next
+					</div>
+					<div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+						{status?.enabled ? formatCountdown(status?.nextRun ?? null) : '—'}
+					</div>
+				</div>
+				<div>
+					<div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
+						Cache
+					</div>
+					<div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+						{cacheStats ? `${cacheStats.cache.count} (${formatSize(cacheStats.cache.totalSize)})` : '0'}
+					</div>
+				</div>
+			</div>
+
+			<div className="flex-1 grid grid-cols-2 grid-rows-[1fr] gap-4 min-h-0 overflow-hidden">
+				<div className="flex flex-col gap-4 min-h-0 overflow-auto">
+					<div
+						className="shrink-0 p-4 rounded-lg border"
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
-						<h2 className="text-sm font-medium mb-4" style={{ color: 'var(--text-primary)' }}>
+						<div className="text-xs font-medium uppercase tracking-wider mb-4" style={{ color: 'var(--text-muted)' }}>
 							Configuration
-						</h2>
+						</div>
 						<div className="space-y-4">
 							<div className="flex items-center justify-between">
-								<div>
-									<div className="text-sm" style={{ color: 'var(--text-primary)' }}>
-										Enable Scheduler
-									</div>
-									<div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-										Automatically scan for cross-seeds periodically
-									</div>
-								</div>
+								<span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+									Enabled
+								</span>
 								<Toggle checked={config.enabled} onChange={(v) => setConfig({ ...config, enabled: v })} />
 							</div>
-
-							<div className="grid grid-cols-2 gap-4">
+							<div>
+								<label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
+									Prowlarr
+								</label>
+								<Select
+									value={config.integration_id ? String(config.integration_id) : ''}
+									onChange={(v) => setConfig({ ...config, integration_id: v ? Number(v) : null, indexer_ids: [] })}
+									options={[
+										{ value: '', label: 'None' },
+										...prowlarrIntegrations.map((i) => ({ value: String(i.id), label: i.label })),
+									]}
+									minWidth="100%"
+								/>
+							</div>
+							<div className="grid grid-cols-2 gap-3">
 								<div>
-									<label
-										className="block text-xs font-medium mb-2 uppercase tracking-wider"
-										style={{ color: 'var(--text-muted)' }}
-									>
-										Prowlarr Integration
-									</label>
-									<Select
-										value={config.integration_id ? String(config.integration_id) : ''}
-										onChange={(v) => setConfig({ ...config, integration_id: v ? Number(v) : null })}
-										options={[
-											{ value: '', label: 'None' },
-											...prowlarrIntegrations.map((i) => ({ value: String(i.id), label: i.label })),
-										]}
-									/>
-								</div>
-								<div>
-									<label
-										className="block text-xs font-medium mb-2 uppercase tracking-wider"
-										style={{ color: 'var(--text-muted)' }}
-									>
-										Scan Interval (hours)
+									<label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
+										Interval (hours)
 									</label>
 									<input
 										type="number"
@@ -344,7 +213,27 @@ export function CrossSeedManager({ instances }: Props) {
 										max="168"
 										value={config.interval_hours}
 										onChange={(e) => setConfig({ ...config, interval_hours: parseInt(e.target.value) || 24 })}
-										className="w-full px-4 py-2.5 rounded-lg border text-sm"
+										className="w-full px-3 py-2 rounded-lg border text-sm"
+										style={{
+											backgroundColor: 'var(--bg-tertiary)',
+											borderColor: 'var(--border)',
+											color: 'var(--text-primary)',
+										}}
+									/>
+								</div>
+								<div>
+									<label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
+										Delay (30-3600s)
+									</label>
+									<input
+										type="number"
+										min="30"
+										max="3600"
+										value={config.delay_seconds}
+										onChange={(e) =>
+											setConfig({ ...config, delay_seconds: Math.max(30, parseInt(e.target.value) || 30) })
+										}
+										className="w-full px-3 py-2 rounded-lg border text-sm"
 										style={{
 											backgroundColor: 'var(--bg-tertiary)',
 											borderColor: 'var(--border)',
@@ -353,79 +242,145 @@ export function CrossSeedManager({ instances }: Props) {
 									/>
 								</div>
 							</div>
-
-							<div className="grid grid-cols-2 gap-4">
+							{availableIndexers.length > 0 && (
 								<div>
-									<label
-										className="block text-xs font-medium mb-2 uppercase tracking-wider"
-										style={{ color: 'var(--text-muted)' }}
-									>
+									<label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
+										Indexers ({config.indexer_ids.length}/{availableIndexers.length})
+									</label>
+									<MultiSelect
+										options={availableIndexers.map((idx) => ({ value: idx.id, label: idx.name }))}
+										selected={config.indexer_ids}
+										onChange={(ids) => setConfig({ ...config, indexer_ids: ids })}
+										placeholder="Select indexers..."
+									/>
+								</div>
+							)}
+							<div className="grid grid-cols-2 gap-3">
+								<div>
+									<label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
 										Category Suffix
 									</label>
 									<input
 										type="text"
 										value={config.category_suffix}
 										onChange={(e) => setConfig({ ...config, category_suffix: e.target.value })}
-										className="w-full px-4 py-2.5 rounded-lg border text-sm"
+										className="w-full px-3 py-2 rounded-lg border text-sm"
 										style={{
 											backgroundColor: 'var(--bg-tertiary)',
 											borderColor: 'var(--border)',
 											color: 'var(--text-primary)',
 										}}
-										placeholder="_cross-seed"
 									/>
 								</div>
 								<div>
-									<label
-										className="block text-xs font-medium mb-2 uppercase tracking-wider"
-										style={{ color: 'var(--text-muted)' }}
-									>
+									<label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
 										Tag
 									</label>
 									<input
 										type="text"
 										value={config.tag}
 										onChange={(e) => setConfig({ ...config, tag: e.target.value })}
-										className="w-full px-4 py-2.5 rounded-lg border text-sm"
+										className="w-full px-3 py-2 rounded-lg border text-sm"
 										style={{
 											backgroundColor: 'var(--bg-tertiary)',
 											borderColor: 'var(--border)',
 											color: 'var(--text-primary)',
 										}}
-										placeholder="cross-seed"
 									/>
 								</div>
 							</div>
-
-							<div className="flex items-center justify-between">
+							<div>
+								<label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
+									Match Mode
+								</label>
+								<Select
+									value={config.match_mode}
+									onChange={(v) => setConfig({ ...config, match_mode: v as 'strict' | 'flexible' })}
+									options={[
+										{ value: 'strict', label: 'Strict (names must match)' },
+										{ value: 'flexible', label: 'Flexible (sizes only, requires link_dir)' },
+									]}
+									minWidth="100%"
+								/>
+							</div>
+							{config.match_mode === 'flexible' && (
 								<div>
-									<div className="text-sm" style={{ color: 'var(--text-primary)' }}>
-										Dry Run
-									</div>
-									<div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-										Save torrents to output folder instead of adding to client
-									</div>
+									<label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
+										Link Directory (for flexible mode)
+									</label>
+									<input
+										type="text"
+										value={config.link_dir || ''}
+										onChange={(e) => setConfig({ ...config, link_dir: e.target.value || null })}
+										placeholder="/path/to/links"
+										className="w-full px-3 py-2 rounded-lg border text-sm"
+										style={{
+											backgroundColor: 'var(--bg-tertiary)',
+											borderColor: 'var(--border)',
+											color: 'var(--text-primary)',
+										}}
+									/>
+									<p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+										Hardlinks will be created here when file names differ
+									</p>
 								</div>
+							)}
+							<div>
+								<label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
+									Blocklist (one per line)
+								</label>
+								<textarea
+									value={config.blocklist.join('\n')}
+									onChange={(e) =>
+										setConfig({
+											...config,
+											blocklist: e.target.value
+												.split('\n')
+												.map((s) => s.trim())
+												.filter(Boolean),
+										})
+									}
+									placeholder="name:YIFY&#10;nameRegex:.*-RARBG$&#10;category:movies&#10;tag:private&#10;sizeBelow:100MB"
+									rows={4}
+									className="w-full px-3 py-2 rounded-lg border text-sm font-mono"
+									style={{
+										backgroundColor: 'var(--bg-tertiary)',
+										borderColor: 'var(--border)',
+										color: 'var(--text-primary)',
+										resize: 'vertical',
+									}}
+								/>
+								<p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+									Format: type:value (name, nameRegex, folder, folderRegex, category, tag, tracker, infoHash, sizeBelow,
+									sizeAbove)
+								</p>
+							</div>
+							<div className="flex items-center justify-between">
+								<span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+									Include Single Episodes
+								</span>
+								<Toggle
+									checked={config.include_single_episodes}
+									onChange={(v) => setConfig({ ...config, include_single_episodes: v })}
+								/>
+							</div>
+							<div className="flex items-center justify-between">
+								<span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+									Dry Run
+								</span>
 								<Toggle checked={config.dry_run} onChange={(v) => setConfig({ ...config, dry_run: v })} />
 							</div>
-
 							<div className="flex items-center justify-between">
-								<div>
-									<div className="text-sm" style={{ color: 'var(--text-primary)' }}>
-										Skip Recheck
-									</div>
-									<div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-										Skip rechecking when adding torrents
-									</div>
-								</div>
+								<span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+									Skip Recheck
+								</span>
 								<Toggle checked={config.skip_recheck} onChange={(v) => setConfig({ ...config, skip_recheck: v })} />
 							</div>
-
-							<div className="flex gap-3 pt-4">
+							<div className="flex items-center justify-end pt-2">
 								<button
 									onClick={handleSave}
 									disabled={saving}
-									className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+									className="px-5 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
 									style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 								>
 									{saving ? 'Saving...' : 'Save Configuration'}
@@ -435,47 +390,92 @@ export function CrossSeedManager({ instances }: Props) {
 					</div>
 
 					<div
-						className="p-6 rounded-xl border"
+						className="shrink-0 p-4 rounded-lg border"
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
-						<h2 className="text-sm font-medium mb-4" style={{ color: 'var(--text-primary)' }}>
+						<div className="text-xs font-medium uppercase tracking-wider mb-4" style={{ color: 'var(--text-muted)' }}>
 							Actions
-						</h2>
-						<div className="flex flex-wrap gap-3">
+						</div>
+						<div className="grid grid-cols-2 gap-3">
 							<button
 								onClick={() => handleScan(false)}
-								disabled={scanning || status?.running || !config.integration_id}
-								className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+								disabled={isRunning || !config.integration_id}
+								className="px-3 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
 								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 							>
-								{scanning || status?.running ? 'Scanning...' : 'Run Scan'}
+								Scan
 							</button>
 							<button
 								onClick={() => handleScan(true)}
-								disabled={scanning || status?.running || !config.integration_id}
-								className="px-4 py-2 rounded-lg text-sm border disabled:opacity-50"
+								disabled={isRunning || !config.integration_id}
+								className="px-3 py-2 rounded-lg text-sm border disabled:opacity-50"
 								style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 							>
-								Force Full Scan
+								Force Scan
+							</button>
+							<button
+								onClick={handleStop}
+								disabled={!isRunning}
+								className="px-3 py-2 rounded-lg text-sm border disabled:opacity-50"
+								style={{
+									borderColor: isRunning ? 'var(--error)' : 'var(--border)',
+									color: isRunning ? 'var(--error)' : 'var(--text-muted)',
+								}}
+							>
+								Stop
 							</button>
 							<button
 								onClick={handleClearCache}
-								className="px-4 py-2 rounded-lg text-sm border"
+								className="px-3 py-2 rounded-lg text-sm border"
 								style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 							>
-								Clear Cache
-							</button>
-							<button
-								onClick={handleClearHistory}
-								className="px-4 py-2 rounded-lg text-sm border"
-								style={{ borderColor: 'var(--border)', color: 'var(--warning)' }}
-							>
-								Clear History
+								Clear Torrents
 							</button>
 						</div>
 					</div>
 				</div>
-			) : null}
+
+				<div
+					className="flex flex-col p-4 rounded-lg border h-full min-h-0 overflow-hidden"
+					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+				>
+					<div className="shrink-0 flex items-center justify-between mb-4">
+						<div className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+							Logs
+						</div>
+						<div className="flex items-center gap-4">
+							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+								{logs.length} entries
+							</span>
+							<label className="flex items-center gap-2 cursor-pointer">
+								<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+									Auto-scroll
+								</span>
+								<Toggle checked={autoScroll} onChange={setAutoScroll} />
+							</label>
+						</div>
+					</div>
+					<div
+						ref={logsContainerRef}
+						className="h-0 grow overflow-y-auto rounded-lg p-3 font-mono text-xs leading-relaxed"
+						style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+					>
+						{logs.length === 0 ? (
+							<div className="text-center py-8" style={{ color: 'var(--text-muted)' }}>
+								No logs
+							</div>
+						) : (
+							logs.map((log, i) => (
+								<div key={i} className="py-0.5 whitespace-pre-wrap break-all">
+									<span style={{ color: 'var(--text-muted)' }}>{log.timestamp.slice(11, 19)}</span>{' '}
+									<span style={{ color: LOG_LEVEL_COLORS[log.level] || 'var(--text-muted)' }}>[{log.level}]</span>{' '}
+									<span>{log.message}</span>
+								</div>
+							))
+						)}
+					</div>
+				</div>
+			</div>
 		</div>
 	)
 }

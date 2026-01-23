@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { ChevronDown, Settings, Check } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { ThemeManager } from './ThemeManager'
 
@@ -28,16 +29,11 @@ export function ThemeSwitcher() {
 					<span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
 						{theme.name}
 					</span>
-					<svg
+					<ChevronDown
 						className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
 						style={{ color: 'var(--text-muted)' }}
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
 						strokeWidth={2}
-					>
-						<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-					</svg>
+					/>
 				</button>
 
 				{open && (
@@ -91,20 +87,7 @@ export function ThemeSwitcher() {
 							}}
 							className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
 						>
-							<svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-								/>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-								/>
-							</svg>
+							<Settings className="w-3 h-3" strokeWidth={2} />
 							Manage Themes
 						</button>
 					</div>
@@ -141,11 +124,7 @@ function ThemeRow({
 				<div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.colors.warning }} />
 			</div>
 			<span className="text-xs font-medium truncate">{t.name}</span>
-			{isActive && (
-				<svg className="w-3 h-3 ml-auto shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-					<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-				</svg>
-			)}
+			{isActive && <Check className="w-3 h-3 ml-auto shrink-0" strokeWidth={3} />}
 		</button>
 	)
 }

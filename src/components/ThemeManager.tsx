@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { ChevronLeft, Download, Pencil, Plus, Trash2, Upload, X } from 'lucide-react'
 import { HexColorPicker } from 'react-colorful'
 import { generateThemeColors, isValidHex } from '../utils/colorUtils'
 import { useTheme } from '../hooks/useTheme'
@@ -131,9 +132,7 @@ function ListView({ customThemes, onClose, onNew, onEdit, onDelete, onExport, on
 			<div className="p-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--bg-tertiary)]">
 				<h2 className="text-lg font-semibold text-[var(--text-primary)]">Manage Themes</h2>
 				<button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-					<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-					</svg>
+					<X className="w-5 h-5" strokeWidth={2} />
 				</button>
 			</div>
 
@@ -143,9 +142,7 @@ function ListView({ customThemes, onClose, onNew, onEdit, onDelete, onExport, on
 					onClick={onNew}
 					className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90 transition-opacity"
 				>
-					<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-					</svg>
+					<Plus className="w-4 h-4" strokeWidth={2} />
 					New Theme
 				</button>
 				<div className="flex-1" />
@@ -154,14 +151,7 @@ function ListView({ customThemes, onClose, onNew, onEdit, onDelete, onExport, on
 					className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-primary)] transition-colors"
 					title="Import themes"
 				>
-					<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2}
-							d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-						/>
-					</svg>
+					<Upload className="w-4 h-4" strokeWidth={2} />
 				</button>
 				<button
 					onClick={onExport}
@@ -169,14 +159,7 @@ function ListView({ customThemes, onClose, onNew, onEdit, onDelete, onExport, on
 					className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 					title="Export themes"
 				>
-					<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2}
-							d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-						/>
-					</svg>
+					<Download className="w-4 h-4" strokeWidth={2} />
 				</button>
 			</div>
 
@@ -201,28 +184,14 @@ function ListView({ customThemes, onClose, onNew, onEdit, onDelete, onExport, on
 								className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--bg-secondary)] transition-colors"
 								title="Edit"
 							>
-								<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-									/>
-								</svg>
+								<Pencil className="w-4 h-4" strokeWidth={2} />
 							</button>
 							<button
 								onClick={() => onDelete(t.id)}
 								className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--error)] hover:bg-[var(--bg-secondary)] transition-colors"
 								title="Delete"
 							>
-								<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-									/>
-								</svg>
+								<Trash2 className="w-4 h-4" strokeWidth={2} />
 							</button>
 						</div>
 					))
@@ -286,9 +255,7 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 			{/* Header */}
 			<div className="p-4 border-b border-[var(--border)] flex items-center gap-3 bg-[var(--bg-tertiary)]">
 				<button onClick={onBack} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-					<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-					</svg>
+					<ChevronLeft className="w-5 h-5" strokeWidth={2} />
 				</button>
 				<h2 className="text-lg font-semibold text-[var(--text-primary)]">
 					{initialTheme ? 'Edit Theme' : 'New Theme'}

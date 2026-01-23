@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { ChevronLeft, RefreshCw, Folder, File, Download, Check, X } from 'lucide-react'
 import {
 	listFiles,
 	getDownloadUrl,
@@ -68,16 +69,7 @@ function FolderPicker({ title, onConfirm, onCancel }: FolderPickerProps) {
 						{title}
 					</h3>
 					<button onClick={onCancel} className="p-1 rounded hover:bg-[var(--bg-tertiary)]">
-						<svg
-							className="w-5 h-5"
-							style={{ color: 'var(--text-muted)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={2}
-						>
-							<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-						</svg>
+						<X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 					</button>
 				</div>
 				<div className="p-4 space-y-3">
@@ -123,14 +115,7 @@ function FolderPicker({ title, onConfirm, onCancel }: FolderPickerProps) {
 										className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-left hover:bg-[var(--bg-tertiary)]"
 										style={{ color: 'var(--text-primary)' }}
 									>
-										<svg
-											className="w-4 h-4 shrink-0"
-											style={{ color: 'var(--warning)' }}
-											fill="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path d="M19.5 21a3 3 0 003-3v-4.5a3 3 0 00-3-3h-15a3 3 0 00-3 3V18a3 3 0 003 3h15zM1.5 10.146V6a3 3 0 013-3h5.379a2.25 2.25 0 011.59.659l2.122 2.121c.14.141.331.22.53.22H19.5a3 3 0 013 3v1.146A4.483 4.483 0 0019.5 9h-15a4.483 4.483 0 00-3 1.146z" />
-										</svg>
+										<Folder className="w-4 h-4 shrink-0" style={{ color: 'var(--warning)' }} fill="currentColor" />
 										{folder.name}
 									</button>
 								))}
@@ -295,16 +280,7 @@ export function FileBrowser() {
 					className="p-1.5 rounded-md transition-colors disabled:opacity-30"
 					style={{ backgroundColor: 'var(--bg-tertiary)' }}
 				>
-					<svg
-						className="w-4 h-4"
-						style={{ color: 'var(--text-secondary)' }}
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						strokeWidth={2}
-					>
-						<path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-					</svg>
+					<ChevronLeft className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} strokeWidth={2} />
 				</button>
 				<div className="flex items-center text-sm overflow-x-auto">
 					<button
@@ -333,20 +309,11 @@ export function FileBrowser() {
 					style={{ backgroundColor: 'var(--bg-tertiary)' }}
 					title="Refresh"
 				>
-					<svg
+					<RefreshCw
 						className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
 						style={{ color: 'var(--text-secondary)' }}
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
 						strokeWidth={2}
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-						/>
-					</svg>
+					/>
 				</button>
 			</div>
 
@@ -438,15 +405,7 @@ export function FileBrowser() {
 										}}
 									>
 										{files.length > 0 && selected.size === files.length && (
-											<svg
-												className="w-3 h-3 text-white"
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												strokeWidth={3}
-											>
-												<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-											</svg>
+											<Check className="w-3 h-3 text-white" strokeWidth={3} />
 										)}
 									</div>
 								</th>
@@ -510,17 +469,7 @@ export function FileBrowser() {
 													borderColor: selected.has(file.name) ? 'var(--accent)' : 'var(--text-muted)',
 												}}
 											>
-												{selected.has(file.name) && (
-													<svg
-														className="w-3 h-3 text-white"
-														fill="none"
-														viewBox="0 0 24 24"
-														stroke="currentColor"
-														strokeWidth={3}
-													>
-														<path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-													</svg>
-												)}
+												{selected.has(file.name) && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
 											</div>
 										</td>
 									)}
@@ -531,27 +480,12 @@ export function FileBrowser() {
 												className="flex items-center gap-2 text-sm hover:underline"
 												style={{ color: 'var(--text-primary)' }}
 											>
-												<svg
-													className="w-4 h-4 shrink-0"
-													style={{ color: 'var(--warning)' }}
-													fill="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path d="M19.5 21a3 3 0 003-3v-4.5a3 3 0 00-3-3h-15a3 3 0 00-3 3V18a3 3 0 003 3h15zM1.5 10.146V6a3 3 0 013-3h5.379a2.25 2.25 0 011.59.659l2.122 2.121c.14.141.331.22.53.22H19.5a3 3 0 013 3v1.146A4.483 4.483 0 0019.5 9h-15a4.483 4.483 0 00-3 1.146z" />
-												</svg>
+												<Folder className="w-4 h-4 shrink-0" style={{ color: 'var(--warning)' }} fill="currentColor" />
 												<span className="truncate">{file.name}</span>
 											</button>
 										) : (
 											<div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-primary)' }}>
-												<svg
-													className="w-4 h-4 shrink-0"
-													style={{ color: 'var(--text-muted)' }}
-													fill="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V7.875L14.25 1.5H5.625z" />
-													<path d="M14.25 1.5v5.25a1.125 1.125 0 001.125 1.125h5.25" />
-												</svg>
+												<File className="w-4 h-4 shrink-0" style={{ color: 'var(--text-muted)' }} fill="currentColor" />
 												<span className="truncate">{file.name}</span>
 											</div>
 										)}
@@ -569,19 +503,7 @@ export function FileBrowser() {
 											style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
 											title={file.isDirectory ? 'Download as .tar' : 'Download'}
 										>
-											<svg
-												className="w-3.5 h-3.5"
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-												strokeWidth={2}
-											>
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-												/>
-											</svg>
+											<Download className="w-3.5 h-3.5" strokeWidth={2} />
 										</a>
 									</td>
 								</tr>

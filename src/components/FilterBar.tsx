@@ -1,75 +1,32 @@
-import { useState, useRef, useEffect, type ReactNode } from 'react'
+import { useState, useRef, useEffect, type FC } from 'react'
+import {
+	LayoutGrid,
+	Download,
+	Upload,
+	CheckCircle,
+	Square,
+	Zap,
+	Search,
+	ChevronDown,
+	Folder,
+	Tag,
+	Settings,
+	Repeat,
+	Columns3,
+	GripHorizontal,
+	Check,
+} from 'lucide-react'
 import type { TorrentFilter } from '../types/qbittorrent'
 import type { Category } from '../api/qbittorrent'
 import type { ColumnDef } from './columns'
 
-const filters: { value: TorrentFilter; label: string; icon: ReactNode }[] = [
-	{
-		value: 'all',
-		label: 'All',
-		icon: (
-			<path
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
-			/>
-		),
-	},
-	{
-		value: 'downloading',
-		label: 'Downloading',
-		icon: (
-			<path
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-			/>
-		),
-	},
-	{
-		value: 'seeding',
-		label: 'Seeding',
-		icon: (
-			<path
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-			/>
-		),
-	},
-	{
-		value: 'completed',
-		label: 'Completed',
-		icon: (
-			<path
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-			/>
-		),
-	},
-	{
-		value: 'stopped',
-		label: 'Stopped',
-		icon: (
-			<path
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z"
-			/>
-		),
-	},
-	{
-		value: 'active',
-		label: 'Active',
-		icon: (
-			<path
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
-			/>
-		),
-	},
+const filters: { value: TorrentFilter; label: string; Icon: FC<{ className?: string; strokeWidth?: number }> }[] = [
+	{ value: 'all', label: 'All', Icon: LayoutGrid },
+	{ value: 'downloading', label: 'Downloading', Icon: Download },
+	{ value: 'seeding', label: 'Seeding', Icon: Upload },
+	{ value: 'completed', label: 'Completed', Icon: CheckCircle },
+	{ value: 'stopped', label: 'Stopped', Icon: Square },
+	{ value: 'active', label: 'Active', Icon: Zap },
 ]
 
 interface Props {
@@ -98,9 +55,7 @@ export function FilterBar({ filter, onFilterChange }: Props) {
 							}}
 						/>
 					)}
-					<svg className="relative w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-						{f.icon}
-					</svg>
+					<f.Icon className="relative w-3.5 h-3.5" strokeWidth={2} />
 					<span className="relative">{f.label}</span>
 				</button>
 			))}
@@ -111,20 +66,11 @@ export function FilterBar({ filter, onFilterChange }: Props) {
 export function SearchInput({ value, onChange }: { value: string; onChange: (s: string) => void }) {
 	return (
 		<div className="relative shrink min-w-0 w-64">
-			<svg
+			<Search
 				className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
 				style={{ color: 'var(--text-muted)' }}
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
 				strokeWidth={2}
-			>
-				<path
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-				/>
-			</svg>
+			/>
 			<input
 				type="text"
 				placeholder="Search torrents..."
@@ -142,10 +88,10 @@ interface DropdownProps<T extends string> {
 	onChange: (v: T | null) => void
 	options: { value: T; label: string; count?: number }[]
 	placeholder: string
-	icon: ReactNode
+	Icon: FC<{ className?: string; strokeWidth?: number }>
 }
 
-function Dropdown<T extends string>({ value, onChange, options, placeholder, icon }: DropdownProps<T>) {
+function Dropdown<T extends string>({ value, onChange, options, placeholder, Icon }: DropdownProps<T>) {
 	const [open, setOpen] = useState(false)
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -169,19 +115,9 @@ function Dropdown<T extends string>({ value, onChange, options, placeholder, ico
 					backgroundColor: value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
 				}}
 			>
-				<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-					{icon}
-				</svg>
+				<Icon className="w-3.5 h-3.5" strokeWidth={2} />
 				<span className="max-w-[100px] truncate">{selected?.label ?? placeholder}</span>
-				<svg
-					className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-				</svg>
+				<ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} strokeWidth={2} />
 			</button>
 			{open && (
 				<div
@@ -260,23 +196,9 @@ export function CategoryDropdown({ value, onChange, categories }: CategoryDropdo
 					backgroundColor: value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
 				}}
 			>
-				<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
-					/>
-				</svg>
+				<Folder className="w-3.5 h-3.5" strokeWidth={2} />
 				<span className="max-w-[100px] truncate">{selected ?? 'Category'}</span>
-				<svg
-					className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-				</svg>
+				<ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} strokeWidth={2} />
 			</button>
 			{open && (
 				<div
@@ -348,23 +270,9 @@ export function TagDropdown({ value, onChange, tags }: TagDropdownProps) {
 					backgroundColor: value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
 				}}
 			>
-				<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"
-					/>
-				</svg>
+				<Tag className="w-3.5 h-3.5" strokeWidth={2} />
 				<span className="max-w-[100px] truncate">{selected ?? 'Tag'}</span>
-				<svg
-					className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-				</svg>
+				<ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} strokeWidth={2} />
 			</button>
 			{open && (
 				<div
@@ -414,14 +322,7 @@ export function ManageButton({ onClick }: { onClick: () => void }) {
 			style={{ color: 'var(--text-muted)' }}
 			title="Manage categories & tags"
 		>
-			<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-				<path
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"
-				/>
-				<path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-			</svg>
+			<Settings className="w-3.5 h-3.5" strokeWidth={2} />
 		</button>
 	)
 }
@@ -441,21 +342,7 @@ export function TrackerDropdown({ value, onChange, trackers }: TrackerDropdownPr
 			return { value: t, label: t }
 		}
 	})
-	return (
-		<Dropdown
-			value={value}
-			onChange={onChange}
-			options={options}
-			placeholder="Tracker"
-			icon={
-				<path
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
-				/>
-			}
-		/>
-	)
+	return <Dropdown value={value} onChange={onChange} options={options} placeholder="Tracker" Icon={Repeat} />
 }
 
 interface ColumnSelectorProps {
@@ -520,22 +407,8 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 				style={{ color: 'var(--text-muted)' }}
 				title="Configure columns"
 			>
-				<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25v9.75m0 0h9.75"
-					/>
-				</svg>
-				<svg
-					className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					strokeWidth={2}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-				</svg>
+				<Columns3 className="w-3.5 h-3.5" strokeWidth={2} />
+				<ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} strokeWidth={2} />
 			</button>
 			{open && (
 				<div
@@ -570,29 +443,11 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 							className={`flex items-center gap-2 px-2 py-2 text-xs transition-colors hover:bg-white/5 cursor-move ${draggedId === col.id ? 'opacity-50' : ''}`}
 							style={{ color: 'var(--text-primary)' }}
 						>
-							<svg
-								className="w-3 h-3 shrink-0"
-								style={{ color: 'var(--text-muted)' }}
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								strokeWidth={2}
-							>
-								<path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-							</svg>
+							<GripHorizontal className="w-3 h-3 shrink-0" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 							<button onClick={() => toggle(col.id)} className="flex-1 flex items-center justify-between text-left">
 								<span>{col.label}</span>
 								{visible.has(col.id) && (
-									<svg
-										className="w-3 h-3"
-										style={{ color: 'var(--accent)' }}
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										strokeWidth={3}
-									>
-										<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-									</svg>
+									<Check className="w-3 h-3" style={{ color: 'var(--accent)' }} strokeWidth={3} />
 								)}
 							</button>
 						</div>

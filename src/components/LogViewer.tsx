@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { Loader2, Server, FileText } from 'lucide-react'
 import { type Instance } from '../api/instances'
 import { getLog, getPeerLog, type LogEntry, type PeerLogEntry } from '../api/qbittorrent'
 import { Select } from './ui'
@@ -143,10 +144,7 @@ export function LogViewer({ instances }: Props) {
 				>
 					{loading ? (
 						<span className="flex items-center gap-2">
-							<svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-								<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-								<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-							</svg>
+							<Loader2 className="w-4 h-4 animate-spin" />
 							Loading
 						</span>
 					) : (
@@ -269,20 +267,7 @@ export function LogViewer({ instances }: Props) {
 					className="text-center py-16 rounded-xl border"
 					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 				>
-					<svg
-						className="w-12 h-12 mx-auto mb-3"
-						style={{ color: 'var(--text-muted)' }}
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						strokeWidth={1}
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 1 0 0 6h13.5a3 3 0 1 0 0-6m-16.5-3a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3m-19.5 0a4.5 4.5 0 0 1 .9-2.7L5.737 5.1a3.375 3.375 0 0 1 2.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 0 1 .9 2.7m0 0a3 3 0 0 1-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z"
-						/>
-					</svg>
+					<Server className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} strokeWidth={1} />
 					<p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
 						No instances configured
 					</p>
@@ -295,20 +280,7 @@ export function LogViewer({ instances }: Props) {
 					className="text-center py-16 rounded-xl border"
 					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 				>
-					<svg
-						className="w-12 h-12 mx-auto mb-3"
-						style={{ color: 'var(--text-muted)' }}
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						strokeWidth={1}
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-						/>
-					</svg>
+					<FileText className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} strokeWidth={1} />
 					<p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
 						No log entries
 					</p>

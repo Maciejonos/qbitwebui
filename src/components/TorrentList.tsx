@@ -1,4 +1,16 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
+import {
+	ChevronUp,
+	ChevronDown,
+	Plus,
+	Play,
+	Square,
+	Trash2,
+	AlertTriangle,
+	Settings,
+	Maximize2,
+	Archive,
+} from 'lucide-react'
 import type { TorrentFilter, Torrent } from '../types/qbittorrent'
 import {
 	useTorrents,
@@ -34,34 +46,26 @@ const TorrentDetailsPanel = lazy(() =>
 const DEFAULT_PANEL_HEIGHT = 220
 
 function SortIcon({ active, asc }: { active: boolean; asc: boolean }) {
+	const Icon = asc ? ChevronUp : ChevronDown
 	return (
-		<svg
+		<Icon
 			className="w-3 h-3 transition-colors"
 			style={{ color: active ? 'var(--accent)' : 'var(--text-muted)' }}
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke="currentColor"
 			strokeWidth={2}
-		>
-			{asc ? (
-				<path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-			) : (
-				<path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-			)}
-		</svg>
+		/>
 	)
 }
 
 function ActionButton({
 	onClick,
 	disabled,
-	icon,
+	icon: Icon,
 	label,
 	colorVar,
 }: {
 	onClick: () => void
 	disabled: boolean
-	icon: React.ReactNode
+	icon: React.ComponentType<{ className?: string; strokeWidth?: number }>
 	label: string
 	colorVar: string
 }) {
@@ -73,9 +77,7 @@ function ActionButton({
 			className="p-2 rounded-lg transition-all duration-200 active:scale-95 disabled:cursor-not-allowed"
 			style={{ color: disabled ? 'var(--text-muted)' : colorVar, opacity: disabled ? 0.5 : 1 }}
 		>
-			<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-				{icon}
-			</svg>
+			<Icon className="w-4 h-4" strokeWidth={2} />
 		</button>
 	)
 }
@@ -113,6 +115,14 @@ export function TorrentList() {
 		return DEFAULT_COLUMN_ORDER
 	})
 
+	const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
+		const stored = localStorage.getItem('columnWidths')
+		if (stored) return JSON.parse(stored)
+		return {}
+	})
+
+	const [resizing, setResizing] = useState<{ id: string; startX: number; startWidth: number } | null>(null)
+
 	function handleColumnChange(next: Set<string>) {
 		setVisibleColumns(next)
 		localStorage.setItem('visibleColumns', JSON.stringify([...next]))
@@ -128,6 +138,32 @@ export function TorrentList() {
 		setColumnOrder(DEFAULT_COLUMN_ORDER)
 		localStorage.setItem('visibleColumns', JSON.stringify([...DEFAULT_VISIBLE_COLUMNS]))
 		localStorage.setItem('columnOrder', JSON.stringify(DEFAULT_COLUMN_ORDER))
+	}
+
+	function handleResetWidths() {
+		setColumnWidths({})
+		localStorage.removeItem('columnWidths')
+	}
+
+	function handleResizeStart(e: React.MouseEvent, columnId: string) {
+		e.preventDefault()
+		const th = (e.target as HTMLElement).closest('th')
+		const startWidth = columnWidths[columnId] || th?.offsetWidth || 100
+		setResizing({ id: columnId, startX: e.clientX, startWidth })
+	}
+
+	function handleResizeMove(e: React.MouseEvent) {
+		if (!resizing) return
+		const delta = e.clientX - resizing.startX
+		const newWidth = Math.max(60, resizing.startWidth + delta)
+		setColumnWidths((prev) => ({ ...prev, [resizing.id]: newWidth }))
+	}
+
+	function handleResizeEnd() {
+		if (resizing) {
+			localStorage.setItem('columnWidths', JSON.stringify(columnWidths))
+		}
+		setResizing(null)
 	}
 
 	const orderedColumns = columnOrder
@@ -295,7 +331,7 @@ export function TorrentList() {
 						disabled={false}
 						label="Add Torrent"
 						colorVar="var(--accent)"
-						icon={<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />}
+						icon={Plus}
 					/>
 					<div className="w-px h-5 mx-0.5" style={{ backgroundColor: 'var(--border)' }} />
 					<ActionButton
@@ -303,39 +339,21 @@ export function TorrentList() {
 						disabled={!hasSelection}
 						label="Start"
 						colorVar="var(--accent)"
-						icon={
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"
-							/>
-						}
+						icon={Play}
 					/>
 					<ActionButton
 						onClick={handleStop}
 						disabled={!hasSelection}
 						label="Stop"
 						colorVar="var(--warning)"
-						icon={
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z"
-							/>
-						}
+						icon={Square}
 					/>
 					<ActionButton
 						onClick={() => setDeleteModal(true)}
 						disabled={!hasSelection}
 						label="Delete"
 						colorVar="var(--error)"
-						icon={
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-							/>
-						}
+						icon={Trash2}
 					/>
 				</div>
 
@@ -375,7 +393,13 @@ export function TorrentList() {
 				<SearchInput value={search} onChange={setSearch} />
 			</div>
 
-			<div className="flex-1 overflow-auto">
+			<div
+				className="flex-1 overflow-auto"
+				onMouseMove={handleResizeMove}
+				onMouseUp={handleResizeEnd}
+				onMouseLeave={handleResizeEnd}
+				style={{ cursor: resizing ? 'col-resize' : undefined }}
+			>
 				{isLoading ? (
 					<div className="flex flex-col items-center justify-center h-48 gap-3">
 						<div
@@ -391,20 +415,7 @@ export function TorrentList() {
 					</div>
 				) : filtered.length === 0 ? (
 					<div className="flex flex-col items-center justify-center h-48 gap-2">
-						<svg
-							className="w-10 h-10"
-							style={{ color: 'var(--border)' }}
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							strokeWidth={1}
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
-							/>
-						</svg>
+						<Archive className="w-10 h-10" style={{ color: 'var(--border)' }} strokeWidth={1} />
 						<span className="text-xs uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
 							No torrents
 						</span>
@@ -419,7 +430,10 @@ export function TorrentList() {
 									borderColor: 'var(--border)',
 								}}
 							>
-								<th className="px-4 py-2.5 text-left">
+								<th
+									className="px-4 py-2.5 text-left relative"
+									style={columnWidths.name ? { width: columnWidths.name } : undefined}
+								>
 									<button
 										onClick={() => handleSort('name')}
 										className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-widest transition-colors"
@@ -428,11 +442,16 @@ export function TorrentList() {
 										Name
 										<SortIcon active={sortKey === 'name'} asc={sortAsc} />
 									</button>
+									<div className="resize-handle" onMouseDown={(e) => handleResizeStart(e, 'name')} />
 								</th>
 								{orderedColumns
 									.filter((col) => visibleColumns.has(col.id))
 									.map((col) => (
-										<th key={col.id} className="px-3 py-2.5 text-left whitespace-nowrap">
+										<th
+											key={col.id}
+											className="px-3 py-2.5 text-left whitespace-nowrap relative"
+											style={columnWidths[col.id] ? { width: columnWidths[col.id] } : undefined}
+										>
 											{col.id === 'ratio' ? (
 												<div className="flex items-center gap-1">
 													<button
@@ -448,21 +467,7 @@ export function TorrentList() {
 														className="p-0.5 rounded opacity-50 hover:opacity-100 transition-opacity"
 														title="Configure ratio colors"
 													>
-														<svg
-															className="w-3 h-3"
-															style={{ color: 'var(--text-muted)' }}
-															fill="none"
-															viewBox="0 0 24 24"
-															stroke="currentColor"
-															strokeWidth={2}
-														>
-															<path
-																strokeLinecap="round"
-																strokeLinejoin="round"
-																d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-															/>
-															<path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-														</svg>
+														<Settings className="w-3 h-3" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 													</button>
 												</div>
 											) : col.sortKey ? (
@@ -494,8 +499,20 @@ export function TorrentList() {
 													{col.label}
 												</span>
 											)}
+											<div className="resize-handle" onMouseDown={(e) => handleResizeStart(e, col.id)} />
 										</th>
 									))}
+								{Object.keys(columnWidths).length > 0 && (
+									<th className="px-2 py-2.5 w-8">
+										<button
+											onClick={handleResetWidths}
+											className="p-1 rounded opacity-50 hover:opacity-100 transition-opacity"
+											title="Reset column widths"
+										>
+											<Maximize2 className="w-3 h-3" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
+										</button>
+									</th>
+								)}
 							</tr>
 						</thead>
 						<tbody>
@@ -509,6 +526,8 @@ export function TorrentList() {
 									ratioThreshold={ratioThreshold}
 									visibleColumns={visibleColumns}
 									columnOrder={columnOrder}
+									columnWidths={columnWidths}
+									hasCustomWidths={Object.keys(columnWidths).length > 0}
 								/>
 							))}
 						</tbody>
@@ -531,20 +550,7 @@ export function TorrentList() {
 									className="w-9 h-9 rounded-lg flex items-center justify-center"
 									style={{ backgroundColor: 'color-mix(in srgb, var(--error) 10%, transparent)' }}
 								>
-									<svg
-										className="w-4 h-4"
-										style={{ color: 'var(--error)' }}
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										strokeWidth={2}
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-										/>
-									</svg>
+									<AlertTriangle className="w-4 h-4" style={{ color: 'var(--error)' }} strokeWidth={2} />
 								</div>
 								<div>
 									<h3 className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>

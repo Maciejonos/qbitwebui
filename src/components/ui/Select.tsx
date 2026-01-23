@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { ChevronDown } from 'lucide-react'
 
 interface SelectProps<T extends string | number> {
 	value: T
@@ -32,21 +33,17 @@ export function Select<T extends string | number>({
 		<div ref={ref} className={`relative ${className || ''}`} style={{ minWidth }}>
 			<button
 				type="button"
+				data-dropdown
 				onClick={() => setOpen(!open)}
-				className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded border text-xs"
+				className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border text-sm"
 				style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 			>
 				<span className="truncate">{selected?.label}</span>
-				<svg
+				<ChevronDown
 					className={`w-3 h-3 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
 					style={{ color: 'var(--text-muted)' }}
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
 					strokeWidth={2}
-				>
-					<path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-				</svg>
+				/>
 			</button>
 			{open && (
 				<div

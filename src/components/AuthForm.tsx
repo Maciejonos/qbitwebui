@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Download } from 'lucide-react'
 import { register, login, type User } from '../api/auth'
 
 interface Props {
@@ -78,20 +79,7 @@ export function AuthForm({ onSuccess }: Props) {
 									'linear-gradient(to bottom right, var(--accent), color-mix(in srgb, var(--accent) 70%, black))',
 							}}
 						>
-							<svg
-								className="w-5 h-5"
-								style={{ color: 'var(--accent-contrast)' }}
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								strokeWidth={2.5}
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-								/>
-							</svg>
+							<Download className="w-5 h-5" style={{ color: 'var(--accent-contrast)' }} strokeWidth={2.5} />
 						</div>
 						<div>
 							<h1 className="text-lg font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>
