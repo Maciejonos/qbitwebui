@@ -12,8 +12,9 @@ const MobileLogViewer = lazy(() => import('./MobileLogViewer').then((m) => ({ de
 const MobileCrossSeedManager = lazy(() =>
 	import('./MobileCrossSeedManager').then((m) => ({ default: m.MobileCrossSeedManager }))
 )
+const MobileSpeedtest = lazy(() => import('./MobileSpeedtest').then((m) => ({ default: m.MobileSpeedtest })))
 
-type Tool = 'search' | 'files' | 'orphans' | 'rss' | 'logs' | 'cross-seed' | null
+type Tool = 'search' | 'files' | 'orphans' | 'rss' | 'logs' | 'cross-seed' | 'speedtest' | null
 
 const Spinner = (
 	<div className="flex items-center justify-center p-8">
@@ -40,7 +41,7 @@ export function MobileTools({ instances }: Props): ReactNode {
 		fetch('/api/config')
 			.then((r) => r.json())
 			.then((c) => setFilesEnabled(c.filesEnabled))
-			.catch(() => {})
+			.catch(() => { })
 	}, [])
 
 	const handleBack = () => setActiveTool(null)
@@ -80,6 +81,12 @@ export function MobileTools({ instances }: Props): ReactNode {
 			return (
 				<LazyTool>
 					<MobileCrossSeedManager instances={instances} onBack={handleBack} />
+				</LazyTool>
+			)
+		case 'speedtest':
+			return (
+				<LazyTool>
+					<MobileSpeedtest onBack={handleBack} />
 				</LazyTool>
 			)
 	}
@@ -232,6 +239,53 @@ export function MobileTools({ instances }: Props): ReactNode {
 						</p>
 					</div>
 					<ChevronRight className="w-5 h-5 mt-1 shrink-0" style={{ color: 'var(--text-muted)' }} />
+				</div>
+			</button>
+
+			{/* Speedtest Button */}
+			<button
+				onClick={() => setActiveTool('speedtest')}
+				className="w-full p-4 rounded-2xl border text-left active:scale-[0.98] transition-transform"
+				style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+			>
+				<div className="flex items-start gap-4">
+					<div
+						className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+						style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 15%, transparent)' }}
+					>
+						<svg
+							className="w-6 h-6"
+							style={{ color: 'var(--accent)' }}
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							strokeWidth={1.5}
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								d="M5.636 19.364a9 9 0 1 1 12.728 0M16 9l-4 4"
+							/>
+						</svg>
+					</div>
+					<div className="flex-1 min-w-0">
+						<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+							Network Speedtest
+						</h3>
+						<p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
+							Test server bandwidth with history
+						</p>
+					</div>
+					<svg
+						className="w-5 h-5 mt-1 shrink-0"
+						style={{ color: 'var(--text-muted)' }}
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						strokeWidth={2}
+					>
+						<path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+					</svg>
 				</div>
 			</button>
 		</div>

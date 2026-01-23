@@ -16,6 +16,7 @@ export default defineConfig(() => {
 						if (id.includes('node_modules')) {
 							if (id.includes('react') || id.includes('scheduler')) return 'vendor'
 							if (id.includes('@tanstack')) return 'vendor'
+							// Bundle React-dependent UI libs together to prevent context issues
 							if (
 								id.includes('vaul') ||
 								id.includes('react-remove-scroll') ||

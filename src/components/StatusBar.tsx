@@ -10,6 +10,7 @@ import {
 	ChevronRight,
 } from 'lucide-react'
 import { useTransferInfo } from '../hooks/useTransferInfo'
+import { SpeedtestModal, type SpeedtestResult, type SpeedtestStatus } from './SpeedtestModal'
 import { useSyncMaindata } from '../hooks/useSyncMaindata'
 import { usePagination } from '../hooks/usePagination'
 import { useInstance } from '../hooks/useInstance'
@@ -102,12 +103,47 @@ function useAltSpeedMode(instanceId: number) {
 	return { enabled, toggling, toggle }
 }
 
+// Hook to manage speedtest state - persists across modal open/close
+function useSpeedtest() {
+	const [status, setStatus] = useState<SpeedtestStatus>('idle')
+	const [result, setResult] = useState<SpeedtestResult | null>(null)
+	const [error, setError] = useState<string | null>(null)
+
+	const runSpeedtest = useCallback(async () => {
+		setStatus('running')
+		setError(null)
+
+		try {
+			const res = await fetch('/api/tools/speedtest', {
+				method: 'POST',
+				credentials: 'include',
+			})
+
+			if (!res.ok) {
+				const data = await res.json()
+				throw new Error(data.error || 'Speedtest failed')
+			}
+
+			const data = await res.json()
+			setResult(data)
+			setStatus('done')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Unknown error')
+			setStatus('error')
+		}
+	}, [])
+
+	return { status, result, error, runSpeedtest }
+}
+
 export function StatusBar() {
 	const instance = useInstance()
 	const { data } = useTransferInfo()
 	const { data: syncData } = useSyncMaindata()
 	const { page, perPage, totalItems, totalPages, setPage, setPerPage } = usePagination()
 	const altSpeed = useAltSpeedMode(instance.id)
+	const [showSpeedtest, setShowSpeedtest] = useState(false)
+	const speedtest = useSpeedtest()
 
 	const statusConfig = {
 		connected: { label: 'Connected', type: 'success' as const },
@@ -263,6 +299,21 @@ export function StatusBar() {
 			</div>
 
 			<div className="relative flex items-center justify-end gap-4">
+				<button
+					onClick={() => setShowSpeedtest(true)}
+					className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium transition-all hover:opacity-80"
+					style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-muted)' }}
+					title="Run network speedtest"
+				>
+					<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							d="M5.636 19.364a9 9 0 1 1 12.728 0M16 9l-4 4"
+						/>
+					</svg>
+					<span>Speedtest</span>
+				</button>
 				<div
 					className="flex items-center gap-2 px-3 py-1.5 rounded-lg border"
 					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
@@ -292,6 +343,16 @@ export function StatusBar() {
 					</span>
 				</div>
 			</div>
+
+			{showSpeedtest && (
+				<SpeedtestModal
+					status={speedtest.status}
+					result={speedtest.result}
+					error={speedtest.error}
+					onStart={speedtest.runSpeedtest}
+					onClose={() => setShowSpeedtest(false)}
+				/>
+			)}
 		</div>
 	)
 }
