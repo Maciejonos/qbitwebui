@@ -5,6 +5,7 @@ import {
 	useTags,
 	useStartTorrents,
 	useStopTorrents,
+	useRecheckTorrents,
 	useDeleteTorrents,
 	useSetCategory,
 	useAddTags,
@@ -34,6 +35,7 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 	const { data: tags = [] } = useTags()
 	const startMutation = useStartTorrents()
 	const stopMutation = useStopTorrents()
+	const recheckMutation = useRecheckTorrents()
 	const setCategoryMutation = useSetCategory()
 	const addTagsMutation = useAddTags()
 	const removeTagsMutation = useRemoveTags()
@@ -87,6 +89,11 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 
 	function handleStop() {
 		stopMutation.mutate(hashes)
+		onClose()
+	}
+
+	function handleRecheck() {
+		recheckMutation.mutate(hashes)
 		onClose()
 	}
 
@@ -170,6 +177,7 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 		<div ref={ref} className="rounded-lg border shadow-xl z-[200] py-1 min-w-[160px]" style={menuStyle}>
 			<MenuItem onClick={handleStart}>Start</MenuItem>
 			<MenuItem onClick={handleStop}>Stop</MenuItem>
+			<MenuItem onClick={handleRecheck}>Force Recheck</MenuItem>
 			<div className="h-px my-1" style={{ backgroundColor: 'var(--border)' }} />
 			<MenuItem onClick={() => setSubmenu(submenu === 'category' ? null : 'category')} hasSubmenu>
 				Set Category
