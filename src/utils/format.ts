@@ -83,3 +83,13 @@ export function formatRelativeDate(timestamp: number): string {
 export function normalizeSearch(str: string): string {
 	return str.toLowerCase().replace(/[._-]+/g, ' ')
 }
+
+export function formatCountdown(timestamp: number | null, fallback = '—'): string {
+	if (!timestamp) return fallback
+	const diff = timestamp - Math.floor(Date.now() / 1000)
+	if (diff <= 0) return 'Now'
+	const hours = Math.floor(diff / 3600)
+	const mins = Math.floor((diff % 3600) / 60)
+	if (hours > 0) return `${hours}h ${mins}m`
+	return `${mins}m`
+}
