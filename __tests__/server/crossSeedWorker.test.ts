@@ -511,8 +511,10 @@ describe('crossSeedWorker', () => {
 		expect(result.matchesFound).toBe(1)
 		expect(result.torrentsAdded).toBe(1)
 		expect(fsMocks.link.mock.calls.length).toBeGreaterThan(0)
-		expect(fsMocks.link.mock.calls[0][0]).toBe('/downloads/Movie.2024.1080p.mkv')
-		expect(fsMocks.link.mock.calls[0][1]).toBe('/links/Movie.2024.1080p.REPACK.mkv')
+		const sourcePath = fsMocks.link.mock.calls[0][0].replace(/\\/g, '/')
+		const destPath = fsMocks.link.mock.calls[0][1].replace(/\\/g, '/')
+		expect(sourcePath).toBe('/downloads/Movie.2024.1080p.mkv')
+		expect(destPath).toBe('/links/Movie.2024.1080p.REPACK.mkv')
 	})
 
 	it('detects structure mismatch when single-file source matches multi-file candidate with folder', async () => {

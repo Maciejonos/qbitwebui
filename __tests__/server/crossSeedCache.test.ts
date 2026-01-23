@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import { existsSync, rmSync } from 'fs'
 import { tmpdir } from 'os'
-import { join } from 'path'
+import { join, basename } from 'path'
 
 const TEST_DATA_PATH = join(tmpdir(), `crossseed-test-${process.pid}`)
 process.env.DATA_PATH = TEST_DATA_PATH
@@ -113,7 +113,7 @@ describe('crossSeedCache', () => {
 			const data = Buffer.from('data')
 
 			const path = saveTorrentToOutput(TEST_INSTANCE, name, HASH_2, data)
-			const filename = path.split('/').pop()!
+			const filename = basename(path)
 
 			expect(filename).not.toContain(':')
 			expect(filename).not.toContain('*')
