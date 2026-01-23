@@ -6,10 +6,12 @@ import {
 	getSchedulerStatus,
 	getInstanceStatus,
 	clearCache,
-	clearHistory,
 	getCacheStats,
 	getSearchHistory,
 	getDecisions,
+	getIndexers,
+	stopScan,
+	getLogs,
 } from '../../src/api/crossSeed'
 
 describe('crossSeed API', () => {
@@ -36,6 +38,7 @@ describe('crossSeed API', () => {
 				tag: 'cross-seed',
 				skip_recheck: false,
 				integration_id: 1,
+				indexer_ids: [1, 2],
 				last_run: null,
 				next_run: null,
 			}
@@ -67,13 +70,13 @@ describe('crossSeed API', () => {
 				json: () => Promise.resolve({ success: true }),
 			})
 
-			await updateCrossSeedConfig(1, { enabled: true, interval_hours: 12 })
+			await updateCrossSeedConfig(1, { enabled: true, interval_hours: 12, indexer_ids: [1, 2] })
 
 			expect(mockFetch).toHaveBeenCalledWith('/api/cross-seed/config/1', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				credentials: 'include',
-				body: JSON.stringify({ enabled: true, interval_hours: 12 }),
+				body: JSON.stringify({ enabled: true, interval_hours: 12, indexer_ids: [1, 2] }),
 			})
 		})
 
@@ -90,12 +93,16 @@ describe('crossSeed API', () => {
 	describe('triggerScan', () => {
 		it('triggers scan without force', async () => {
 			const mockResult = {
+				instanceId: 1,
+				torrentsTotal: 150,
 				torrentsScanned: 100,
-				newSearchees: 50,
-				skippedSearchees: 50,
+				torrentsSkipped: 50,
 				matchesFound: 5,
 				torrentsAdded: 3,
 				errors: [],
+				dryRun: false,
+				startedAt: 1704067200000,
+				completedAt: 1704067260000,
 			}
 
 			mockFetch.mockResolvedValueOnce({
@@ -147,6 +154,31 @@ describe('crossSeed API', () => {
 
 			expect(mockFetch).toHaveBeenCalledWith('/api/cross-seed/status', { credentials: 'include' })
 			expect(result).toEqual(mockStatuses)
+		})
+	})
+
+	describe('getIndexers', () => {
+		it('fetches indexers for instance', async () => {
+			const mockIndexers = [{ id: 1, name: 'Indexer A', protocol: 'torrent', supportsSearch: true, categories: [2000] }]
+
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: () => Promise.resolve(mockIndexers),
+			})
+
+			const result = await getIndexers(1)
+
+			expect(mockFetch).toHaveBeenCalledWith('/api/cross-seed/indexers/1', { credentials: 'include' })
+			expect(result).toEqual(mockIndexers)
+		})
+
+		it('throws on error response', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: false,
+				json: () => Promise.resolve({ error: 'No Prowlarr integration configured' }),
+			})
+
+			await expect(getIndexers(1)).rejects.toThrow('No Prowlarr integration configured')
 		})
 	})
 
@@ -267,20 +299,45 @@ describe('crossSeed API', () => {
 		})
 	})
 
-	describe('clearHistory', () => {
-		it('clears history for instance', async () => {
+	describe('stopScan', () => {
+		it('stops scan for instance', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
-				json: () => Promise.resolve({ deleted: 50 }),
+				json: () => Promise.resolve({ stopped: true }),
 			})
 
-			const result = await clearHistory(1)
+			const result = await stopScan(1)
 
-			expect(mockFetch).toHaveBeenCalledWith('/api/cross-seed/history/1', {
-				method: 'DELETE',
+			expect(mockFetch).toHaveBeenCalledWith('/api/cross-seed/stop/1', {
+				method: 'POST',
 				credentials: 'include',
 			})
-			expect(result.deleted).toBe(50)
+			expect(result.stopped).toBe(true)
+		})
+
+		it('throws on error response', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: false,
+				json: () => Promise.resolve({ error: 'No scan running' }),
+			})
+
+			await expect(stopScan(1)).rejects.toThrow('No scan running')
+		})
+	})
+
+	describe('getLogs', () => {
+		it('fetches logs with limit', async () => {
+			const mockLogs = [{ timestamp: '2024-01-01T00:00:00.000Z', level: 'INFO', message: 'Test' }]
+
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				json: () => Promise.resolve(mockLogs),
+			})
+
+			const result = await getLogs(200)
+
+			expect(mockFetch).toHaveBeenCalledWith('/api/cross-seed/logs?limit=200', { credentials: 'include' })
+			expect(result).toEqual(mockLogs)
 		})
 	})
 })

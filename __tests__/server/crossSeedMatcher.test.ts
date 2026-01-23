@@ -1,4 +1,36 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+vi.mock('../../src/server/db', () => ({
+	db: {
+		exec: vi.fn(),
+		run: vi.fn(),
+		query: vi.fn(() => ({ get: vi.fn(), all: vi.fn(() => []) })),
+	},
+	CrossSeedDecisionType: {
+		MATCH: 'MATCH',
+		MATCH_SIZE_ONLY: 'MATCH_SIZE_ONLY',
+		SIZE_MISMATCH: 'SIZE_MISMATCH',
+		FILE_TREE_MISMATCH: 'FILE_TREE_MISMATCH',
+		ALREADY_EXISTS: 'ALREADY_EXISTS',
+		DOWNLOAD_FAILED: 'DOWNLOAD_FAILED',
+		NO_DOWNLOAD_LINK: 'NO_DOWNLOAD_LINK',
+		BLOCKED_RELEASE: 'BLOCKED_RELEASE',
+	},
+	BlocklistType: {
+		NAME: 'name',
+		NAME_REGEX: 'nameRegex',
+		FOLDER: 'folder',
+		FOLDER_REGEX: 'folderRegex',
+		CATEGORY: 'category',
+		TAG: 'tag',
+		TRACKER: 'tracker',
+		INFOHASH: 'infoHash',
+		SIZE_BELOW: 'sizeBelow',
+		SIZE_ABOVE: 'sizeAbove',
+		LEGACY: 'legacy',
+	},
+}))
+
 import {
 	matchTorrentsBySizes,
 	preFilterCandidate,
@@ -64,7 +96,7 @@ describe('crossSeedMatcher', () => {
 		})
 
 		describe('mismatches', () => {
-			it('rejects when file count differs', () => {
+			it('rejects when candidate file size not found in searchee', () => {
 				const source: FileInfo[] = [
 					{ name: 'file1.mkv', size: 1000 },
 					{ name: 'file2.mkv', size: 1000 },
@@ -73,7 +105,23 @@ describe('crossSeedMatcher', () => {
 
 				const result = matchTorrentsBySizes(source, candidate)
 				expect(result.matched).toBe(false)
-				expect(result.decision).toBe(CrossSeedDecisionType.FILE_COUNT_MISMATCH)
+				expect(result.decision).toBe(CrossSeedDecisionType.SIZE_MISMATCH)
+			})
+
+			it('allows searchee to have extra files (candidate subset of searchee)', () => {
+				const source: FileInfo[] = [
+					{ name: 'file1.mkv', size: 1000 },
+					{ name: 'file2.mkv', size: 2000 },
+					{ name: 'extra.nfo', size: 500 },
+				]
+				const candidate: FileInfo[] = [
+					{ name: 'file1.mkv', size: 1000 },
+					{ name: 'file2.mkv', size: 2000 },
+				]
+
+				const result = matchTorrentsBySizes(source, candidate)
+				expect(result.matched).toBe(true)
+				expect(result.decision).toBe(CrossSeedDecisionType.MATCH)
 			})
 
 			it('rejects when sizes do not match', () => {
@@ -102,12 +150,12 @@ describe('crossSeedMatcher', () => {
 		})
 
 		describe('edge cases', () => {
-			it('handles empty file arrays', () => {
+			it('rejects empty file arrays', () => {
 				const source: FileInfo[] = []
 				const candidate: FileInfo[] = []
 
 				const result = matchTorrentsBySizes(source, candidate)
-				expect(result.matched).toBe(true)
+				expect(result.matched).toBe(false)
 			})
 
 			it('handles files with duplicate sizes correctly', () => {
@@ -158,8 +206,8 @@ describe('crossSeedMatcher', () => {
 				expect(result.pass).toBe(true)
 			})
 
-			it('passes when sizes are close (within 5%)', () => {
-				const result = preFilterCandidate('Movie', 1000000, 'Movie', 1040000)
+			it('passes when sizes are close (within 2%)', () => {
+				const result = preFilterCandidate('Movie', 1000000, 'Movie', 1019000)
 				expect(result.pass).toBe(true)
 			})
 
@@ -167,13 +215,52 @@ describe('crossSeedMatcher', () => {
 				const result = preFilterCandidate('Movie.2024.1080p', 1000000, 'Movie 2024 1080p', 1000000)
 				expect(result.pass).toBe(true)
 			})
+
+			it('passes when release group is missing on one side', () => {
+				const result = preFilterCandidate('Movie.2024.1080p', 1000000, 'Movie.2024.1080p-GROUP', 1000000)
+				expect(result.pass).toBe(true)
+			})
+
+			it('passes when source tag is missing on one side', () => {
+				const result = preFilterCandidate('Movie.2024.1080p', 1000000, 'Movie.2024.1080p.WEB-DL.NF', 1000000)
+				expect(result.pass).toBe(true)
+			})
 		})
 
 		describe('failing filters', () => {
+			it('fails when resolution differs', () => {
+				const result = preFilterCandidate('Movie.2024.1080p', 1000000, 'Movie.2024.720p', 1000000)
+				expect(result.pass).toBe(false)
+				expect(result.reason?.toLowerCase()).toContain('resolution')
+			})
+
+			it('fails when release group differs', () => {
+				const result = preFilterCandidate('Movie.2024.1080p-GROUPA', 1000000, 'Movie.2024.1080p-GROUPB', 1000000)
+				expect(result.pass).toBe(false)
+				expect(result.reason?.toLowerCase()).toContain('group')
+			})
+
+			it('fails when source tag differs', () => {
+				const result = preFilterCandidate(
+					'Movie.2024.1080p.AMZN.WEB-DL.x264-GROUP',
+					1000000,
+					'Movie.2024.1080p.NF.WEB-DL.x264-GROUP',
+					1000000
+				)
+				expect(result.pass).toBe(false)
+				expect(result.reason?.toLowerCase()).toContain('source')
+			})
+
+			it('fails when proper/repack mismatch', () => {
+				const result = preFilterCandidate('Movie.2024.1080p.PROPER-GROUP', 1000000, 'Movie.2024.1080p-GROUP', 1000000)
+				expect(result.pass).toBe(false)
+				expect(result.reason?.toLowerCase()).toContain('proper')
+			})
+
 			it('fails when sizes differ too much', () => {
 				const result = preFilterCandidate('Movie', 1000000, 'Movie', 2000000)
 				expect(result.pass).toBe(false)
-				expect(result.reason).toContain('size')
+				expect(result.reason?.toLowerCase()).toContain('size')
 			})
 
 			it('fails when candidate is much smaller', () => {
@@ -183,9 +270,17 @@ describe('crossSeedMatcher', () => {
 		})
 
 		describe('edge cases', () => {
-			it('handles zero source size', () => {
+			it('handles zero source size with zero candidate', () => {
 				const result = preFilterCandidate('Movie', 0, 'Movie', 0)
 				expect(result.pass).toBe(true)
+			})
+
+			it('handles zero source size with non-zero candidate without dividing by zero', () => {
+				const result = preFilterCandidate('Movie', 0, 'Movie', 1000)
+				expect(result.pass).toBe(false)
+				expect(result.reason).toBeDefined()
+				expect(result.reason).not.toContain('Infinity')
+				expect(result.reason).toContain('100.0%')
 			})
 
 			it('handles missing candidate size', () => {
