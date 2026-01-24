@@ -91,7 +91,7 @@ export function MobileThemeManager({ onClose }: MobileThemeManagerProps) {
 						height: '90vh',
 					}}
 				>
-										<div className="flex justify-center pt-3 pb-2">
+					<div className="flex justify-center pt-3 pb-2">
 						<div className="w-10 h-1 rounded-full" style={{ backgroundColor: 'var(--text-muted)' }} />
 					</div>
 
@@ -139,14 +139,14 @@ interface ListViewProps {
 function ListView({ customThemes, onNew, onEdit, onDelete, onExport, onImportClick }: ListViewProps) {
 	return (
 		<>
-						<div className="px-5 pb-3">
+			<div className="px-5 pb-3">
 				<Drawer.Title className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
 					Manage Themes
 				</Drawer.Title>
 				<Drawer.Description className="sr-only">Theme management options</Drawer.Description>
 			</div>
 
-						<div className="px-4 pb-3 flex items-center gap-2">
+			<div className="px-4 pb-3 flex items-center gap-2">
 				<button
 					onClick={onNew}
 					className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium active:scale-[0.98] transition-transform"
@@ -173,7 +173,7 @@ function ListView({ customThemes, onNew, onEdit, onDelete, onExport, onImportCli
 				</button>
 			</div>
 
-						<div
+			<div
 				className="flex-1 overflow-y-auto px-4 space-y-2"
 				style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
 			>
@@ -269,7 +269,7 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 
 	return (
 		<>
-						<div className="px-4 pb-3 flex items-center gap-3">
+			<div className="px-4 pb-3 flex items-center gap-3">
 				<button
 					onClick={onBack}
 					className="p-2 -ml-2 rounded-xl active:scale-[0.95] transition-transform"
@@ -283,11 +283,11 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 				<Drawer.Description className="sr-only">Theme editor</Drawer.Description>
 			</div>
 
-						<div
+			<div
 				className="flex-1 overflow-y-auto px-4 space-y-4"
 				style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
 			>
-								<div className="space-y-1">
+				<div className="space-y-1">
 					<label className="text-xs font-medium flex justify-between" style={{ color: 'var(--text-secondary)' }}>
 						<span>Theme Name</span>
 						<span style={{ color: 'var(--text-muted)' }}>{name.length}/20</span>
@@ -314,13 +314,13 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 					)}
 				</div>
 
-								<div className="grid grid-cols-1 gap-3">
+				<div className="grid grid-cols-1 gap-3">
 					{colorFields.map((field) => (
 						<ColorInput key={field.label} label={field.label} value={field.val} onChange={field.set} />
 					))}
 				</div>
 
-								{previewColors && (
+				{previewColors && (
 					<div
 						className="rounded-2xl p-4 space-y-3"
 						style={{ backgroundColor: previewColors.bgPrimary, border: `1px solid ${previewColors.border}` }}
@@ -353,7 +353,7 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 					</div>
 				)}
 
-								<button
+				<button
 					onClick={handleSave}
 					disabled={!previewColors || !name.trim() || isNameTaken}
 					className="w-full py-3.5 rounded-xl text-sm font-semibold active:scale-[0.98] transition-transform disabled:opacity-50"

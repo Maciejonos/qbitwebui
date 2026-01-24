@@ -74,7 +74,8 @@ export function ViewSelector({
 			>
 				<Eye className="w-3.5 h-3.5" strokeWidth={2} />
 				<span className="text-[10px] font-medium max-w-[60px] truncate">
-					{displayName}{isModified && views.activeViewId ? '*' : ''}
+					{displayName}
+					{isModified && views.activeViewId ? '*' : ''}
 				</span>
 			</button>
 
@@ -102,15 +103,15 @@ export function ViewSelector({
 						className="w-full flex items-center px-2.5 py-1.5 text-xs text-left transition-colors"
 						style={{
 							color: !views.activeViewId ? 'var(--accent)' : 'var(--text-muted)',
-							backgroundColor: !views.activeViewId ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+							backgroundColor: !views.activeViewId
+								? 'color-mix(in srgb, var(--accent) 10%, transparent)'
+								: 'transparent',
 						}}
 					>
 						Default View
 					</button>
 
-					{views.views.length > 0 && (
-						<div className="border-t" style={{ borderColor: 'var(--border)' }} />
-					)}
+					{views.views.length > 0 && <div className="border-t" style={{ borderColor: 'var(--border)' }} />}
 
 					{views.views.map((view) => (
 						<div

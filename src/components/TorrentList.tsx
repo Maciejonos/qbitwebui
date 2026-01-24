@@ -185,7 +185,18 @@ export function TorrentList() {
 			trackerFilter,
 			search,
 		}),
-		[sortKey, sortAsc, visibleColumns, columnOrder, columnWidths, filter, categoryFilter, tagFilter, trackerFilter, search]
+		[
+			sortKey,
+			sortAsc,
+			visibleColumns,
+			columnOrder,
+			columnWidths,
+			filter,
+			categoryFilter,
+			tagFilter,
+			trackerFilter,
+			search,
+		]
 	)
 
 	const isViewModified = useMemo(() => {
@@ -262,9 +273,7 @@ export function TorrentList() {
 	function handleRenameView(viewId: string, name: string) {
 		const updated = {
 			...customViews,
-			views: customViews.views.map((v) =>
-				v.id === viewId ? { ...v, name, updatedAt: Date.now() } : v
-			),
+			views: customViews.views.map((v) => (v.id === viewId ? { ...v, name, updatedAt: Date.now() } : v)),
 		}
 		setCustomViews(updated)
 		saveCustomViews(updated)

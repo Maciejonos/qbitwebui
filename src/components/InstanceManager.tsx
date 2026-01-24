@@ -83,7 +83,13 @@ interface Props {
 	initialTab?: Tab
 }
 
-export function InstanceManager({ username, onSelectInstance, onLogout, authDisabled, initialTab = 'dashboard' }: Props) {
+export function InstanceManager({
+	username,
+	onSelectInstance,
+	onLogout,
+	authDisabled,
+	initialTab = 'dashboard',
+}: Props) {
 	const [tab, setTab] = useState<Tab>(initialTab)
 	const [activeTool, setActiveTool] = useState<Tool>(null)
 	const [instances, setInstances] = useState<Instance[]>([])
@@ -111,8 +117,12 @@ export function InstanceManager({ username, onSelectInstance, onLogout, authDisa
 	const [upHistory, setUpHistory] = useState<number[]>([])
 	const [settingsInstance, setSettingsInstance] = useState<Instance | null>(null)
 	const [filesEnabled, setFilesEnabled] = useState(false)
-	const [autoSelectSingle, setAutoSelectSingle] = useState(() => localStorage.getItem('autoSelectSingleInstance') === 'true')
-	const [showQuickSettings, setShowQuickSettings] = useState(() => localStorage.getItem('showQuickSettings') !== 'false')
+	const [autoSelectSingle, setAutoSelectSingle] = useState(
+		() => localStorage.getItem('autoSelectSingleInstance') === 'true'
+	)
+	const [showQuickSettings, setShowQuickSettings] = useState(
+		() => localStorage.getItem('showQuickSettings') !== 'false'
+	)
 
 	useEffect(() => {
 		fetch('/api/config')

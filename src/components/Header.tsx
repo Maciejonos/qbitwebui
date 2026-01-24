@@ -19,7 +19,14 @@ interface Props {
 
 export function Header({ activeTab, onTabChange, username, authDisabled, onLogout, onPasswordChange }: Props) {
 	const [userMenuOpen, setUserMenuOpen] = useState(false)
-	const { hasUpdate, latestVersion, releaseNotes, releaseUrl, isLoading: updateLoading, error: updateError } = useUpdateCheck()
+	const {
+		hasUpdate,
+		latestVersion,
+		releaseNotes,
+		releaseUrl,
+		isLoading: updateLoading,
+		error: updateError,
+	} = useUpdateCheck()
 
 	return (
 		<header className="flex items-center justify-between px-6 py-3 border-b" style={{ borderColor: 'var(--border)' }}>

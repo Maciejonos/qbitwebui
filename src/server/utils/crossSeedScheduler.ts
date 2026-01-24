@@ -241,25 +241,25 @@ export async function triggerManualScan(
 			.get(instanceId)
 
 		if (config) {
-		scheduleNextRun(instanceId, userId, config.interval_hours)
-	}
-
-	return result
-} catch (e) {
-	if (e instanceof Error && e.name === 'AbortError') {
-		log.info(`[CrossSeed] Scan stopped for instance ${instanceId}`)
-		const config = db
-			.query<CrossSeedConfig, [number]>('SELECT * FROM cross_seed_config WHERE instance_id = ? AND enabled = 1')
-			.get(instanceId)
-
-		if (config) {
 			scheduleNextRun(instanceId, userId, config.interval_hours)
 		}
-		throw new Error('Scan stopped')
-	}
-	throw e
-} finally {
-	runningScans.delete(instanceId)
+
+		return result
+	} catch (e) {
+		if (e instanceof Error && e.name === 'AbortError') {
+			log.info(`[CrossSeed] Scan stopped for instance ${instanceId}`)
+			const config = db
+				.query<CrossSeedConfig, [number]>('SELECT * FROM cross_seed_config WHERE instance_id = ? AND enabled = 1')
+				.get(instanceId)
+
+			if (config) {
+				scheduleNextRun(instanceId, userId, config.interval_hours)
+			}
+			throw new Error('Scan stopped')
+		}
+		throw e
+	} finally {
+		runningScans.delete(instanceId)
 		abortControllers.delete(instanceId)
 		if (scheduled) {
 			scheduled.running = false
