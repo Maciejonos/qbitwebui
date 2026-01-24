@@ -269,7 +269,7 @@ export function MobileLogViewer({ instances, onBack }: Props) {
 					)}
 
 					<div className="flex items-center justify-between pt-2">
-						<span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+						<span className="text-sm" style={{ color: 'var(--text-primary)' }}>
 							Auto-refresh
 						</span>
 						<div

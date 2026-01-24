@@ -613,7 +613,7 @@ export function FileBrowser() {
 								onClick={handleDelete}
 								disabled={actionLoading}
 								className="px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								Delete
 							</button>

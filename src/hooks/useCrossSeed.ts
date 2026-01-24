@@ -28,6 +28,7 @@ export function useCrossSeed(instances: Instance[]) {
 	const [logs, setLogs] = useState<LogEntry[]>([])
 	const [loading, setLoading] = useState(false)
 	const [scanning, setScanning] = useState(false)
+	const [stopping, setStopping] = useState(false)
 	const [error, setError] = useState('')
 	const [success, setSuccess] = useState('')
 	const [saving, setSaving] = useState(false)
@@ -103,6 +104,12 @@ export function useCrossSeed(instances: Instance[]) {
 	}, [selectedInstance])
 
 	useEffect(() => {
+		if (!status?.running) {
+			setStopping(false)
+		}
+	}, [status?.running])
+
+	useEffect(() => {
 		const container = logsContainerRef.current
 		if (!container || !autoScroll) return
 		if (logs.length > lastLogCountRef.current) {
@@ -169,10 +176,12 @@ export function useCrossSeed(instances: Instance[]) {
 	async function handleStop() {
 		if (!selectedInstance) return
 		try {
+			setStopping(true)
 			await stopScan(selectedInstance)
-			setSuccess('Stopped')
+			setSuccess('Stop requested')
 			setTimeout(() => setSuccess(''), 2000)
 		} catch (e) {
+			setStopping(false)
 			setError(e instanceof Error ? e.message : 'Failed')
 		}
 	}
@@ -205,6 +214,7 @@ export function useCrossSeed(instances: Instance[]) {
 		logs,
 		loading,
 		scanning,
+		stopping,
 		error,
 		success,
 		saving,

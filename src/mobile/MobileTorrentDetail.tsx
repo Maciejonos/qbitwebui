@@ -10,6 +10,23 @@ type Tab = 'general' | 'files' | 'trackers' | 'peers' | 'http'
 
 const PAUSED_STATES: TorrentState[] = ['pausedDL', 'pausedUP', 'stoppedDL', 'stoppedUP']
 
+function getTrackerStatus(status: number): string {
+	switch (status) {
+		case 2: return 'Working'
+		case 3: return 'Updating'
+		case 4: return 'Error'
+		default: return 'Disabled'
+	}
+}
+
+function getPriorityLabel(priority: number): string {
+	switch (priority) {
+		case 0: return 'Skip'
+		case 1: return 'Normal'
+		default: return 'High'
+	}
+}
+
 interface Props {
 	torrentHash: string
 	instanceId: number
@@ -22,8 +39,10 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 	const [deleteFiles, setDeleteFiles] = useState(false)
 	const queryClient = useQueryClient()
 
-	// Handle browser back button/gesture to close drawer
 	useEffect(() => {
+		if (document.activeElement instanceof HTMLElement) {
+			document.activeElement.blur()
+		}
 		window.history.pushState({ drawer: 'open' }, '')
 		const handlePopState = () => onClose()
 		window.addEventListener('popstate', handlePopState)
@@ -105,7 +124,8 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 	}
 
 	return (
-		<Drawer.Root open={true} onOpenChange={(open) => !open && onClose()}>
+		<>
+		<Drawer.Root open={!showDeleteConfirm} onOpenChange={(open) => !open && !showDeleteConfirm && onClose()} shouldScaleBackground={false}>
 			<Drawer.Portal>
 				<Drawer.Overlay className="fixed inset-0 z-50" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} />
 				<Drawer.Content
@@ -115,12 +135,10 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 						borderColor: 'var(--border)',
 					}}
 				>
-					{/* Handle */}
 					<div className="flex justify-center pt-3 pb-2">
 						<div className="w-10 h-1 rounded-full" style={{ backgroundColor: 'var(--text-muted)' }} />
 					</div>
 
-					{/* Header */}
 					<div className="px-5 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
 						<Drawer.Title
 							className="text-base font-semibold leading-snug line-clamp-2"
@@ -128,6 +146,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 						>
 							{torrent.name}
 						</Drawer.Title>
+						<Drawer.Description className="sr-only">Torrent details</Drawer.Description>
 						<div className="flex items-center gap-2 mt-2">
 							<div
 								className="h-1.5 flex-1 rounded-full overflow-hidden"
@@ -147,7 +166,6 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 						</div>
 					</div>
 
-					{/* Action buttons */}
 					<div className="flex gap-3 p-4 border-b" style={{ borderColor: 'var(--border)' }}>
 						<button
 							onClick={handleToggle}
@@ -180,7 +198,6 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 						</button>
 					</div>
 
-					{/* Tabs */}
 					<div className="mx-4 mt-3">
 						<div className="flex p-1.5 rounded-xl" style={{ backgroundColor: 'var(--bg-secondary)' }}>
 							{tabs.map((t) => (
@@ -200,7 +217,6 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 						</div>
 					</div>
 
-					{/* Content - scrollable */}
 					<div
 						className="flex-1 min-h-0 overflow-y-auto px-4 pt-3"
 						style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 2rem))' }}
@@ -256,7 +272,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 										</div>
 										<div className="flex items-center gap-3 mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
 											<span>{formatSize(file.size)}</span>
-											<span>Priority: {file.priority === 0 ? 'Skip' : file.priority === 1 ? 'Normal' : 'High'}</span>
+											<span>Priority: {getPriorityLabel(file.priority)}</span>
 										</div>
 									</div>
 								))}
@@ -283,13 +299,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 											</div>
 											<div className="flex items-center gap-3 mt-2 text-xs">
 												<span style={{ color: tracker.status === 2 ? '#a6e3a1' : 'var(--text-muted)' }}>
-													{tracker.status === 2
-														? 'Working'
-														: tracker.status === 3
-															? 'Updating'
-															: tracker.status === 4
-																? 'Error'
-																: 'Disabled'}
+													{getTrackerStatus(tracker.status)}
 												</span>
 												<span style={{ color: 'var(--text-muted)' }}>Seeds: {tracker.num_seeds}</span>
 												<span style={{ color: 'var(--text-muted)' }}>Peers: {tracker.num_peers}</span>
@@ -364,56 +374,56 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 					</div>
 				</Drawer.Content>
 			</Drawer.Portal>
-
-			{/* Delete confirmation modal */}
-			{showDeleteConfirm && (
-				<>
-					<div
-						className="fixed inset-0 z-[60]"
-						style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-						onClick={() => setShowDeleteConfirm(false)}
-					/>
-					<div
-						className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-[60] rounded-2xl border p-5"
-						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
-					>
-						<h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-							Delete Torrent
-						</h3>
-						<p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-							Are you sure you want to delete this torrent?
-						</p>
-						<label className="flex items-center gap-3 mb-5 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={deleteFiles}
-								onChange={(e) => setDeleteFiles(e.target.checked)}
-								className="w-5 h-5 rounded"
-							/>
-							<span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-								Also delete files from disk
-							</span>
-						</label>
-						<div className="flex gap-3">
-							<button
-								onClick={() => setShowDeleteConfirm(false)}
-								className="flex-1 py-3 rounded-xl text-sm font-medium"
-								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
-							>
-								Cancel
-							</button>
-							<button
-								onClick={handleDelete}
-								className="flex-1 py-3 rounded-xl text-sm font-medium"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
-							>
-								Delete
-							</button>
-						</div>
-					</div>
-				</>
-			)}
 		</Drawer.Root>
+
+		{showDeleteConfirm && (
+			<>
+				<div
+					className="fixed inset-0 z-[60]"
+					style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+					onClick={() => setShowDeleteConfirm(false)}
+				/>
+				<div
+					className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-[60] rounded-2xl border p-5"
+					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+				>
+					<h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+						Delete Torrent
+					</h3>
+					<p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+						Are you sure you want to delete this torrent?
+					</p>
+					<label className="flex items-center gap-3 mb-5 cursor-pointer">
+						<input
+							type="checkbox"
+							checked={deleteFiles}
+							onChange={(e) => setDeleteFiles(e.target.checked)}
+							className="w-5 h-5 rounded"
+						/>
+						<span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+							Also delete files from disk
+						</span>
+					</label>
+					<div className="flex gap-3">
+						<button
+							onClick={() => setShowDeleteConfirm(false)}
+							className="flex-1 py-3 rounded-xl text-sm font-medium"
+							style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+						>
+							Cancel
+						</button>
+						<button
+							onClick={handleDelete}
+							className="flex-1 py-3 rounded-xl text-sm font-medium"
+							style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
+						>
+							Delete
+						</button>
+					</div>
+				</div>
+			</>
+		)}
+	</>
 	)
 }
 

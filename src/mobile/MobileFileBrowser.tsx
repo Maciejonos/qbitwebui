@@ -624,7 +624,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 								onClick={handleDelete}
 								disabled={actionLoading}
 								className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								{actionLoading ? 'Deleting...' : 'Delete'}
 							</button>

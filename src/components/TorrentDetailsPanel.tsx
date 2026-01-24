@@ -30,6 +30,8 @@ import { buildFileTree, flattenVisibleNodes, getInitialExpanded } from '../utils
 interface Props {
 	hash: string | null
 	name: string
+	category: string
+	tags: string
 	expanded: boolean
 	onToggle: () => void
 	height: number
@@ -104,7 +106,7 @@ function InfoItem({ label, value, accent }: { label: string; value: string | num
 	)
 }
 
-function GeneralTab({ hash }: { hash: string }) {
+function GeneralTab({ hash, category, tags }: { hash: string; category: string; tags: string }) {
 	const { data: p, isLoading } = useTorrentProperties(hash)
 	if (isLoading) return <LoadingSkeleton />
 	if (!p) return <EmptyState message="Failed to load" />
@@ -129,14 +131,38 @@ function GeneralTab({ hash }: { hash: string }) {
 				<InfoItem label="Seeding" value={formatDuration(p.seeding_time)} />
 			</div>
 			<div
-				className="mt-3 px-3 py-2 rounded border"
+				className="flex flex-col gap-0.5 mt-3 px-3 py-2 rounded border"
 				style={{ backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }}
 			>
 				<span className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
 					Save Path
 				</span>
-				<div className="text-xs font-mono mt-0.5 break-all" style={{ color: 'var(--text-primary)' }}>
+				<span className="text-xs font-mono break-all" style={{ color: 'var(--text-primary)' }}>
 					{p.save_path}
+				</span>
+			</div>
+			<div className="grid grid-cols-2 gap-2 mt-2">
+				<div
+					className="flex flex-col gap-0.5 px-3 py-2 rounded border"
+					style={{ backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }}
+				>
+					<span className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+						Category
+					</span>
+					<span className="text-xs font-mono" style={{ color: category ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+						{category || '—'}
+					</span>
+				</div>
+				<div
+					className="flex flex-col gap-0.5 px-3 py-2 rounded border"
+					style={{ backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }}
+				>
+					<span className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+						Tags
+					</span>
+					<span className="text-xs font-mono" style={{ color: tags ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+						{tags || '—'}
+					</span>
 				</div>
 			</div>
 		</div>
@@ -552,7 +578,7 @@ function ContentTab({ hash }: { hash: string }) {
 	return <ContentTabInner key={hash} hash={hash} files={files} />
 }
 
-export function TorrentDetailsPanel({ hash, name, expanded, onToggle, height, onHeightChange }: Props) {
+export function TorrentDetailsPanel({ hash, name, category, tags, expanded, onToggle, height, onHeightChange }: Props) {
 	const [tab, setTab] = useState<Tab>('general')
 	const [dragging, setDragging] = useState(false)
 	const dragStartY = useRef(0)
@@ -668,7 +694,7 @@ export function TorrentDetailsPanel({ hash, name, expanded, onToggle, height, on
 				<div className="flex-1 overflow-hidden border-t" style={{ borderColor: 'var(--border)' }}>
 					{hash ? (
 						<>
-							{tab === 'general' && <GeneralTab hash={hash} />}
+							{tab === 'general' && <GeneralTab hash={hash} category={category} tags={tags} />}
 							{tab === 'trackers' && <TrackersTab hash={hash} />}
 							{tab === 'peers' && <PeersTab hash={hash} />}
 							{tab === 'http' && <HttpSourcesTab hash={hash} />}

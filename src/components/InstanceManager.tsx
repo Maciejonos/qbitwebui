@@ -7,17 +7,13 @@ import {
 	FileText,
 	ArrowLeftRight,
 	AlertTriangle,
-	Check,
-	User,
-	Lock,
-	LogOut,
 	ChevronLeft,
+	ChevronRight,
 	ArrowDown,
 	ArrowUp,
 	Server,
 	Settings,
 	Pencil,
-	Info,
 } from 'lucide-react'
 import {
 	getInstances,
@@ -28,7 +24,7 @@ import {
 	type CreateInstanceData,
 } from '../api/instances'
 import { logout, changePassword } from '../api/auth'
-import { ThemeSwitcher } from './ThemeSwitcher'
+import { Header } from './Header'
 import { SettingsPanel } from './SettingsPanel'
 import { SearchPanel } from './SearchPanel'
 import { FileBrowser } from './FileBrowser'
@@ -37,11 +33,7 @@ import { RSSManager } from './RSSManager'
 import { LogViewer } from './LogViewer'
 import { CrossSeedManager } from './CrossSeedManager'
 import { Checkbox } from './ui'
-import { useUpdateCheck } from '../hooks/useUpdateCheck'
 import { formatSpeed, formatSize } from '../utils/format'
-import { renderMarkdown } from '../utils/markdown'
-
-declare const __APP_VERSION__: string
 
 type Tab = 'dashboard' | 'tools'
 type Tool = 'indexers' | 'files' | 'orphans' | 'rss' | 'logs' | 'cross-seed' | null
@@ -88,10 +80,11 @@ interface Props {
 	onSelectInstance: (instance: Instance) => void
 	onLogout: () => void
 	authDisabled?: boolean
+	initialTab?: Tab
 }
 
-export function InstanceManager({ username, onSelectInstance, onLogout, authDisabled }: Props) {
-	const [tab, setTab] = useState<Tab>('dashboard')
+export function InstanceManager({ username, onSelectInstance, onLogout, authDisabled, initialTab = 'dashboard' }: Props) {
+	const [tab, setTab] = useState<Tab>(initialTab)
 	const [activeTool, setActiveTool] = useState<Tool>(null)
 	const [instances, setInstances] = useState<Instance[]>([])
 	const [stats, setStats] = useState<InstanceStats[]>([])
@@ -110,7 +103,6 @@ export function InstanceManager({ username, onSelectInstance, onLogout, authDisa
 	const [deleteConfirm, setDeleteConfirm] = useState<Instance | null>(null)
 	const [testing, setTesting] = useState(false)
 	const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
-	const [userMenuOpen, setUserMenuOpen] = useState(false)
 	const [showPasswordModal, setShowPasswordModal] = useState(false)
 	const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' })
 	const [passwordError, setPasswordError] = useState('')
@@ -119,14 +111,8 @@ export function InstanceManager({ username, onSelectInstance, onLogout, authDisa
 	const [upHistory, setUpHistory] = useState<number[]>([])
 	const [settingsInstance, setSettingsInstance] = useState<Instance | null>(null)
 	const [filesEnabled, setFilesEnabled] = useState(false)
-	const {
-		hasUpdate,
-		latestVersion,
-		releaseNotes,
-		releaseUrl,
-		isLoading: updateLoading,
-		error: updateError,
-	} = useUpdateCheck()
+	const [autoSelectSingle, setAutoSelectSingle] = useState(() => localStorage.getItem('autoSelectSingleInstance') === 'true')
+	const [showQuickSettings, setShowQuickSettings] = useState(() => localStorage.getItem('showQuickSettings') !== 'false')
 
 	useEffect(() => {
 		fetch('/api/config')
@@ -266,9 +252,26 @@ export function InstanceManager({ username, onSelectInstance, onLogout, authDisa
 		setTestResult(null)
 	}
 
+	function getTestButtonLabel(): string {
+		if (testing) return 'Testing...'
+		if (editingId && !formData.qbt_password && !formData.skip_auth) return 'Test Saved'
+		return 'Test Connection'
+	}
+
 	async function handleLogout() {
 		await logout()
 		onLogout()
+	}
+
+	function toggleAutoSelect(value: boolean) {
+		setAutoSelectSingle(value)
+		localStorage.setItem('autoSelectSingleInstance', String(value))
+	}
+
+	function toggleQuickSettings() {
+		const next = !showQuickSettings
+		setShowQuickSettings(next)
+		localStorage.setItem('showQuickSettings', String(next))
 	}
 
 	async function handlePasswordChange(e: React.FormEvent) {
@@ -309,146 +312,17 @@ export function InstanceManager({ username, onSelectInstance, onLogout, authDisa
 
 	return (
 		<div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
-			<header className="flex items-center justify-between px-6 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
-				<div className="flex items-center gap-4">
-					<div className="flex items-center gap-3">
-						<img src="/logo.png" alt="qbitwebui" className="w-8 h-8" />
-						<span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-							qbitwebui
-						</span>
-					</div>
-					<div className="flex items-center gap-1 p-1 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-						{[
-							{ id: 'dashboard' as Tab, label: 'Dashboard' },
-							{ id: 'tools' as Tab, label: 'Tools' },
-						].map((t) => (
-							<button
-								key={t.id}
-								onClick={() => {
-									setTab(t.id)
-									setActiveTool(null)
-								}}
-								className="px-3 py-1 rounded-md text-xs font-medium transition-all"
-								style={{
-									backgroundColor: tab === t.id ? 'var(--bg-primary)' : 'transparent',
-									color: tab === t.id ? 'var(--text-primary)' : 'var(--text-muted)',
-									boxShadow: tab === t.id ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
-								}}
-							>
-								{t.label}
-							</button>
-						))}
-					</div>
-				</div>
-				<div className="flex items-center gap-3">
-					<ThemeSwitcher />
-					<div className="relative group">
-						<div
-							className="flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono"
-							style={{
-								backgroundColor: 'var(--bg-tertiary)',
-								borderColor: 'var(--border)',
-								color: 'var(--text-muted)',
-							}}
-							title={hasUpdate ? `Update available: v${latestVersion}` : 'Up to date'}
-							tabIndex={0}
-						>
-							v{__APP_VERSION__}
-							{hasUpdate ? (
-								<Info className="w-3.5 h-3.5" style={{ color: 'var(--warning)' }} strokeWidth={2} />
-							) : (
-								<Check className="w-3.5 h-3.5" style={{ color: '#a6e3a1' }} strokeWidth={2.5} />
-							)}
-						</div>
-						<div className="absolute right-0 top-full mt-2 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition">
-							<div
-								className="w-80 max-h-80 overflow-auto rounded-lg border shadow-xl p-3"
-								style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
-							>
-								<div className="flex items-center justify-between mb-2">
-									<span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-										Release notes{latestVersion ? ` v${latestVersion}` : ''}
-									</span>
-									{releaseUrl && (
-										<a
-											href={releaseUrl}
-											target="_blank"
-											rel="noreferrer"
-											className="text-[10px] uppercase tracking-wide"
-											style={{ color: 'var(--accent)' }}
-										>
-											View
-										</a>
-									)}
-								</div>
-								{updateLoading ? (
-									<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-										Loading release notes...
-									</p>
-								) : updateError ? (
-									<p className="text-xs" style={{ color: 'var(--error)' }}>
-										Failed to load release notes.
-									</p>
-								) : releaseNotes ? (
-									<div className="space-y-2">{renderMarkdown(releaseNotes)}</div>
-								) : (
-									<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-										No release notes available.
-									</p>
-								)}
-							</div>
-						</div>
-					</div>
-					{!authDisabled && (
-						<div className="relative">
-							<button
-								onClick={() => setUserMenuOpen(!userMenuOpen)}
-								className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-[var(--bg-tertiary)]"
-								style={{ backgroundColor: 'var(--bg-secondary)' }}
-							>
-								<User className="w-5 h-5" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
-							</button>
-							{userMenuOpen && (
-								<>
-									<div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)} />
-									<div
-										className="absolute right-0 top-full mt-2 z-20 min-w-[160px] rounded-lg border shadow-lg overflow-hidden"
-										style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
-									>
-										<div className="px-3 py-2 border-b" style={{ borderColor: 'var(--border)' }}>
-											<span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-												{username}
-											</span>
-										</div>
-										<button
-											onClick={() => {
-												setUserMenuOpen(false)
-												setShowPasswordModal(true)
-											}}
-											className="w-full text-left px-3 py-2 text-sm hover:bg-[var(--bg-tertiary)] transition-colors flex items-center gap-2"
-											style={{ color: 'var(--text-secondary)' }}
-										>
-											<Lock className="w-4 h-4" strokeWidth={1.5} />
-											Change Password
-										</button>
-										<button
-											onClick={() => {
-												setUserMenuOpen(false)
-												handleLogout()
-											}}
-											className="w-full text-left px-3 py-2 text-sm hover:bg-[var(--bg-tertiary)] transition-colors flex items-center gap-2"
-											style={{ color: 'var(--error)' }}
-										>
-											<LogOut className="w-4 h-4" strokeWidth={1.5} />
-											Logout
-										</button>
-									</div>
-								</>
-							)}
-						</div>
-					)}
-				</div>
-			</header>
+			<Header
+				activeTab={tab}
+				onTabChange={(t) => {
+					setTab(t)
+					setActiveTool(null)
+				}}
+				username={username}
+				authDisabled={authDisabled}
+				onLogout={handleLogout}
+				onPasswordChange={() => setShowPasswordModal(true)}
+			/>
 
 			<main className="max-w-6xl mx-auto p-6">
 				{tab === 'tools' ? (
@@ -816,11 +690,7 @@ export function InstanceManager({ username, onSelectInstance, onLogout, authDisa
 											className="px-4 py-2 rounded-lg text-sm border disabled:opacity-50"
 											style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 										>
-											{testing
-												? 'Testing...'
-												: editingId && !formData.qbt_password && !formData.skip_auth
-													? 'Test Saved'
-													: 'Test Connection'}
+											{getTestButtonLabel()}
 										</button>
 										<button
 											type="button"
@@ -853,105 +723,132 @@ export function InstanceManager({ username, onSelectInstance, onLogout, authDisa
 							</div>
 						) : (
 							displayInstances.length > 0 && (
-								<div className="grid gap-4">
-									{displayInstances.map((instance) => {
-										const instanceStats = stats.find((s) => s.id === instance.id)
-										return (
-											<div
-												key={instance.id}
-												className="p-4 rounded-xl border group cursor-pointer transition-colors hover:border-[var(--accent)]"
-												style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
-												onClick={() => onSelectInstance(instance)}
-											>
-												<div className="flex items-center justify-between">
-													<div className="flex items-center gap-4">
-														<div
-															className="w-10 h-10 rounded-lg flex items-center justify-center relative"
-															style={{ backgroundColor: 'var(--bg-tertiary)' }}
-														>
-															<Server className="w-5 h-5" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
-															{instanceStats && (
-																<div
-																	className="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2"
-																	style={{
-																		backgroundColor: instanceStats.online ? '#a6e3a1' : 'var(--error)',
-																		borderColor: 'var(--bg-secondary)',
-																	}}
-																/>
-															)}
-														</div>
-														<div>
-															<span className="font-medium" style={{ color: 'var(--text-primary)' }}>
-																{instance.label}
-															</span>
-															<div className="text-sm" style={{ color: 'var(--text-muted)' }}>
-																{instance.url}
+								<>
+									<div className="grid gap-4">
+										{displayInstances.map((instance) => {
+											const instanceStats = stats.find((s) => s.id === instance.id)
+											return (
+												<div
+													key={instance.id}
+													className="p-4 rounded-xl border group cursor-pointer transition-colors hover:border-[var(--accent)]"
+													style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+													onClick={() => onSelectInstance(instance)}
+												>
+													<div className="flex items-center justify-between">
+														<div className="flex items-center gap-4">
+															<div
+																className="w-10 h-10 rounded-lg flex items-center justify-center relative"
+																style={{ backgroundColor: 'var(--bg-tertiary)' }}
+															>
+																<Server className="w-5 h-5" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
+																{instanceStats && (
+																	<div
+																		className="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2"
+																		style={{
+																			backgroundColor: instanceStats.online ? '#a6e3a1' : 'var(--error)',
+																			borderColor: 'var(--bg-secondary)',
+																		}}
+																	/>
+																)}
+															</div>
+															<div>
+																<span className="font-medium" style={{ color: 'var(--text-primary)' }}>
+																	{instance.label}
+																</span>
+																<div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+																	{instance.url}
+																</div>
 															</div>
 														</div>
+														<div className="flex items-center gap-2">
+															<button
+																onClick={(e) => {
+																	e.stopPropagation()
+																	setSettingsInstance(instance)
+																}}
+																className="p-2 rounded-lg transition-colors hover:bg-[var(--bg-tertiary)]"
+																style={{ color: 'var(--text-muted)' }}
+																title="Settings"
+															>
+																<Settings className="w-4 h-4" strokeWidth={1.5} />
+															</button>
+															<button
+																onClick={(e) => {
+																	e.stopPropagation()
+																	openEdit(instance)
+																}}
+																className="p-2 rounded-lg transition-colors hover:bg-[var(--bg-tertiary)]"
+																style={{ color: 'var(--text-muted)' }}
+															>
+																<Pencil className="w-4 h-4" strokeWidth={1.5} />
+															</button>
+															<button
+																onClick={(e) => {
+																	e.stopPropagation()
+																	setDeleteConfirm(instance)
+																}}
+																className="p-2 rounded-lg transition-colors hover:bg-[var(--bg-tertiary)]"
+																style={{ color: 'var(--error)' }}
+															>
+																<Trash2 className="w-4 h-4" strokeWidth={1.5} />
+															</button>
+														</div>
 													</div>
-													<div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-														<button
-															onClick={(e) => {
-																e.stopPropagation()
-																setSettingsInstance(instance)
-															}}
-															className="p-2 rounded-lg transition-colors hover:bg-[var(--bg-tertiary)]"
-															style={{ color: 'var(--text-muted)' }}
-															title="Settings"
+													{instanceStats?.online && (
+														<div
+															className="mt-3 pt-3 border-t grid grid-cols-3 items-center text-xs"
+															style={{ borderColor: 'var(--border)' }}
 														>
-															<Settings className="w-4 h-4" strokeWidth={1.5} />
-														</button>
-														<button
-															onClick={(e) => {
-																e.stopPropagation()
-																openEdit(instance)
-															}}
-															className="p-2 rounded-lg transition-colors hover:bg-[var(--bg-tertiary)]"
-															style={{ color: 'var(--text-muted)' }}
-														>
-															<Pencil className="w-4 h-4" strokeWidth={1.5} />
-														</button>
-														<button
-															onClick={(e) => {
-																e.stopPropagation()
-																setDeleteConfirm(instance)
-															}}
-															className="p-2 rounded-lg transition-colors hover:bg-[var(--bg-tertiary)]"
-															style={{ color: 'var(--error)' }}
-														>
-															<Trash2 className="w-4 h-4" strokeWidth={1.5} />
-														</button>
-													</div>
+															<div className="flex items-center gap-4">
+																<span style={{ color: 'var(--text-muted)' }}>
+																	<span style={{ color: 'var(--text-secondary)' }}>{instanceStats.total}</span> torrents
+																</span>
+																<span style={{ color: 'var(--text-muted)' }}>
+																	<span style={{ color: 'var(--accent)' }}>{instanceStats.downloading}</span> leech
+																</span>
+																<span style={{ color: 'var(--text-muted)' }}>
+																	<span style={{ color: '#a6e3a1' }}>{instanceStats.seeding}</span> seed
+																</span>
+															</div>
+															<span className="text-center" style={{ color: 'var(--text-muted)' }}>
+																Free space: {formatSize(instanceStats.freeSpaceOnDisk)}
+															</span>
+															<div className="flex items-center gap-3 justify-end">
+																<span style={{ color: 'var(--accent)' }}>↓ {formatSpeed(instanceStats.dlSpeed)}</span>
+																<span style={{ color: '#a6e3a1' }}>↑ {formatSpeed(instanceStats.upSpeed)}</span>
+															</div>
+														</div>
+													)}
 												</div>
-												{instanceStats?.online && (
-													<div
-														className="mt-3 pt-3 border-t grid grid-cols-3 items-center text-xs"
-														style={{ borderColor: 'var(--border)' }}
-													>
-														<div className="flex items-center gap-4">
-															<span style={{ color: 'var(--text-muted)' }}>
-																<span style={{ color: 'var(--text-secondary)' }}>{instanceStats.total}</span> torrents
-															</span>
-															<span style={{ color: 'var(--text-muted)' }}>
-																<span style={{ color: 'var(--accent)' }}>{instanceStats.downloading}</span> leech
-															</span>
-															<span style={{ color: 'var(--text-muted)' }}>
-																<span style={{ color: '#a6e3a1' }}>{instanceStats.seeding}</span> seed
-															</span>
-														</div>
-														<span className="text-center" style={{ color: 'var(--text-muted)' }}>
-															Free space: {formatSize(instanceStats.freeSpaceOnDisk)}
-														</span>
-														<div className="flex items-center gap-3 justify-end">
-															<span style={{ color: 'var(--accent)' }}>↓ {formatSpeed(instanceStats.dlSpeed)}</span>
-															<span style={{ color: '#a6e3a1' }}>↑ {formatSpeed(instanceStats.upSpeed)}</span>
-														</div>
-													</div>
-												)}
-											</div>
-										)
-									})}
-								</div>
+											)
+										})}
+									</div>
+									{instances.length === 1 && !showingPanel && (
+										<div className="mt-4">
+											<button
+												onClick={toggleQuickSettings}
+												className="flex items-center gap-1 text-xs"
+												style={{ color: 'var(--text-muted)' }}
+											>
+												<ChevronRight
+													className="w-3 h-3 transition-transform"
+													style={{ transform: showQuickSettings ? 'rotate(90deg)' : 'rotate(0deg)' }}
+													strokeWidth={2}
+												/>
+												Default behaviour
+											</button>
+											{showQuickSettings && (
+												<div className="mt-2 ml-4">
+													<Checkbox
+														checked={autoSelectSingle}
+														onChange={toggleAutoSelect}
+														label="Skip dashboard and go directly to torrents view by default"
+													/>
+												</div>
+											)}
+										</div>
+									)}
+								</>
 							)
 						)}
 					</>
@@ -986,7 +883,7 @@ export function InstanceManager({ username, onSelectInstance, onLogout, authDisa
 							<button
 								onClick={handleDelete}
 								className="px-4 py-2 rounded-lg text-sm font-medium"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								Delete
 							</button>

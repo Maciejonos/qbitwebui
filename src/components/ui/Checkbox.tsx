@@ -18,7 +18,7 @@ export function Checkbox({
 					borderColor: checked ? 'var(--accent)' : 'var(--border)',
 				}}
 			>
-				{checked && <Check className="w-2.5 h-2.5" style={{ color: 'white' }} strokeWidth={3} />}
+				{checked && <Check className="w-2.5 h-2.5" style={{ color: 'var(--accent-contrast)' }} strokeWidth={3} />}
 			</div>
 			{label && (
 				<span className="text-xs" style={{ color: 'var(--text-secondary)' }}>

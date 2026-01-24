@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
+import { useState, useMemo, useEffect, useCallback, lazy, Suspense } from 'react'
 import {
 	ChevronUp,
 	ChevronDown,
@@ -12,6 +12,7 @@ import {
 	Archive,
 } from 'lucide-react'
 import type { TorrentFilter, Torrent } from '../types/qbittorrent'
+import type { CustomView, CustomViewsStorage } from '../types/views'
 import {
 	useTorrents,
 	useStopTorrents,
@@ -30,11 +31,13 @@ import {
 	ColumnSelector,
 	ManageButton,
 } from './FilterBar'
+import { ViewSelector } from './ViewSelector'
 import { ContextMenu } from './ContextMenu'
 import { RatioThresholdPopup } from './RatioThresholdPopup'
 import { DateSettingsPopup } from './DateSettingsPopup'
 import { loadRatioThreshold, saveRatioThreshold } from '../utils/ratioThresholds'
 import { loadHideAddedTime, saveHideAddedTime } from '../utils/dateSettings'
+import { loadCustomViews, saveCustomViews, createView, viewsAreEqual } from '../utils/customViews'
 import { normalizeSearch } from '../utils/format'
 import { COLUMNS, DEFAULT_VISIBLE_COLUMNS, DEFAULT_COLUMN_ORDER, type SortKey } from './columns'
 import { usePagination } from '../hooks/usePagination'
@@ -76,10 +79,10 @@ function ActionButton({
 			onClick={onClick}
 			disabled={disabled}
 			title={label}
-			className="p-2 rounded-lg transition-all duration-200 active:scale-95 disabled:cursor-not-allowed"
+			className="flex items-center justify-center w-7 h-7 rounded transition-all duration-150 active:scale-95 disabled:cursor-not-allowed"
 			style={{ color: disabled ? 'var(--text-muted)' : colorVar, opacity: disabled ? 0.5 : 1 }}
 		>
-			<Icon className="w-4 h-4" strokeWidth={2} />
+			<Icon className="w-3.5 h-3.5" strokeWidth={2} />
 		</button>
 	)
 }
@@ -91,11 +94,18 @@ export function TorrentList() {
 	const [trackerFilter, setTrackerFilter] = useState<string | null>(null)
 	const [search, setSearch] = useState('')
 	const [selected, setSelected] = useState<Set<string>>(new Set())
-	const [sortKey, setSortKey] = useState<SortKey>('name')
-	const [sortAsc, setSortAsc] = useState(true)
+	const [sortKey, setSortKey] = useState<SortKey>(() => {
+		const stored = localStorage.getItem('sortKey')
+		if (stored && COLUMNS.some((c) => c.sortKey === stored || stored === 'name')) return stored as SortKey
+		return 'name'
+	})
+	const [sortAsc, setSortAsc] = useState(() => {
+		const stored = localStorage.getItem('sortAsc')
+		return stored !== null ? stored === 'true' : true
+	})
 	const [deleteModal, setDeleteModal] = useState(false)
 	const [addModal, setAddModal] = useState(false)
-	const [panelExpanded, setPanelExpanded] = useState(true)
+	const [panelExpanded, setPanelExpanded] = useState(false)
 	const [panelHeight, setPanelHeight] = useState(() => {
 		const stored = localStorage.getItem('detailsPanelHeight')
 		return stored ? parseInt(stored, 10) : DEFAULT_PANEL_HEIGHT
@@ -106,6 +116,7 @@ export function TorrentList() {
 	const [hideAddedTime, setHideAddedTime] = useState(loadHideAddedTime)
 	const [datePopupAnchor, setDatePopupAnchor] = useState<HTMLElement | null>(null)
 	const [managerModal, setManagerModal] = useState(false)
+	const [customViews, setCustomViews] = useState<CustomViewsStorage>(loadCustomViews)
 
 	const [visibleColumns, setVisibleColumns] = useState<Set<string>>(() => {
 		const stored = localStorage.getItem('visibleColumns')
@@ -159,6 +170,116 @@ export function TorrentList() {
 	function handleResetWidths() {
 		setColumnWidths({})
 		localStorage.removeItem('columnWidths')
+	}
+
+	const getCurrentViewState = useCallback(
+		() => ({
+			sortKey,
+			sortAsc,
+			visibleColumns,
+			columnOrder,
+			columnWidths,
+			filter,
+			categoryFilter,
+			tagFilter,
+			trackerFilter,
+			search,
+		}),
+		[sortKey, sortAsc, visibleColumns, columnOrder, columnWidths, filter, categoryFilter, tagFilter, trackerFilter, search]
+	)
+
+	const isViewModified = useMemo(() => {
+		const activeView = customViews.activeViewId
+			? customViews.views.find((v) => v.id === customViews.activeViewId)
+			: null
+		if (!activeView) return false
+		return !viewsAreEqual(activeView, getCurrentViewState())
+	}, [customViews, getCurrentViewState])
+
+	function applyView(view: CustomView | null) {
+		if (!view) {
+			setSortKey('name')
+			setSortAsc(true)
+			setVisibleColumns(new Set(DEFAULT_VISIBLE_COLUMNS))
+			setColumnOrder(DEFAULT_COLUMN_ORDER)
+			setColumnWidths({})
+			setFilter('all')
+			setCategoryFilter(null)
+			setTagFilter(null)
+			setTrackerFilter(null)
+			setSearch('')
+			localStorage.setItem('sortKey', 'name')
+			localStorage.setItem('sortAsc', 'true')
+			localStorage.setItem('visibleColumns', JSON.stringify([...DEFAULT_VISIBLE_COLUMNS]))
+			localStorage.setItem('columnOrder', JSON.stringify(DEFAULT_COLUMN_ORDER))
+			localStorage.removeItem('columnWidths')
+			return
+		}
+		setSortKey(view.sortKey)
+		setSortAsc(view.sortAsc)
+		setVisibleColumns(new Set(view.visibleColumns))
+		setColumnOrder(view.columnOrder)
+		setColumnWidths(view.columnWidths)
+		setFilter(view.filter)
+		setCategoryFilter(view.categoryFilter)
+		setTagFilter(view.tagFilter)
+		setTrackerFilter(view.trackerFilter)
+		setSearch(view.search)
+	}
+
+	function handleViewSelect(viewId: string | null) {
+		const view = viewId ? customViews.views.find((v) => v.id === viewId) : null
+		applyView(view ?? null)
+		const updated = { ...customViews, activeViewId: viewId }
+		setCustomViews(updated)
+		saveCustomViews(updated)
+	}
+
+	function handleSaveView() {
+		if (!customViews.activeViewId) return
+		const updated = {
+			...customViews,
+			views: customViews.views.map((v) =>
+				v.id === customViews.activeViewId
+					? { ...createView(v.name, getCurrentViewState()), id: v.id, createdAt: v.createdAt }
+					: v
+			),
+		}
+		setCustomViews(updated)
+		saveCustomViews(updated)
+	}
+
+	function handleSaveViewAs(name: string) {
+		const newView = createView(name, getCurrentViewState())
+		const updated = {
+			views: [...customViews.views, newView],
+			activeViewId: newView.id,
+		}
+		setCustomViews(updated)
+		saveCustomViews(updated)
+	}
+
+	function handleRenameView(viewId: string, name: string) {
+		const updated = {
+			...customViews,
+			views: customViews.views.map((v) =>
+				v.id === viewId ? { ...v, name, updatedAt: Date.now() } : v
+			),
+		}
+		setCustomViews(updated)
+		saveCustomViews(updated)
+	}
+
+	function handleDeleteView(viewId: string) {
+		const updated = {
+			views: customViews.views.filter((v) => v.id !== viewId),
+			activeViewId: customViews.activeViewId === viewId ? null : customViews.activeViewId,
+		}
+		if (customViews.activeViewId === viewId) {
+			applyView(null)
+		}
+		setCustomViews(updated)
+		saveCustomViews(updated)
 	}
 
 	function handleResizeStart(e: React.MouseEvent, columnId: string) {
@@ -241,12 +362,9 @@ export function TorrentList() {
 
 	useEffect(() => {
 		setTotalItems(filtered.length)
-	}, [filtered.length, setTotalItems])
-
-	useEffect(() => {
 		const maxPage = Math.max(1, Math.ceil(filtered.length / perPage))
 		if (page > maxPage) setPage(maxPage)
-	}, [filtered.length, perPage, page, setPage])
+	}, [filtered.length, perPage, page, setPage, setTotalItems])
 
 	const paginatedTorrents = useMemo(() => {
 		const start = (page - 1) * perPage
@@ -296,10 +414,15 @@ export function TorrentList() {
 	}, [filtered, selected])
 
 	function handleSort(key: SortKey) {
-		if (sortKey === key) setSortAsc(!sortAsc)
-		else {
+		if (sortKey === key) {
+			const newAsc = !sortAsc
+			setSortAsc(newAsc)
+			localStorage.setItem('sortAsc', String(newAsc))
+		} else {
 			setSortKey(key)
 			setSortAsc(true)
+			localStorage.setItem('sortKey', key)
+			localStorage.setItem('sortAsc', 'true')
 		}
 	}
 
@@ -335,13 +458,10 @@ export function TorrentList() {
 	return (
 		<div className="flex flex-col flex-1 overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
 			<div
-				className="flex items-center gap-2 px-4 py-2.5 border-b"
+				className="flex items-center gap-1 px-2 py-1.5 border-b"
 				style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 			>
-				<div
-					className="flex items-center gap-0.5 p-1 rounded-lg border"
-					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
-				>
+				<div className="flex items-center">
 					<ActionButton
 						onClick={() => setAddModal(true)}
 						disabled={false}
@@ -349,7 +469,6 @@ export function TorrentList() {
 						colorVar="var(--accent)"
 						icon={Plus}
 					/>
-					<div className="w-px h-5 mx-0.5" style={{ backgroundColor: 'var(--border)' }} />
 					<ActionButton
 						onClick={handleStart}
 						disabled={!hasSelection}
@@ -373,27 +492,33 @@ export function TorrentList() {
 					/>
 				</div>
 
-				<div className="w-px h-6" style={{ backgroundColor: 'var(--border)' }} />
+				<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
 
-				<div
-					className="flex items-center gap-0.5 p-1 rounded-lg border"
-					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
-				>
+				<div className="flex items-center">
 					<FilterBar filter={filter} onFilterChange={setFilter} />
 				</div>
 
-				<div
-					className="flex items-center gap-0.5 p-1 rounded-lg border"
-					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
-				>
+				<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
+
+				<div className="flex items-center">
 					<CategoryDropdown value={categoryFilter} onChange={setCategoryFilter} categories={categories} />
-					<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
 					<TagDropdown value={tagFilter} onChange={setTagFilter} tags={tags} />
-					<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
 					<TrackerDropdown value={trackerFilter} onChange={setTrackerFilter} trackers={uniqueTrackers} />
-					<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
+				</div>
+
+				<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
+
+				<div className="flex items-center">
+					<ViewSelector
+						views={customViews}
+						isModified={isViewModified}
+						onViewSelect={handleViewSelect}
+						onSave={handleSaveView}
+						onSaveAs={handleSaveViewAs}
+						onRename={handleRenameView}
+						onDelete={handleDeleteView}
+					/>
 					<ManageButton onClick={() => setManagerModal(true)} />
-					<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
 					<ColumnSelector
 						columns={COLUMNS}
 						visible={visibleColumns}
@@ -404,7 +529,7 @@ export function TorrentList() {
 					/>
 				</div>
 
-				<div className="flex-1" />
+				<div className="flex-1 min-w-0" />
 
 				<SearchInput value={search} onChange={setSearch} />
 			</div>
@@ -447,7 +572,7 @@ export function TorrentList() {
 								}}
 							>
 								<th
-									className="px-4 py-2.5 text-left relative"
+									className="px-4 py-1.5 text-left relative"
 									style={columnWidths.name ? { width: columnWidths.name } : undefined}
 								>
 									<button
@@ -465,7 +590,7 @@ export function TorrentList() {
 									.map((col) => (
 										<th
 											key={col.id}
-											className="px-3 py-2.5 text-left whitespace-nowrap relative"
+											className="px-3 py-1.5 text-left whitespace-nowrap relative"
 											style={columnWidths[col.id] ? { width: columnWidths[col.id] } : undefined}
 										>
 											{col.id === 'ratio' ? (
@@ -537,7 +662,7 @@ export function TorrentList() {
 										</th>
 									))}
 								{Object.keys(columnWidths).length > 0 && (
-									<th className="px-2 py-2.5 w-8">
+									<th className="px-2 py-1.5 w-8">
 										<button
 											onClick={handleResetWidths}
 											className="p-1 rounded opacity-50 hover:opacity-100 transition-opacity"
@@ -648,6 +773,8 @@ export function TorrentList() {
 				<TorrentDetailsPanel
 					hash={selectedHash}
 					name={selectedTorrent?.name ?? ''}
+					category={selectedTorrent?.category ?? ''}
+					tags={selectedTorrent?.tags ?? ''}
 					expanded={panelExpanded}
 					onToggle={() => setPanelExpanded(!panelExpanded)}
 					height={panelHeight}

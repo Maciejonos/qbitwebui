@@ -6,6 +6,7 @@ dist
 CLAUDE.md
 docker-compose.yml
 data/
+*.env
 
 #enforce package manager and runtime
 package-lock.json

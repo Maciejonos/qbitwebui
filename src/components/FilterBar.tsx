@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type FC } from 'react'
+import { useState, useRef, useCallback, type FC } from 'react'
 import {
 	LayoutGrid,
 	Download,
@@ -7,7 +7,6 @@ import {
 	Square,
 	Zap,
 	Search,
-	ChevronDown,
 	Folder,
 	Tag,
 	Settings,
@@ -19,6 +18,7 @@ import {
 import type { TorrentFilter } from '../types/qbittorrent'
 import type { Category } from '../api/qbittorrent'
 import type { ColumnDef } from './columns'
+import { useClickOutside } from '../hooks/useClickOutside'
 
 const filters: { value: TorrentFilter; label: string; Icon: FC<{ className?: string; strokeWidth?: number }> }[] = [
 	{ value: 'all', label: 'All', Icon: LayoutGrid },
@@ -41,22 +41,15 @@ export function FilterBar({ filter, onFilterChange }: Props) {
 				<button
 					key={f.value}
 					onClick={() => onFilterChange(f.value)}
-					className="relative flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200"
+					title={f.label}
+					className="relative flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
 					style={{
 						color: filter === f.value ? 'var(--accent-contrast)' : 'var(--text-muted)',
+						backgroundColor: filter === f.value ? 'var(--accent)' : 'transparent',
 					}}
 				>
-					{filter === f.value && (
-						<div
-							className="absolute inset-0 rounded-lg shadow-lg"
-							style={{
-								background: 'linear-gradient(to right, var(--accent), color-mix(in srgb, var(--accent) 80%, black))',
-								boxShadow: '0 4px 14px color-mix(in srgb, var(--accent) 20%, transparent)',
-							}}
-						/>
-					)}
-					<f.Icon className="relative w-3.5 h-3.5" strokeWidth={2} />
-					<span className="relative">{f.label}</span>
+					<f.Icon className="w-3.5 h-3.5" strokeWidth={2} />
+					<span className="text-[10px] font-medium">{f.label}</span>
 				</button>
 			))}
 		</>
@@ -65,19 +58,19 @@ export function FilterBar({ filter, onFilterChange }: Props) {
 
 export function SearchInput({ value, onChange }: { value: string; onChange: (s: string) => void }) {
 	return (
-		<div className="relative shrink min-w-0 w-64">
+		<div className="relative flex-1 min-w-[120px] max-w-[280px]">
 			<Search
-				className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+				className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5"
 				style={{ color: 'var(--text-muted)' }}
 				strokeWidth={2}
 			/>
 			<input
 				type="text"
-				placeholder="Search torrents..."
+				placeholder="Search..."
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
-				className="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all duration-200"
-				style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+				className="w-full h-7 pl-8 pr-3 rounded text-xs transition-all duration-150"
+				style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
 			/>
 		</div>
 	)
@@ -94,14 +87,8 @@ interface DropdownProps<T extends string> {
 function Dropdown<T extends string>({ value, onChange, options, placeholder, Icon }: DropdownProps<T>) {
 	const [open, setOpen] = useState(false)
 	const ref = useRef<HTMLDivElement>(null)
-
-	useEffect(() => {
-		function handleClickOutside(e: MouseEvent) {
-			if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-		}
-		document.addEventListener('mousedown', handleClickOutside)
-		return () => document.removeEventListener('mousedown', handleClickOutside)
-	}, [])
+	const close = useCallback(() => setOpen(false), [])
+	useClickOutside(ref, close)
 
 	const selected = options.find((o) => o.value === value)
 
@@ -109,19 +96,19 @@ function Dropdown<T extends string>({ value, onChange, options, placeholder, Ico
 		<div ref={ref} className="relative">
 			<button
 				onClick={() => setOpen(!open)}
-				className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200"
+				title={selected?.label ?? placeholder}
+				className="flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
 				style={{
 					color: value ? 'var(--accent)' : 'var(--text-muted)',
-					backgroundColor: value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+					backgroundColor: value ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
 				}}
 			>
 				<Icon className="w-3.5 h-3.5" strokeWidth={2} />
-				<span className="max-w-[100px] truncate">{selected?.label ?? placeholder}</span>
-				<ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} strokeWidth={2} />
+				<span className="text-[10px] font-medium max-w-[60px] truncate">{selected?.label ?? placeholder}</span>
 			</button>
 			{open && (
 				<div
-					className="absolute top-full left-0 mt-1 min-w-[180px] max-h-[300px] overflow-auto rounded-lg border shadow-xl z-[100]"
+					className="absolute top-full left-0 mt-1 min-w-[160px] max-h-[300px] overflow-auto rounded border shadow-xl z-[100]"
 					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
 				>
 					<button
@@ -129,13 +116,13 @@ function Dropdown<T extends string>({ value, onChange, options, placeholder, Ico
 							onChange(null)
 							setOpen(false)
 						}}
-						className="w-full flex items-center justify-between px-3 py-2 text-xs text-left transition-colors"
+						className="w-full flex items-center px-2.5 py-1.5 text-xs text-left transition-colors"
 						style={{
 							color: !value ? 'var(--accent)' : 'var(--text-muted)',
 							backgroundColor: !value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
 						}}
 					>
-						<span>All</span>
+						All {placeholder}s
 					</button>
 					{options.map((o) => (
 						<button
@@ -144,7 +131,7 @@ function Dropdown<T extends string>({ value, onChange, options, placeholder, Ico
 								onChange(o.value)
 								setOpen(false)
 							}}
-							className="w-full flex items-center justify-between px-3 py-2 text-xs text-left transition-colors"
+							className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs text-left transition-colors"
 							style={{
 								color: value === o.value ? 'var(--accent)' : 'var(--text-muted)',
 								backgroundColor:
@@ -153,7 +140,7 @@ function Dropdown<T extends string>({ value, onChange, options, placeholder, Ico
 						>
 							<span className="truncate">{o.label}</span>
 							{o.count !== undefined && (
-								<span style={{ color: 'var(--text-muted)' }} className="ml-2">
+								<span style={{ color: 'var(--text-muted)' }} className="ml-2 text-[10px]">
 									{o.count}
 								</span>
 							)}
@@ -174,14 +161,8 @@ interface CategoryDropdownProps {
 export function CategoryDropdown({ value, onChange, categories }: CategoryDropdownProps) {
 	const [open, setOpen] = useState(false)
 	const ref = useRef<HTMLDivElement>(null)
-
-	useEffect(() => {
-		function handleClickOutside(e: MouseEvent) {
-			if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-		}
-		document.addEventListener('mousedown', handleClickOutside)
-		return () => document.removeEventListener('mousedown', handleClickOutside)
-	}, [])
+	const close = useCallback(() => setOpen(false), [])
+	useClickOutside(ref, close)
 
 	const names = Object.keys(categories)
 	const selected = names.find((n) => n === value)
@@ -190,19 +171,19 @@ export function CategoryDropdown({ value, onChange, categories }: CategoryDropdo
 		<div ref={ref} className="relative">
 			<button
 				onClick={() => setOpen(!open)}
-				className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200"
+				title={selected ?? 'Category'}
+				className="flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
 				style={{
 					color: value ? 'var(--accent)' : 'var(--text-muted)',
-					backgroundColor: value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+					backgroundColor: value ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
 				}}
 			>
 				<Folder className="w-3.5 h-3.5" strokeWidth={2} />
-				<span className="max-w-[100px] truncate">{selected ?? 'Category'}</span>
-				<ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} strokeWidth={2} />
+				<span className="text-[10px] font-medium max-w-[60px] truncate">{selected ?? 'Category'}</span>
 			</button>
 			{open && (
 				<div
-					className="absolute top-full left-0 mt-1 min-w-[180px] max-h-[300px] overflow-auto rounded-lg border shadow-xl z-[100]"
+					className="absolute top-full left-0 mt-1 min-w-[160px] max-h-[300px] overflow-auto rounded border shadow-xl z-[100]"
 					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
 				>
 					<button
@@ -210,13 +191,13 @@ export function CategoryDropdown({ value, onChange, categories }: CategoryDropdo
 							onChange(null)
 							setOpen(false)
 						}}
-						className="w-full flex items-center px-3 py-2 text-xs text-left transition-colors"
+						className="w-full flex items-center px-2.5 py-1.5 text-xs text-left transition-colors"
 						style={{
 							color: !value ? 'var(--accent)' : 'var(--text-muted)',
 							backgroundColor: !value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
 						}}
 					>
-						All
+						All Categories
 					</button>
 					{names.map((name) => (
 						<button
@@ -225,7 +206,7 @@ export function CategoryDropdown({ value, onChange, categories }: CategoryDropdo
 								onChange(name)
 								setOpen(false)
 							}}
-							className="w-full px-3 py-2 text-xs text-left transition-colors truncate"
+							className="w-full px-2.5 py-1.5 text-xs text-left transition-colors truncate"
 							style={{
 								color: value === name ? 'var(--accent)' : 'var(--text-muted)',
 								backgroundColor: value === name ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
@@ -249,14 +230,8 @@ interface TagDropdownProps {
 export function TagDropdown({ value, onChange, tags }: TagDropdownProps) {
 	const [open, setOpen] = useState(false)
 	const ref = useRef<HTMLDivElement>(null)
-
-	useEffect(() => {
-		function handleClickOutside(e: MouseEvent) {
-			if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-		}
-		document.addEventListener('mousedown', handleClickOutside)
-		return () => document.removeEventListener('mousedown', handleClickOutside)
-	}, [])
+	const close = useCallback(() => setOpen(false), [])
+	useClickOutside(ref, close)
 
 	const selected = tags.find((t) => t === value)
 
@@ -264,19 +239,19 @@ export function TagDropdown({ value, onChange, tags }: TagDropdownProps) {
 		<div ref={ref} className="relative">
 			<button
 				onClick={() => setOpen(!open)}
-				className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200"
+				title={selected ?? 'Tag'}
+				className="flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
 				style={{
 					color: value ? 'var(--accent)' : 'var(--text-muted)',
-					backgroundColor: value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+					backgroundColor: value ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
 				}}
 			>
 				<Tag className="w-3.5 h-3.5" strokeWidth={2} />
-				<span className="max-w-[100px] truncate">{selected ?? 'Tag'}</span>
-				<ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} strokeWidth={2} />
+				<span className="text-[10px] font-medium max-w-[60px] truncate">{selected ?? 'Tag'}</span>
 			</button>
 			{open && (
 				<div
-					className="absolute top-full left-0 mt-1 min-w-[180px] max-h-[300px] overflow-auto rounded-lg border shadow-xl z-[100]"
+					className="absolute top-full left-0 mt-1 min-w-[160px] max-h-[300px] overflow-auto rounded border shadow-xl z-[100]"
 					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
 				>
 					<button
@@ -284,13 +259,13 @@ export function TagDropdown({ value, onChange, tags }: TagDropdownProps) {
 							onChange(null)
 							setOpen(false)
 						}}
-						className="w-full flex items-center px-3 py-2 text-xs text-left transition-colors"
+						className="w-full flex items-center px-2.5 py-1.5 text-xs text-left transition-colors"
 						style={{
 							color: !value ? 'var(--accent)' : 'var(--text-muted)',
 							backgroundColor: !value ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
 						}}
 					>
-						All
+						All Tags
 					</button>
 					{tags.map((tag) => (
 						<button
@@ -299,7 +274,7 @@ export function TagDropdown({ value, onChange, tags }: TagDropdownProps) {
 								onChange(tag)
 								setOpen(false)
 							}}
-							className="w-full px-3 py-2 text-xs text-left transition-colors truncate"
+							className="w-full px-2.5 py-1.5 text-xs text-left transition-colors truncate"
 							style={{
 								color: value === tag ? 'var(--accent)' : 'var(--text-muted)',
 								backgroundColor: value === tag ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
@@ -318,11 +293,12 @@ export function ManageButton({ onClick }: { onClick: () => void }) {
 	return (
 		<button
 			onClick={onClick}
-			className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 hover:opacity-80"
+			className="flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150 hover:opacity-80"
 			style={{ color: 'var(--text-muted)' }}
 			title="Manage categories & tags"
 		>
 			<Settings className="w-3.5 h-3.5" strokeWidth={2} />
+			<span className="text-[10px] font-medium">Manage</span>
 		</button>
 	)
 }
@@ -358,14 +334,8 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 	const [open, setOpen] = useState(false)
 	const [draggedId, setDraggedId] = useState<string | null>(null)
 	const ref = useRef<HTMLDivElement>(null)
-
-	useEffect(() => {
-		function handleClickOutside(e: MouseEvent) {
-			if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-		}
-		document.addEventListener('mousedown', handleClickOutside)
-		return () => document.removeEventListener('mousedown', handleClickOutside)
-	}, [])
+	const close = useCallback(() => setOpen(false), [])
+	useClickOutside(ref, close)
 
 	function toggle(id: string) {
 		const next = new Set(visible)
@@ -403,20 +373,20 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 		<div ref={ref} className="relative">
 			<button
 				onClick={() => setOpen(!open)}
-				className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200"
+				className="flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
 				style={{ color: 'var(--text-muted)' }}
 				title="Configure columns"
 			>
 				<Columns3 className="w-3.5 h-3.5" strokeWidth={2} />
-				<ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} strokeWidth={2} />
+				<span className="text-[10px] font-medium">Columns</span>
 			</button>
 			{open && (
 				<div
-					className="absolute top-full right-0 mt-1 min-w-[200px] max-h-[400px] overflow-auto rounded-lg border shadow-xl z-[100]"
+					className="absolute top-full right-0 mt-1 min-w-[180px] max-h-[400px] overflow-auto rounded border shadow-xl z-[100]"
 					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
 				>
 					<div
-						className="flex items-center justify-between px-3 py-2 border-b"
+						className="flex items-center justify-between px-2.5 py-1.5 border-b"
 						style={{ borderColor: 'var(--border)' }}
 					>
 						<span className="text-[10px] uppercase tracking-widest font-medium" style={{ color: 'var(--text-muted)' }}>
@@ -440,7 +410,7 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 							onDragStart={(e) => handleDragStart(e, col.id)}
 							onDragOver={(e) => handleDragOver(e, col.id)}
 							onDragEnd={handleDragEnd}
-							className={`flex items-center gap-2 px-2 py-2 text-xs transition-colors hover:bg-white/5 cursor-move ${draggedId === col.id ? 'opacity-50' : ''}`}
+							className={`flex items-center gap-1.5 px-2 py-1.5 text-xs transition-colors hover:bg-white/5 cursor-move ${draggedId === col.id ? 'opacity-50' : ''}`}
 							style={{ color: 'var(--text-primary)' }}
 						>
 							<GripHorizontal className="w-3 h-3 shrink-0" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />

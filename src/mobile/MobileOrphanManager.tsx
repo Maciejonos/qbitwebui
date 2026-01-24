@@ -285,7 +285,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 					<button
 						onClick={() => setShowConfirm(true)}
 						className="w-full py-3 rounded-xl text-sm font-medium"
-						style={{ backgroundColor: 'var(--error)', color: 'white' }}
+						style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 					>
 						Delete {selected.size} Torrent{selected.size > 1 ? 's' : ''}
 					</button>
@@ -324,7 +324,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 							>
 								{deleteFiles && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
 							</div>
-							<span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+							<span className="text-sm" style={{ color: 'var(--text-primary)' }}>
 								Also delete files
 							</span>
 						</label>
@@ -341,7 +341,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 								onClick={handleDelete}
 								disabled={deleting}
 								className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								{deleting ? 'Deleting...' : 'Delete'}
 							</button>

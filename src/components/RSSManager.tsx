@@ -902,7 +902,7 @@ export function RSSManager({ instances }: Props) {
 							<button
 								onClick={rss.handleDeleteItem}
 								className="px-4 py-2 rounded-lg text-sm font-medium"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								Delete
 							</button>
@@ -938,7 +938,7 @@ export function RSSManager({ instances }: Props) {
 							<button
 								onClick={rss.handleDeleteRule}
 								className="px-4 py-2 rounded-lg text-sm font-medium"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								Delete
 							</button>

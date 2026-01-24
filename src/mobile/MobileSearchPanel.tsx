@@ -329,7 +329,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							onClick={handleTestConnection}
 							disabled={testing || !formData.url || !formData.api_key}
 							className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50 border"
-							style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+							style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 						>
 							{testing ? 'Testing...' : 'Test'}
 						</button>
@@ -959,7 +959,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							<button
 								onClick={handleDeleteIntegration}
 								className="flex-1 py-3 rounded-xl text-sm font-medium"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								Delete
 							</button>

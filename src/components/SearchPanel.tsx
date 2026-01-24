@@ -886,7 +886,7 @@ export function SearchPanel() {
 							<button
 								onClick={handleDeleteIntegration}
 								className="px-4 py-2 rounded-lg text-sm font-medium"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								Delete
 							</button>

@@ -170,7 +170,7 @@ export function OrphanManager({ instances }: Props) {
 							<button
 								onClick={() => setShowConfirm(true)}
 								className="px-4 py-2 rounded-lg text-sm font-medium"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								Delete Selected
 							</button>
@@ -277,7 +277,7 @@ export function OrphanManager({ instances }: Props) {
 								onClick={handleDelete}
 								disabled={deleting}
 								className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								{deleting ? 'Deleting...' : 'Delete'}
 							</button>

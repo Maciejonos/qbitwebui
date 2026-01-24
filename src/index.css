@@ -34,24 +34,6 @@ body {
 	font-family: 'JetBrains Mono', monospace;
 }
 
-.scanlines {
-	position: relative;
-}
-.scanlines::before {
-	content: '';
-	position: absolute;
-	inset: 0;
-	background: repeating-linear-gradient(
-		0deg,
-		transparent,
-		transparent 2px,
-		rgba(0, 0, 0, 0.03) 2px,
-		rgba(0, 0, 0, 0.03) 4px
-	);
-	pointer-events: none;
-	z-index: 50;
-}
-
 .progress-glow {
 	position: relative;
 }

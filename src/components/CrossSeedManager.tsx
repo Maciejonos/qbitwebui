@@ -26,6 +26,7 @@ export function CrossSeedManager({ instances }: Props) {
 		logsContainerRef,
 		prowlarrIntegrations,
 		isRunning,
+		stopping,
 		handleSave,
 		handleScan,
 		handleStop,
@@ -138,12 +139,15 @@ export function CrossSeedManager({ instances }: Props) {
 					</div>
 					<div
 						className="text-sm font-medium flex items-center gap-2"
-						style={{ color: isRunning ? 'var(--accent)' : 'var(--text-secondary)' }}
+						style={{ color: stopping ? 'var(--warning)' : isRunning ? 'var(--accent)' : 'var(--text-secondary)' }}
 					>
-						{isRunning && (
-							<span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--accent)' }} />
+						{(isRunning || stopping) && (
+							<span
+								className="w-2 h-2 rounded-full animate-pulse"
+								style={{ backgroundColor: stopping ? 'var(--warning)' : 'var(--accent)' }}
+							/>
 						)}
-						{isRunning ? 'Running' : 'Idle'}
+						{stopping ? 'Stopping' : isRunning ? 'Running' : 'Idle'}
 					</div>
 				</div>
 				<div>
@@ -422,14 +426,14 @@ export function CrossSeedManager({ instances }: Props) {
 							</button>
 							<button
 								onClick={handleStop}
-								disabled={!isRunning}
+								disabled={!isRunning || stopping}
 								className="px-3 py-2 rounded-lg text-sm border disabled:opacity-50"
 								style={{
 									borderColor: isRunning ? 'var(--error)' : 'var(--border)',
 									color: isRunning ? 'var(--error)' : 'var(--text-muted)',
 								}}
 							>
-								Stop
+								{stopping ? 'Stopping...' : 'Stop'}
 							</button>
 							<button
 								onClick={handleClearCache}

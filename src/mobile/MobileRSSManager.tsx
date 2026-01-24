@@ -132,7 +132,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 					<button
 						onClick={() => setInstanceSelector(true)}
 						className="px-2 py-1 rounded text-xs"
-						style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+						style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
 					>
 						{rss.selectedInstance?.label}
 					</button>
@@ -191,7 +191,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 							<button
 								onClick={() => rss.setShowAddFolder(true)}
 								className="py-2.5 px-4 rounded-xl text-sm border"
-								style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+								style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 							>
 								Folder
 							</button>
@@ -239,7 +239,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											type="button"
 											onClick={rss.cancelAddFeed}
 											className="py-2.5 px-4 rounded-xl text-sm border"
-											style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+											style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 										>
 											Cancel
 										</button>
@@ -280,7 +280,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											type="button"
 											onClick={rss.cancelAddFolder}
 											className="py-2.5 px-4 rounded-xl text-sm border"
-											style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+											style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 										>
 											Cancel
 										</button>
@@ -455,7 +455,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											type="button"
 											onClick={rss.cancelNewRule}
 											className="py-2.5 px-4 rounded-xl text-sm border"
-											style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+											style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 										>
 											Cancel
 										</button>
@@ -684,7 +684,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 							<button
 								onClick={rss.handleCancelEdit}
 								className="py-3 px-4 rounded-xl text-sm border"
-								style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+								style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 							>
 								Cancel
 							</button>
@@ -692,7 +692,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								onClick={rss.handlePreviewMatches}
 								disabled={rss.loadingMatches}
 								className="py-3 px-4 rounded-xl text-sm border disabled:opacity-50"
-								style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+								style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 							>
 								{rss.loadingMatches ? '...' : 'Preview'}
 							</button>
@@ -751,14 +751,14 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 							<button
 								onClick={() => rss.setDeleteConfirm(null)}
 								className="flex-1 py-3 rounded-xl text-sm border"
-								style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+								style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 							>
 								Cancel
 							</button>
 							<button
 								onClick={rss.handleDeleteItem}
 								className="flex-1 py-3 rounded-xl text-sm font-medium"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								Delete
 							</button>
@@ -783,14 +783,14 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 							<button
 								onClick={() => rss.setRuleDeleteConfirm(null)}
 								className="flex-1 py-3 rounded-xl text-sm border"
-								style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+								style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 							>
 								Cancel
 							</button>
 							<button
 								onClick={rss.handleDeleteRule}
 								className="flex-1 py-3 rounded-xl text-sm font-medium"
-								style={{ backgroundColor: 'var(--error)', color: 'white' }}
+								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
 								Delete
 							</button>

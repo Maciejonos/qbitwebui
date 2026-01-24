@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeProvider'
 import { InstanceProvider } from './contexts/InstanceContext'
@@ -8,7 +8,7 @@ import { AuthForm } from './components/AuthForm'
 import { InstanceManager } from './components/InstanceManager'
 import { TorrentList } from './components/TorrentList'
 import { getMe, type User } from './api/auth'
-import type { Instance } from './api/instances'
+import { getInstances, type Instance } from './api/instances'
 
 const MobileApp = lazy(() => import('./mobile/MobileApp').then((m) => ({ default: m.MobileApp })))
 
@@ -24,12 +24,61 @@ const queryClient = new QueryClient({
 const isMobile = () => window.innerWidth < 768
 
 type View = 'loading' | 'auth' | 'instances' | 'torrents' | 'mobile'
+type Tab = 'dashboard' | 'tools'
+
+function parseHash(): { tab: Tab; instanceId: number | null } {
+	const hash = window.location.hash.slice(1)
+	if (hash === 'tools') return { tab: 'tools', instanceId: null }
+	if (hash.startsWith('instance/')) {
+		const id = parseInt(hash.slice(9), 10)
+		if (!isNaN(id)) return { tab: 'dashboard', instanceId: id }
+	}
+	return { tab: 'dashboard', instanceId: null }
+}
+
+function setHash(tab: Tab, instanceId: number | null) {
+	if (instanceId) {
+		window.location.hash = `instance/${instanceId}`
+	} else if (tab === 'tools') {
+		window.location.hash = 'tools'
+	} else {
+		window.location.hash = ''
+	}
+}
 
 export default function App() {
 	const [view, setView] = useState<View>('loading')
 	const [user, setUser] = useState<User | null>(null)
 	const [currentInstance, setCurrentInstance] = useState<Instance | null>(null)
 	const [authDisabled, setAuthDisabled] = useState(false)
+	const [initialTab, setInitialTab] = useState<Tab>('dashboard')
+
+	const applyRoute = useCallback(async (authenticated: boolean) => {
+		if (!authenticated) return
+		const { tab, instanceId } = parseHash()
+		setInitialTab(tab)
+		if (instanceId) {
+			const instances = await getInstances().catch(() => [])
+			const instance = instances.find((i) => i.id === instanceId)
+			if (instance) {
+				setCurrentInstance(instance)
+				setView('torrents')
+				return
+			}
+		}
+		const autoSelect = localStorage.getItem('autoSelectSingleInstance') === 'true'
+		if (autoSelect) {
+			const instances = await getInstances().catch(() => [])
+			if (instances.length === 1) {
+				setCurrentInstance(instances[0])
+				setView('torrents')
+				setHash('dashboard', instances[0].id)
+				return
+			}
+		}
+		setCurrentInstance(null)
+		setView(isMobile() ? 'mobile' : 'instances')
+	}, [])
 
 	useEffect(() => {
 		fetch('/api/config')
@@ -38,14 +87,14 @@ export default function App() {
 				if (authDisabled) {
 					setAuthDisabled(true)
 					setUser({ id: 1, username: 'guest' })
-					setView(isMobile() ? 'mobile' : 'instances')
+					applyRoute(true)
 					return
 				}
 				getMe()
 					.then((u) => {
 						if (u) {
 							setUser(u)
-							setView(isMobile() ? 'mobile' : 'instances')
+							applyRoute(true)
 						} else {
 							setView('auth')
 						}
@@ -53,29 +102,49 @@ export default function App() {
 					.catch(() => setView('auth'))
 			})
 			.catch(() => setView('auth'))
-	}, [])
+	}, [applyRoute])
 
 	useEffect(() => {
-		function handlePopState() {
-			if (currentInstance) {
+		function handleHashChange() {
+			const { tab, instanceId } = parseHash()
+			setInitialTab(tab)
+			if (instanceId && currentInstance?.id !== instanceId) {
+				getInstances()
+					.then((instances) => {
+						const instance = instances.find((i) => i.id === instanceId)
+						if (instance) {
+							setCurrentInstance(instance)
+							setView('torrents')
+						} else {
+							setCurrentInstance(null)
+							setView('instances')
+						}
+					})
+					.catch(() => {
+						setCurrentInstance(null)
+						setView('instances')
+					})
+			} else if (!instanceId) {
 				setCurrentInstance(null)
-				setView('instances')
+				setView(isMobile() ? 'mobile' : 'instances')
 			}
 		}
-		window.addEventListener('popstate', handlePopState)
-		return () => window.removeEventListener('popstate', handlePopState)
-	}, [currentInstance])
+		window.addEventListener('hashchange', handleHashChange)
+		return () => window.removeEventListener('hashchange', handleHashChange)
+	}, [currentInstance?.id])
 
 	function selectInstance(instance: Instance) {
 		setCurrentInstance(instance)
+		setInitialTab('dashboard')
 		setView('torrents')
-		history.pushState({ instance: instance.id }, '', `#${instance.id}`)
+		setHash('dashboard', instance.id)
 	}
 
-	function goBackToInstances() {
+	function goToTab(tab: Tab) {
 		setCurrentInstance(null)
+		setInitialTab(tab)
 		setView('instances')
-		history.back()
+		setHash(tab, null)
 	}
 
 	if (view === 'loading') {
@@ -144,6 +213,7 @@ export default function App() {
 							setView('auth')
 						}}
 						authDisabled={authDisabled}
+						initialTab={initialTab}
 					/>
 				</QueryClientProvider>
 			</ThemeProvider>
@@ -155,7 +225,16 @@ export default function App() {
 			<QueryClientProvider client={queryClient}>
 				<InstanceProvider instance={currentInstance}>
 					<PaginationProvider>
-						<Layout instanceLabel={currentInstance.label} onLogoClick={goBackToInstances}>
+						<Layout
+							onTabChange={goToTab}
+							username={user?.username}
+							authDisabled={authDisabled}
+							onLogout={() => {
+								setUser(null)
+								setCurrentInstance(null)
+								setView('auth')
+							}}
+						>
 							<TorrentList />
 						</Layout>
 					</PaginationProvider>
