@@ -17,6 +17,7 @@ interface InstanceResponse {
 	url: string
 	qbt_username: string | null
 	skip_auth: boolean
+	agent_enabled: boolean
 	created_at: number
 }
 
@@ -27,6 +28,7 @@ function toResponse(i: Instance): InstanceResponse {
 		url: i.url,
 		qbt_username: i.qbt_username,
 		skip_auth: !!i.skip_auth,
+		agent_enabled: !!i.agent_enabled,
 		created_at: i.created_at,
 	}
 }
@@ -157,6 +159,7 @@ instances.post('/', async (c) => {
 		qbt_username?: string
 		qbt_password?: string
 		skip_auth?: boolean
+		agent_enabled?: boolean
 	}>()
 
 	if (!body.label || !body.url) {
@@ -177,9 +180,17 @@ instances.post('/', async (c) => {
 
 	try {
 		const result = db.run(
-			`INSERT INTO instances (user_id, label, url, qbt_username, qbt_password_encrypted, skip_auth)
-			 VALUES (?, ?, ?, ?, ?, ?)`,
-			[user.id, body.label, body.url, body.qbt_username || null, encrypted, body.skip_auth ? 1 : 0]
+			`INSERT INTO instances (user_id, label, url, qbt_username, qbt_password_encrypted, skip_auth, agent_enabled)
+			 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			[
+				user.id,
+				body.label,
+				body.url,
+				body.qbt_username || null,
+				encrypted,
+				body.skip_auth ? 1 : 0,
+				body.agent_enabled ? 1 : 0,
+			]
 		)
 
 		const instance = db
@@ -208,6 +219,7 @@ instances.put('/:id', async (c) => {
 		qbt_username?: string
 		qbt_password?: string
 		skip_auth?: boolean
+		agent_enabled?: boolean
 	}>()
 
 	const existing = db
@@ -245,6 +257,10 @@ instances.put('/:id', async (c) => {
 	if (body.skip_auth !== undefined) {
 		updates.push('skip_auth = ?')
 		values.push(body.skip_auth ? 1 : 0)
+	}
+	if (body.agent_enabled !== undefined) {
+		updates.push('agent_enabled = ?')
+		values.push(body.agent_enabled ? 1 : 0)
 	}
 
 	if (updates.length > 0) {
@@ -311,6 +327,30 @@ instances.post('/test', async (c) => {
 	}
 
 	return c.json({ success: true, version: result.version })
+})
+
+instances.post('/test-agent', async (c) => {
+	const body = await c.req.json<{ url: string }>()
+
+	if (!body.url) {
+		return c.json({ error: 'URL is required' }, 400)
+	}
+
+	try {
+		validateUrl(body.url)
+	} catch (e) {
+		return c.json({ error: e instanceof Error ? e.message : 'Invalid URL' }, 400)
+	}
+
+	try {
+		const agentUrl = new URL(body.url)
+		agentUrl.port = '9999'
+		const res = await fetchWithTls(`${agentUrl.origin}/health`, { signal: AbortSignal.timeout(5000) })
+		if (res.ok) return c.json({ success: true })
+		return c.json({ error: 'Agent not responding' }, 400)
+	} catch {
+		return c.json({ error: 'Agent not reachable at port 9999' }, 400)
+	}
 })
 
 instances.delete('/:id', (c) => {

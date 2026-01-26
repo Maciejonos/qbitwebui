@@ -138,7 +138,11 @@ function FolderPicker({ title, onConfirm, onCancel }: FolderPickerProps) {
 	)
 }
 
-export function FileBrowser() {
+interface Props {
+	enabled: boolean
+}
+
+export function FileBrowser({ enabled }: Props) {
 	const [path, setPath] = useState('/')
 	const [files, setFiles] = useState<FileEntry[]>([])
 	const [loading, setLoading] = useState(true)
@@ -152,10 +156,11 @@ export function FileBrowser() {
 	const [actionLoading, setActionLoading] = useState(false)
 
 	useEffect(() => {
-		checkWritable().then(setWritable)
-	}, [])
+		if (enabled) checkWritable().then(setWritable)
+	}, [enabled])
 
 	const loadFiles = useCallback(async () => {
+		if (!enabled) return
 		setLoading(true)
 		setError('')
 		try {
@@ -167,12 +172,39 @@ export function FileBrowser() {
 		} finally {
 			setLoading(false)
 		}
-	}, [path])
+	}, [path, enabled])
 
 	useEffect(() => {
+		if (!enabled) return
 		loadFiles()
 		setSelected(new Set())
-	}, [loadFiles])
+	}, [loadFiles, enabled])
+
+	if (!enabled) {
+		return (
+			<div
+				className="text-center py-12 rounded-xl border"
+				style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+			>
+				<Folder className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
+				<p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
+					File Browser is not configured
+				</p>
+				<p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+					Set DOWNLOADS_PATH environment variable to enable
+				</p>
+				<a
+					href="https://github.com/Maciejonos/qbitwebui#environment"
+					target="_blank"
+					rel="noopener noreferrer"
+					className="text-xs underline"
+					style={{ color: 'var(--accent)' }}
+				>
+					How to configure
+				</a>
+			</div>
+		)
+	}
 
 	function handleNavigate(name: string) {
 		setPath(path === '/' ? `/${name}` : `${path}/${name}`)

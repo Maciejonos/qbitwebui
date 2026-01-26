@@ -1,16 +1,24 @@
+import type { ReactNode } from 'react'
 import { Check } from 'lucide-react'
 
 export function Checkbox({
 	checked,
 	onChange,
 	label,
+	disabled,
 }: {
 	checked: boolean
 	onChange: (v: boolean) => void
-	label: string
+	label: ReactNode
+	disabled?: boolean
 }) {
 	return (
-		<button type="button" onClick={() => onChange(!checked)} className="flex items-center gap-2 text-left">
+		<button
+			type="button"
+			disabled={disabled}
+			onClick={() => onChange(!checked)}
+			className="flex items-center gap-2 text-left disabled:opacity-50 disabled:cursor-wait"
+		>
 			<div
 				className="w-4 h-4 rounded flex items-center justify-center border transition-colors shrink-0"
 				style={{

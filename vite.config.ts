@@ -36,6 +36,11 @@ export default defineConfig(() => {
 		},
 		server: {
 			proxy: {
+				'/api/instances': {
+					target: 'http://localhost:3000',
+					changeOrigin: true,
+					timeout: 120000,
+				},
 				'/api': {
 					target: 'http://localhost:3000',
 					changeOrigin: true,

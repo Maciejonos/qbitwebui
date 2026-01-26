@@ -15,6 +15,7 @@ import {
 	Settings,
 	Pencil,
 	BarChart3,
+	Globe,
 } from 'lucide-react'
 import {
 	getInstances,
@@ -34,11 +35,12 @@ import { RSSManager } from './RSSManager'
 import { LogViewer } from './LogViewer'
 import { CrossSeedManager } from './CrossSeedManager'
 import { Statistics } from './Statistics'
+import { NetworkTools } from './NetworkTools'
 import { Checkbox } from './ui'
 import { formatSpeed, formatSize } from '../utils/format'
 
 type Tab = 'dashboard' | 'tools'
-type Tool = 'indexers' | 'files' | 'orphans' | 'rss' | 'logs' | 'cross-seed' | 'statistics' | null
+type Tool = 'indexers' | 'files' | 'orphans' | 'rss' | 'logs' | 'cross-seed' | 'statistics' | 'network' | null
 
 interface InstanceStats {
 	id: number
@@ -84,6 +86,7 @@ interface Props {
 	authDisabled?: boolean
 	initialTab?: Tab
 	initialTool?: Tool
+	onTabChange: (tab: Tab) => void
 	onToolChange: (tool: Tool) => void
 }
 
@@ -94,9 +97,10 @@ export function InstanceManager({
 	authDisabled,
 	initialTab = 'dashboard',
 	initialTool = null,
+	onTabChange,
 	onToolChange,
 }: Props) {
-	const [tab, setTab] = useState<Tab>(initialTab)
+	const tab = initialTab
 	const [instances, setInstances] = useState<Instance[]>([])
 	const [stats, setStats] = useState<InstanceStats[]>([])
 	const [loading, setLoading] = useState(true)
@@ -108,12 +112,14 @@ export function InstanceManager({
 		qbt_username: '',
 		qbt_password: '',
 		skip_auth: false,
+		agent_enabled: false,
 	})
 	const [error, setError] = useState('')
 	const [submitting, setSubmitting] = useState(false)
 	const [deleteConfirm, setDeleteConfirm] = useState<Instance | null>(null)
 	const [testing, setTesting] = useState(false)
 	const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
+	const [agentTesting, setAgentTesting] = useState(false)
 	const [showPasswordModal, setShowPasswordModal] = useState(false)
 	const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' })
 	const [passwordError, setPasswordError] = useState('')
@@ -180,18 +186,18 @@ export function InstanceManager({
 		setError('')
 		setSubmitting(true)
 		try {
+			const submitData = { ...formData }
+			if (editingId && !submitData.qbt_password) {
+				delete (submitData as { qbt_password?: string }).qbt_password
+			}
 			if (editingId) {
-				const updateData = { ...formData }
-				if (!updateData.qbt_password) {
-					delete (updateData as { qbt_password?: string }).qbt_password
-				}
-				await updateInstance(editingId, updateData)
+				await updateInstance(editingId, submitData)
 			} else {
-				await createInstance(formData)
+				await createInstance(submitData)
 			}
 			setShowForm(false)
 			setEditingId(null)
-			setFormData({ label: '', url: '', qbt_username: '', qbt_password: '', skip_auth: false })
+			setFormData({ label: '', url: '', qbt_username: '', qbt_password: '', skip_auth: false, agent_enabled: false })
 			setTestResult(null)
 			await loadInstances()
 		} catch (err) {
@@ -248,6 +254,34 @@ export function InstanceManager({
 		}
 	}
 
+	async function handleAgentToggle(enabled: boolean) {
+		if (!enabled) return setFormData({ ...formData, agent_enabled: false })
+		if (!formData.url)
+			return setTestResult({ success: false, message: 'Enter a qBittorrent URL first to enable the agent' })
+
+		setAgentTesting(true)
+		setTestResult(null)
+		try {
+			const res = await fetch('/api/instances/test-agent', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
+				body: JSON.stringify({ url: formData.url }),
+			})
+			const data = await res.json()
+			setTestResult(
+				res.ok
+					? { success: true, message: 'Agent is reachable' }
+					: { success: false, message: data.error || 'Agent not reachable' }
+			)
+			if (res.ok) setFormData({ ...formData, agent_enabled: true })
+		} catch {
+			setTestResult({ success: false, message: 'Failed to test agent connection' })
+		} finally {
+			setAgentTesting(false)
+		}
+	}
+
 	function openEdit(instance: Instance) {
 		setEditingId(instance.id)
 		setFormData({
@@ -256,6 +290,7 @@ export function InstanceManager({
 			qbt_username: instance.qbt_username || '',
 			qbt_password: '',
 			skip_auth: instance.skip_auth,
+			agent_enabled: instance.agent_enabled,
 		})
 		setTestResult(null)
 		setShowForm(true)
@@ -329,10 +364,7 @@ export function InstanceManager({
 		<div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
 			<Header
 				activeTab={tab}
-				onTabChange={(t) => {
-					setTab(t)
-					onToolChange(null)
-				}}
+				onTabChange={onTabChange}
 				username={username}
 				authDisabled={authDisabled}
 				onLogout={handleLogout}
@@ -352,12 +384,13 @@ export function InstanceManager({
 								Back to Tools
 							</button>
 							{initialTool === 'indexers' && <SearchPanel />}
-							{initialTool === 'files' && <FileBrowser />}
+							{initialTool === 'files' && <FileBrowser enabled={filesEnabled} />}
 							{initialTool === 'orphans' && <OrphanManager instances={instances} />}
 							{initialTool === 'rss' && <RSSManager instances={instances} />}
 							{initialTool === 'logs' && <LogViewer instances={instances} />}
 							{initialTool === 'cross-seed' && <CrossSeedManager instances={instances} />}
 							{initialTool === 'statistics' && <Statistics />}
+							{initialTool === 'network' && <NetworkTools instances={instances} />}
 						</>
 					) : (
 						<>
@@ -378,21 +411,19 @@ export function InstanceManager({
 										Search indexers
 									</div>
 								</button>
-								{filesEnabled && (
-									<button
-										onClick={() => onToolChange('files')}
-										className="p-6 rounded-xl border text-left transition-all hover:border-[var(--accent)]"
-										style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
-									>
-										<FolderOpen className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
-										<div className="font-medium" style={{ color: 'var(--text-primary)' }}>
-											File Browser
-										</div>
-										<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-											Browse downloads
-										</div>
-									</button>
-								)}
+								<button
+									onClick={() => onToolChange('files')}
+									className="p-6 rounded-xl border text-left transition-all hover:border-[var(--accent)]"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+								>
+									<FolderOpen className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
+									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>
+										File Browser
+									</div>
+									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+										Browse downloads
+									</div>
+								</button>
 								<button
 									onClick={() => onToolChange('orphans')}
 									className="p-6 rounded-xl border text-left transition-all hover:border-[var(--accent)]"
@@ -459,6 +490,19 @@ export function InstanceManager({
 									</div>
 									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
 										Transfer history
+									</div>
+								</button>
+								<button
+									onClick={() => onToolChange('network')}
+									className="p-6 rounded-xl border text-left transition-all hover:border-[var(--accent)]"
+									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+								>
+									<Globe className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
+									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>
+										Network
+									</div>
+									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+										IP info, speedtest, DNS
 									</div>
 								</button>
 							</div>
@@ -560,7 +604,14 @@ export function InstanceManager({
 									onClick={() => {
 										setShowForm(true)
 										setEditingId(null)
-										setFormData({ label: '', url: '', qbt_username: '', qbt_password: '', skip_auth: false })
+										setFormData({
+											label: '',
+											url: '',
+											qbt_username: '',
+											qbt_password: '',
+											skip_auth: false,
+											agent_enabled: false,
+										})
 									}}
 									className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
 									style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
@@ -683,6 +734,29 @@ export function InstanceManager({
 										checked={formData.skip_auth ?? false}
 										onChange={(v) => setFormData({ ...formData, skip_auth: v })}
 										label="Skip authentication (enable if qBittorrent has IP bypass enabled)"
+									/>
+
+									<Checkbox
+										checked={formData.agent_enabled ?? false}
+										onChange={handleAgentToggle}
+										disabled={agentTesting}
+										label={
+											<>
+												{agentTesting
+													? 'Testing agent...'
+													: 'Enable net-agent (network diagnostics: IP info, speedtest, etc.)'}{' '}
+												<a
+													href="https://github.com/Maciejonos/qbitwebui/blob/master/net-agent/README.md"
+													target="_blank"
+													rel="noopener noreferrer"
+													className="underline"
+													style={{ color: 'var(--accent)' }}
+													onClick={(e) => e.stopPropagation()}
+												>
+													How to set up
+												</a>
+											</>
+										}
 									/>
 
 									{testResult && (

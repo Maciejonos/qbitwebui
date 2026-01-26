@@ -25,14 +25,14 @@ const isMobile = () => window.innerWidth < 768
 
 type View = 'loading' | 'auth' | 'instances' | 'torrents' | 'mobile'
 type Tab = 'dashboard' | 'tools'
-type Tool = 'indexers' | 'files' | 'orphans' | 'rss' | 'logs' | 'cross-seed' | 'statistics' | null
+type Tool = 'indexers' | 'files' | 'orphans' | 'rss' | 'logs' | 'cross-seed' | 'statistics' | 'network' | null
 
 function parseHash(): { tab: Tab; instanceId: number | null; tool: Tool } {
 	const hash = window.location.hash.slice(1)
 	if (hash === 'tools') return { tab: 'tools', instanceId: null, tool: null }
 	if (hash.startsWith('tools/')) {
 		const toolName = hash.slice(6) as Tool
-		const validTools: Tool[] = ['indexers', 'files', 'orphans', 'rss', 'logs', 'cross-seed', 'statistics']
+		const validTools: Tool[] = ['indexers', 'files', 'orphans', 'rss', 'logs', 'cross-seed', 'statistics', 'network']
 		if (validTools.includes(toolName)) {
 			return { tab: 'tools', instanceId: null, tool: toolName }
 		}
@@ -136,14 +136,14 @@ export default function App() {
 						setCurrentInstance(null)
 						setView('instances')
 					})
-			} else if (!instanceId) {
+			} else if (!instanceId && currentInstance !== null) {
 				setCurrentInstance(null)
 				setView(isMobile() ? 'mobile' : 'instances')
 			}
 		}
 		window.addEventListener('hashchange', handleHashChange)
 		return () => window.removeEventListener('hashchange', handleHashChange)
-	}, [currentInstance?.id])
+	}, [currentInstance])
 
 	function selectInstance(instance: Instance) {
 		setCurrentInstance(instance)
@@ -157,6 +157,12 @@ export default function App() {
 		setInitialTab(tab)
 		setInitialTool(null)
 		setView('instances')
+		setHash(tab, null)
+	}
+
+	function handleTabChange(tab: Tab) {
+		setInitialTab(tab)
+		setInitialTool(null)
 		setHash(tab, null)
 	}
 
@@ -233,6 +239,7 @@ export default function App() {
 						authDisabled={authDisabled}
 						initialTab={initialTab}
 						initialTool={initialTool}
+						onTabChange={handleTabChange}
 						onToolChange={handleToolChange}
 					/>
 				</QueryClientProvider>

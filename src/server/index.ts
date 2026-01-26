@@ -74,4 +74,5 @@ startStatsRecorder()
 export default {
 	port,
 	fetch: app.fetch,
+	idleTimeout: 120,
 }

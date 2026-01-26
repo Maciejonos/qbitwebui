@@ -60,6 +60,16 @@ if (!hasSkipAuth || usernameNotNull) {
 	db.exec(`ALTER TABLE instances_new RENAME TO instances`)
 }
 
+const hasAgentUrl = instanceCols.some((c) => c.name === 'agent_url')
+const hasAgentEnabled = instanceCols.some((c) => c.name === 'agent_enabled')
+if (hasAgentUrl && !hasAgentEnabled) {
+	db.exec('ALTER TABLE instances ADD COLUMN agent_enabled INTEGER DEFAULT 0')
+	db.exec('UPDATE instances SET agent_enabled = 1 WHERE agent_url IS NOT NULL')
+}
+if (!hasAgentUrl && !hasAgentEnabled) {
+	db.exec('ALTER TABLE instances ADD COLUMN agent_enabled INTEGER DEFAULT 0')
+}
+
 db.exec(`
 	CREATE TABLE IF NOT EXISTS sessions (
 		id TEXT PRIMARY KEY,
@@ -190,6 +200,7 @@ export interface Instance {
 	qbt_username: string | null
 	qbt_password_encrypted: string | null
 	skip_auth: number
+	agent_enabled: number
 	created_at: number
 }
 

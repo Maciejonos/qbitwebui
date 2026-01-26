@@ -18,3 +18,13 @@ jobs:
       - run: bun run test
         env:
           CI: true
+
+  agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - run: go build -o /dev/null .
+        working-directory: net-agent

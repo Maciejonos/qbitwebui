@@ -136,4 +136,63 @@ proxy.all('/:id/qbt/*', async (c) => {
 	}
 })
 
+function deriveAgentUrl(qbtUrl: string): string {
+	const url = new URL(qbtUrl)
+	url.port = '9999'
+	return url.origin
+}
+
+proxy.all('/:id/agent/*', async (c) => {
+	const user = c.get('user')
+	const instanceId = Number(c.req.param('id'))
+
+	if (isNaN(instanceId)) {
+		return c.json({ error: 'Invalid instance ID' }, 400)
+	}
+
+	const instance = db
+		.query<Instance, [number, number]>('SELECT * FROM instances WHERE id = ? AND user_id = ?')
+		.get(instanceId, user.id)
+
+	if (!instance) {
+		return c.json({ error: 'Instance not found' }, 404)
+	}
+
+	if (!instance.agent_enabled) {
+		return c.json({ error: 'Agent not enabled for this instance' }, 400)
+	}
+
+	const agentUrl = deriveAgentUrl(instance.url)
+	const path = c.req.path.replace(`/api/instances/${instanceId}/agent`, '')
+	const queryString = c.req.url.includes('?') ? c.req.url.slice(c.req.url.indexOf('?')) : ''
+	const targetUrl = `${agentUrl}${path}${queryString}`
+
+	try {
+		const cookie = await getQbtSession(instance)
+		const sid = cookie?.match(/SID=([^;]+)/)?.[1] || ''
+
+		const headers = new Headers()
+		headers.set('X-QBT-SID', sid)
+
+		const res = await fetchWithTls(targetUrl, {
+			method: c.req.method,
+			headers,
+		})
+
+		const responseHeaders = new Headers()
+		const contentType = res.headers.get('content-type')
+		if (contentType) {
+			responseHeaders.set('Content-Type', contentType)
+		}
+
+		return new Response(res.body, {
+			status: res.status,
+			headers: responseHeaders,
+		})
+	} catch (e) {
+		log.error(`Agent proxy failed for instance ${instanceId}: ${e instanceof Error ? e.message : 'Unknown error'}`)
+		return c.json({ error: 'Failed to connect to agent' }, 502)
+	}
+})
+
 export default proxy
