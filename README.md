@@ -9,6 +9,9 @@ Built with [React](https://react.dev/), [Hono](https://hono.dev/), and [Bun](htt
 [![GitHub License](https://img.shields.io/github/license/Maciejonos/qbitwebui?style=for-the-badge&labelColor=101418&color=abedd5)](https://github.com/Maciejonos/qbitwebui/blob/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/Maciejonos/qbitwebui?style=for-the-badge&labelColor=101418&color=b9c8da)](https://github.com/Maciejonos/qbitwebui/releases)
 [![Docker Build](https://img.shields.io/github/actions/workflow/status/Maciejonos/qbitwebui/docker.yml?style=for-the-badge&labelColor=101418&color=4EB329&label=build)](https://github.com/Maciejonos/qbitwebui/actions)
+
+**[Documentation](https://maciejonos.github.io/qbitwebui/)** · **[Docker Examples](https://maciejonos.github.io/qbitwebui/guide/docker)** · **[All Features](https://maciejonos.github.io/qbitwebui/guide/features)**
+
 </div>
 
 <div align="center">
@@ -28,7 +31,7 @@ Built with [React](https://react.dev/), [Hono](https://hono.dev/), and [Bun](htt
 </details>
 
 <details>
-<summary><h3>Mobile UI (PWA)</h3></summary>
+<summary><h3>Mobile UI</h3></summary>
 <div align="center">
 <table>
   <tr>
@@ -43,21 +46,21 @@ Built with [React](https://react.dev/), [Hono](https://hono.dev/), and [Bun](htt
 
 - **Multi-instance** - Manage multiple qBittorrent instances from one dashboard
 - **Cross seed** - Automatic cross seed directly in qbitwebui. (experimental)
-- **Instance speed management** - Easily control global/alternative speed limits per instance
 - **Instance statistics** - Overview of all instances with status, speeds, torrent counts
-- **User accounts** - Register/login with secure session management
 - **Prowlarr integration** - Search indexers and send torrents directly to qBittorrent
 - **Real-time monitoring** - Auto-refresh torrent status, speeds, progress
 - **Customizable columns** - Show/hide columns, drag and drop reorder
 - **Torrent management** - Add via magnet/file, set priorities, manage trackers/peers
-- **Organization** - Filter by status, category, tag, or tracker
+- **Organization** - Filter by status, category, tag, or tracker, custom views
 - **Bulk actions** - Multi-select with context menu, keyboard navigation
 - **Themes** - Multiple color themes included
-- **Encrypted storage** - qBittorrent credentials stored with AES-256-GCM
 - **File browser** - Browse and download files from your downloads directory
 - **RSS management** - Define rules, add RSS feeds, manage folders
+- **Network agent** - Speedtest, IP check, DNS diagnostics from qBittorrent's network - check how to set up [Network Agent](https://maciejonos.github.io/qbitwebui/guide/network-agent)
 
 ## Docker
+
+See [Docker section](https://maciejonos.github.io/qbitwebui/guide/docker) for all setup options.
 
 ```yaml
 services:
@@ -85,12 +88,6 @@ services:
     restart: unless-stopped
 ```
 
-Or build locally:
-
-```bash
-docker compose up -d
-```
-
 ## Development
 
 ```bash
@@ -99,19 +96,6 @@ export ENCRYPTION_KEY=$(openssl rand -hex 32)
 bun install
 bun run dev
 ```
-
-## Environment Variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ENCRYPTION_KEY` | Yes | - | Min 32 chars, used to encrypt stored credentials |
-| `PORT` | No | `3000` | Server port |
-| `DATABASE_PATH` | No | `./data/qbitwebui.db` | SQLite database location |
-| `SALT_PATH` | No | `./data/.salt` | Encryption salt file location |
-| `ALLOW_SELF_SIGNED_CERTS` | No | `false` | Set to `true` to allow HTTPS connections to qBittorrent instances with self-signed certificates |
-| `DISABLE_AUTH` | No | `false` | Set to `true` to disable login/registration (guest mode) |
-| `DISABLE_REGISTRATION` | No | `false` | Set to `true` to disable new registrations. Creates default `admin` account on first run (password shown in logs) |
-| `DOWNLOADS_PATH` | No | - | Path to downloads directory to enable file browser |
 
 ## Tech Stack
 

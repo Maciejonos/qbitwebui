@@ -64,7 +64,10 @@ export function getStatsForPeriod(instanceId: number, periodSeconds: number): Pe
 	const periodStart = now - periodSeconds
 
 	const latest = db
-		.query<TransferStats, [number]>('SELECT * FROM transfer_stats WHERE instance_id = ? ORDER BY timestamp DESC LIMIT 1')
+		.query<
+			TransferStats,
+			[number]
+		>('SELECT * FROM transfer_stats WHERE instance_id = ? ORDER BY timestamp DESC LIMIT 1')
 		.get(instanceId)
 
 	if (!latest) {
@@ -85,15 +88,17 @@ export function getStatsForPeriod(instanceId: number, periodSeconds: number): Pe
 	}
 
 	const oldest = db
-		.query<TransferStats, [number, number]>(
-			'SELECT * FROM transfer_stats WHERE instance_id = ? AND timestamp >= ? ORDER BY timestamp ASC LIMIT 1'
-		)
+		.query<
+			TransferStats,
+			[number, number]
+		>('SELECT * FROM transfer_stats WHERE instance_id = ? AND timestamp >= ? ORDER BY timestamp ASC LIMIT 1')
 		.get(instanceId, periodStart)
 
 	const dataPoints = db
-		.query<{ count: number }, [number, number]>(
-			'SELECT COUNT(*) as count FROM transfer_stats WHERE instance_id = ? AND timestamp >= ?'
-		)
+		.query<
+			{ count: number },
+			[number, number]
+		>('SELECT COUNT(*) as count FROM transfer_stats WHERE instance_id = ? AND timestamp >= ?')
 		.get(instanceId, periodStart)
 
 	if (!oldest) {

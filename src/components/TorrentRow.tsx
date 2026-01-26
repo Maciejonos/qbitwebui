@@ -75,6 +75,7 @@ interface CellContext {
 	progress: number
 	ratioColor: string
 	hideAddedTime: boolean
+	isCrossSeed: boolean
 }
 
 function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): ReactNode {
@@ -168,7 +169,7 @@ function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): React
 		case 'ratio':
 			return (
 				<span className="text-xs font-mono font-medium whitespace-nowrap" style={{ color: ctx.ratioColor }}>
-					{torrent.ratio.toFixed(2)}
+					{ctx.isCrossSeed ? '∞' : torrent.ratio.toFixed(2)}
 				</span>
 			)
 		case 'seeding_time':
@@ -298,10 +299,11 @@ export function TorrentRow({
 	const progress = Math.round(torrent.progress * 100)
 	const isComplete = progress >= 100
 	const stateColor = getColor(type)
+	const isCrossSeed = torrent.downloaded === 0 && isComplete && torrent.size > 0
 	const ratioRounded = Math.round(torrent.ratio * 100) / 100
-	const ratioColor = ratioRounded >= ratioThreshold ? '#a6e3a1' : '#f38ba8'
+	const ratioColor = isCrossSeed || ratioRounded >= ratioThreshold ? '#a6e3a1' : '#f38ba8'
 
-	const cellContext = { stateColor, stateLabel: label, isComplete, progress, ratioColor, hideAddedTime }
+	const cellContext = { stateColor, stateLabel: label, isComplete, progress, ratioColor, hideAddedTime, isCrossSeed }
 
 	return (
 		<tr

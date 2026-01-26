@@ -237,7 +237,14 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									<InfoRow label="Size" value={formatSize(torrent.size)} />
 									<InfoRow label="Downloaded" value={formatSize(torrent.downloaded)} />
 									<InfoRow label="Uploaded" value={formatSize(torrent.uploaded)} />
-									<InfoRow label="Ratio" value={torrent.ratio.toFixed(2)} />
+									<InfoRow
+										label="Ratio"
+										value={
+											torrent.downloaded === 0 && torrent.progress >= 1 && torrent.size > 0
+												? '∞'
+												: torrent.ratio.toFixed(2)
+										}
+									/>
 									<div className="h-px my-2" style={{ backgroundColor: 'var(--border)' }} />
 									<InfoRow label="Download Speed" value={formatSpeed(torrent.dlspeed)} accent />
 									<InfoRow label="Upload Speed" value={formatSpeed(torrent.upspeed)} accent="#a6e3a1" />
