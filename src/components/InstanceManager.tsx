@@ -746,7 +746,7 @@ export function InstanceManager({
 													? 'Testing agent...'
 													: 'Enable net-agent (network diagnostics: IP info, speedtest, etc.)'}{' '}
 												<a
-													href="https://github.com/Maciejonos/qbitwebui/blob/master/net-agent/README.md"
+													href="https://maciejonos.github.io/qbitwebui/guide/network-agent/"
 													target="_blank"
 													rel="noopener noreferrer"
 													className="underline"

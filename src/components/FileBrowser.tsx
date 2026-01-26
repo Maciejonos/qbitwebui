@@ -194,7 +194,7 @@ export function FileBrowser({ enabled }: Props) {
 					Set DOWNLOADS_PATH environment variable to enable
 				</p>
 				<a
-					href="https://github.com/Maciejonos/qbitwebui#environment"
+					href="https://maciejonos.github.io/qbitwebui/guide/configuration"
 					target="_blank"
 					rel="noopener noreferrer"
 					className="text-xs underline"
