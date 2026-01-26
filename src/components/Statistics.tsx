@@ -33,7 +33,10 @@ export function Statistics() {
 					{!hasAnyData && (
 						<div
 							className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm"
-							style={{ backgroundColor: 'color-mix(in srgb, var(--warning) 10%, transparent)', color: 'var(--warning)' }}
+							style={{
+								backgroundColor: 'color-mix(in srgb, var(--warning) 10%, transparent)',
+								color: 'var(--warning)',
+							}}
 						>
 							<AlertCircle className="w-5 h-5 flex-shrink-0" />
 							<div>
@@ -53,10 +56,7 @@ export function Statistics() {
 								style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 							>
 								<div className="flex items-center justify-between">
-									<div
-										className="text-xs font-medium uppercase tracking-wider"
-										style={{ color: 'var(--text-muted)' }}
-									>
+									<div className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
 										{data.label}
 									</div>
 									<div className="flex items-center gap-4">

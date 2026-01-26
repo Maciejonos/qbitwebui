@@ -57,7 +57,10 @@ export function MobileStatistics({ onBack }: Props): ReactNode {
 					<div className="flex items-center justify-center py-12">
 						<div
 							className="w-6 h-6 border-2 rounded-full animate-spin"
-							style={{ borderColor: 'color-mix(in srgb, var(--accent) 20%, transparent)', borderTopColor: 'var(--accent)' }}
+							style={{
+								borderColor: 'color-mix(in srgb, var(--accent) 20%, transparent)',
+								borderTopColor: 'var(--accent)',
+							}}
 						/>
 					</div>
 				) : (
@@ -65,7 +68,10 @@ export function MobileStatistics({ onBack }: Props): ReactNode {
 						{!hasAnyData && (
 							<div
 								className="flex items-start gap-3 px-4 py-3 rounded-xl text-sm"
-								style={{ backgroundColor: 'color-mix(in srgb, var(--warning) 10%, transparent)', color: 'var(--warning)' }}
+								style={{
+									backgroundColor: 'color-mix(in srgb, var(--warning) 10%, transparent)',
+									color: 'var(--warning)',
+								}}
 							>
 								<AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
 								<div>

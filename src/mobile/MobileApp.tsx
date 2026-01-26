@@ -124,15 +124,18 @@ export function MobileApp({ username, onLogout, authDisabled }: Props) {
 	const effectiveInstance = selectedInstance !== 'all' ? selectedInstance : instances.length === 1 ? instances[0] : null
 	const altSpeed = useAltSpeedMode(effectiveInstance?.id ?? null)
 
-	const handleMainTabChange = useCallback((tab: MainTab) => {
-		setMainTab(tab)
-		if (tab === 'torrents') {
-			setActiveTool(null)
-			setHash(tab, null)
-		} else {
-			setHash(tab, activeTool)
-		}
-	}, [activeTool])
+	const handleMainTabChange = useCallback(
+		(tab: MainTab) => {
+			setMainTab(tab)
+			if (tab === 'torrents') {
+				setActiveTool(null)
+				setHash(tab, null)
+			} else {
+				setHash(tab, activeTool)
+			}
+		},
+		[activeTool]
+	)
 
 	const handleToolChange = useCallback((tool: Tool) => {
 		setActiveTool(tool)
@@ -238,7 +241,7 @@ export function MobileApp({ username, onLogout, authDisabled }: Props) {
 				>
 					<div className="flex items-center justify-between px-4 py-3">
 						<div className="flex items-center gap-3">
-							<img src="/logo.png" alt="qbitwebui" className="w-8 h-8" />
+							<img src="/logo.svg" alt="qbitwebui" className="w-8 h-8" />
 							{mainTab === 'torrents' && (
 								<MobileInstancePicker instances={instances} current={selectedInstance} onChange={setSelectedInstance} />
 							)}

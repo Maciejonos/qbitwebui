@@ -115,7 +115,14 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 			<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
 				<InfoItem label="Downloaded" value={formatSize(p.total_downloaded)} accent />
 				<InfoItem label="Uploaded" value={formatSize(p.total_uploaded)} />
-				<InfoItem label="Ratio" value={p.share_ratio.toFixed(2)} />
+				<InfoItem
+					label="Ratio"
+					value={
+						p.total_downloaded === 0 && p.pieces_have === p.pieces_num && p.total_size > 0
+							? '∞'
+							: p.share_ratio.toFixed(2)
+					}
+				/>
 				<InfoItem label="ETA" value={formatEta(p.eta)} />
 				<InfoItem label="DL Speed" value={formatSpeed(p.dl_speed)} accent />
 				<InfoItem label="UP Speed" value={formatSpeed(p.up_speed)} />
