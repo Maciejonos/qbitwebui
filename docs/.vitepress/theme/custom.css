@@ -1,0 +1,69 @@
+:root {
+    --vp-c-brand-1: #0d7a6e;
+    --vp-c-brand-2: #0f665c;
+    --vp-c-brand-3: #15803d;
+    --vp-c-brand-soft: rgba(13, 122, 110, 0.1);
+}
+
+.dark {
+    --vp-c-bg: #07070a;
+    --vp-c-bg-alt: #0a0a0f;
+    --vp-sidebar-bg-color: #0a0a0f;
+    --vp-c-bg-soft: #0e0e14;
+    --vp-code-block-bg: #0e0e14;
+    --vp-c-border: #32323e;
+    --vp-c-divider: #32323e;
+    --vp-c-gutter: #32323e;
+    --vp-c-text-1: #e8e8ed;
+    --vp-c-text-2: #b8b8c8;
+    --vp-c-text-3: #8a8a9e;
+    --vp-c-brand-1: #00d4aa;
+    --vp-c-brand-2: #33eec9;
+    --vp-c-brand-3: #00b38f;
+    --vp-c-brand-soft: rgba(0, 212, 170, 0.15);
+    --vp-c-warning-1: #f7b731;
+    --vp-c-warning-2: #e0a01f;
+    --vp-c-danger-1: #f43f5e;
+    --vp-c-danger-2: #e11d48;
+}
+
+.VPHero .name {
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+:root .VPHero .name {
+    background-image: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+}
+
+.dark .VPHero .name {
+    background-image: linear-gradient(135deg, #9bda65 0%, #33c9a9 50%, #1ec6b7 100%);
+}
+
+.VPButton.brand {
+    border-color: transparent;
+    transition: all 0.2s ease;
+}
+
+:root .VPButton.brand {
+    color: white !important;
+    background-image: linear-gradient(135deg, #0d9488 0%, #0d7a6e 100%);
+}
+
+.dark .VPButton.brand {
+    background-color: #00d4aa;
+    background-image: none;
+    color: #070a09 !important;
+    font-weight: 600;
+}
+
+.dark .VPButton.brand:hover {
+    background-color: #33eec9;
+    color: #070a09 !important;
+}
+
+::selection {
+    background: rgba(0, 212, 170, 0.3);
+    color: inherit;
+}
