@@ -4,6 +4,9 @@ export default defineConfig({
 	title: 'qbitwebui',
 	description: 'Modern web interface for qBittorrent',
 	base: '/qbitwebui/',
+	head: [
+		['link', { rel: 'icon', href: '/qbitwebui/logo.svg' }]
+	],
 	themeConfig: {
 		logo: '/logo.svg',
 		nav: [
