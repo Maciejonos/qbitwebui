@@ -18,6 +18,7 @@ interface Torrent {
 
 interface Tracker {
 	url: string
+	status: number
 	msg: string
 }
 
@@ -90,7 +91,11 @@ tools.post('/orphans/scan', async (c) => {
 			const trackers = await qbtRequest<Tracker[]>(instance, loginResult.cookie, `/torrents/trackers?hash=${t.hash}`)
 			if (!trackers) continue
 
-			const unregistered = trackers.find(
+			const realTrackers = trackers.filter((tr) => tr.url.startsWith('http'))
+			const hasWorkingTracker = realTrackers.some((tr) => tr.status === 2)
+			if (hasWorkingTracker) continue
+
+			const unregistered = realTrackers.find(
 				(tr) => tr.msg && /unregistered|not registered|torrent not found/i.test(tr.msg)
 			)
 			if (unregistered) {

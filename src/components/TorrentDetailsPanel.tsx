@@ -106,14 +106,30 @@ function formatLimit(limit: number): string {
 
 const cellBase = { backgroundColor: 'color-mix(in srgb, white 2.5%, transparent)', borderColor: 'var(--border)' }
 
-function InfoCell({ label, value, accent, muted, span, wide }: { label: string; value: string; accent?: boolean; muted?: boolean; span?: number; wide?: boolean }) {
+function InfoCell({
+	label,
+	value,
+	accent,
+	muted,
+	span,
+	wide,
+}: {
+	label: string
+	value: string
+	accent?: boolean
+	muted?: boolean
+	span?: number
+	wide?: boolean
+}) {
 	const color = muted ? 'var(--text-muted)' : accent ? 'var(--accent)' : 'var(--text-primary)'
 	return (
 		<div
 			className={`px-3 py-2 rounded border ${wide ? '' : 'min-w-0 overflow-hidden'}`}
 			style={{ ...cellBase, gridColumn: span ? `span ${span}` : undefined }}
 		>
-			<div className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{label}</div>
+			<div className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+				{label}
+			</div>
 			<div
 				className={`text-xs font-mono mt-0.5 ${wide ? 'break-all' : 'truncate'}`}
 				style={{ color }}
@@ -130,18 +146,23 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 	if (isLoading) return <LoadingSkeleton />
 	if (!p) return <EmptyState message="Failed to load" />
 
-	const ratio = p.total_downloaded === 0 && p.pieces_have === p.pieces_num && p.total_size > 0
-		? '∞'
-		: p.share_ratio.toFixed(2)
+	const ratio =
+		p.total_downloaded === 0 && p.pieces_have === p.pieces_num && p.total_size > 0 ? '∞' : p.share_ratio.toFixed(2)
 
-	const timeActive = p.seeding_time > 0
-		? `${formatDuration(p.time_elapsed)} (seeded ${formatDuration(p.seeding_time)})`
-		: formatDuration(p.time_elapsed)
+	const timeActive =
+		p.seeding_time > 0
+			? `${formatDuration(p.time_elapsed)} (seeded ${formatDuration(p.seeding_time)})`
+			: formatDuration(p.time_elapsed)
 
 	return (
 		<div className="p-3 overflow-auto h-full space-y-3">
 			<fieldset className="border rounded p-2" style={{ borderColor: 'var(--border)' }}>
-				<legend className="px-2 text-[9px] uppercase tracking-widest font-medium" style={{ color: 'var(--text-muted)' }}>Transfer</legend>
+				<legend
+					className="px-2 text-[9px] uppercase tracking-widest font-medium"
+					style={{ color: 'var(--text-muted)' }}
+				>
+					Transfer
+				</legend>
 				<div className="grid grid-cols-12 gap-1.5">
 					<InfoCell label="Time Active" value={timeActive} span={2} />
 					<InfoCell label="ETA" value={formatEta(p.eta)} span={2} />
@@ -149,10 +170,26 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 					<InfoCell label="Seeds" value={`${p.seeds} (${p.seeds_total} total)`} span={2} />
 					<InfoCell label="Peers" value={`${p.peers} (${p.peers_total} total)`} span={2} />
 					<InfoCell label="Wasted" value={formatSize(p.total_wasted)} span={2} />
-					<InfoCell label="Downloaded" value={`${formatSize(p.total_downloaded)} (${formatSize(p.total_downloaded_session)} session)`} span={2} />
-					<InfoCell label="Uploaded" value={`${formatSize(p.total_uploaded)} (${formatSize(p.total_uploaded_session)} session)`} span={2} />
-					<InfoCell label="DL Speed" value={`${formatSpeed(p.dl_speed)} (${formatSpeed(p.dl_speed_avg)} avg)`} span={2} />
-					<InfoCell label="UP Speed" value={`${formatSpeed(p.up_speed)} (${formatSpeed(p.up_speed_avg)} avg)`} span={2} />
+					<InfoCell
+						label="Downloaded"
+						value={`${formatSize(p.total_downloaded)} (${formatSize(p.total_downloaded_session)} session)`}
+						span={2}
+					/>
+					<InfoCell
+						label="Uploaded"
+						value={`${formatSize(p.total_uploaded)} (${formatSize(p.total_uploaded_session)} session)`}
+						span={2}
+					/>
+					<InfoCell
+						label="DL Speed"
+						value={`${formatSpeed(p.dl_speed)} (${formatSpeed(p.dl_speed_avg)} avg)`}
+						span={2}
+					/>
+					<InfoCell
+						label="UP Speed"
+						value={`${formatSpeed(p.up_speed)} (${formatSpeed(p.up_speed_avg)} avg)`}
+						span={2}
+					/>
 					<InfoCell label="DL Limit" value={formatLimit(p.dl_limit)} span={2} />
 					<InfoCell label="UP Limit" value={formatLimit(p.up_limit)} span={2} />
 					<InfoCell label="Ratio" value={ratio} span={3} />
@@ -163,7 +200,12 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 			</fieldset>
 
 			<fieldset className="border rounded p-2" style={{ borderColor: 'var(--border)' }}>
-				<legend className="px-2 text-[9px] uppercase tracking-widest font-medium" style={{ color: 'var(--text-muted)' }}>Information</legend>
+				<legend
+					className="px-2 text-[9px] uppercase tracking-widest font-medium"
+					style={{ color: 'var(--text-muted)' }}
+				>
+					Information
+				</legend>
 				<div className="grid grid-cols-6 gap-1.5">
 					<InfoCell label="Total Size" value={formatSize(p.total_size)} />
 					<InfoCell label="Pieces" value={`${p.pieces_num} × ${formatSize(p.piece_size)} (have ${p.pieces_have})`} />
@@ -287,25 +329,57 @@ function TrackersTab({ hash }: { hash: string }) {
 						<tbody>
 							{dhtPexLsd.map((t: Tracker, i: number) => (
 								<tr key={`dht-${i}`} className="border-t transition-colors" style={{ borderColor: 'var(--border)' }}>
-									<td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-muted)' }}>—</td>
-									<td className="px-3 py-1.5 font-medium" style={{ color: 'var(--accent)' }}>{t.url.replace('** [', '').replace('] **', '')}</td>
-									<td className="px-3 py-1.5"><StatusBadge status={t.status} /></td>
-									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--accent)' }}>{t.num_seeds}</td>
-									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--warning)' }}>{t.num_leeches}</td>
-									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>{t.num_peers}</td>
-									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>{t.num_downloaded}</td>
+									<td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-muted)' }}>
+										—
+									</td>
+									<td className="px-3 py-1.5 font-medium" style={{ color: 'var(--accent)' }}>
+										{t.url.replace('** [', '').replace('] **', '')}
+									</td>
+									<td className="px-3 py-1.5">
+										<StatusBadge status={t.status} />
+									</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--accent)' }}>
+										{t.num_seeds}
+									</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--warning)' }}>
+										{t.num_leeches}
+									</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>
+										{t.num_peers}
+									</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>
+										{t.num_downloaded}
+									</td>
 									<td className="px-3 py-1.5"></td>
 								</tr>
 							))}
 							{regularTrackers.map((t: Tracker, i: number) => (
 								<tr key={i} className="border-t transition-colors group" style={{ borderColor: 'var(--border)' }}>
-									<td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-muted)' }}>{t.tier}</td>
-									<td className="px-3 py-1.5 font-mono truncate max-w-[200px]" style={{ color: 'var(--text-primary)' }} title={t.url}>{t.url}</td>
-									<td className="px-3 py-1.5"><StatusBadge status={t.status} /></td>
-									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--accent)' }}>{t.num_seeds}</td>
-									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--warning)' }}>{t.num_leeches}</td>
-									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>{t.num_peers}</td>
-									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>{t.num_downloaded}</td>
+									<td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-muted)' }}>
+										{t.tier}
+									</td>
+									<td
+										className="px-3 py-1.5 font-mono truncate max-w-[200px]"
+										style={{ color: 'var(--text-primary)' }}
+										title={t.url}
+									>
+										{t.url}
+									</td>
+									<td className="px-3 py-1.5">
+										<StatusBadge status={t.status} />
+									</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--accent)' }}>
+										{t.num_seeds}
+									</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--warning)' }}>
+										{t.num_leeches}
+									</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>
+										{t.num_peers}
+									</td>
+									<td className="px-3 py-1.5 text-right font-mono" style={{ color: 'var(--text-muted)' }}>
+										{t.num_downloaded}
+									</td>
 									<td className="px-3 py-1.5 text-right">
 										<button
 											onClick={() => handleRemove(t.url)}

@@ -314,11 +314,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								className="w-full py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
 								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 							>
-								{ipInfo.status === 'loading' ? (
-									<Loader2 className="w-4 h-4 animate-spin" />
-								) : (
-									'Fetch IP Info'
-								)}
+								{ipInfo.status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Fetch IP Info'}
 							</button>
 							{ipInfo.status === 'error' && (
 								<p className="text-xs" style={{ color: 'var(--error)' }}>
@@ -327,31 +323,19 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 							)}
 							{ipInfo.data && (
 								<div className="space-y-2 pt-2">
-									<div
-										className="text-xl font-mono font-semibold tracking-tight"
-										style={{ color: 'var(--accent)' }}
-									>
+									<div className="text-xl font-mono font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>
 										{ipInfo.data.ip}
 									</div>
 									<div className="space-y-1.5">
-										<div
-											className="flex items-center gap-2 text-xs"
-											style={{ color: 'var(--text-secondary)' }}
-										>
+										<div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
 											<MapPin className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
 											{ipInfo.data.city}, {ipInfo.data.region}, {ipInfo.data.country}
 										</div>
-										<div
-											className="flex items-center gap-2 text-xs"
-											style={{ color: 'var(--text-secondary)' }}
-										>
+										<div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
 											<Building2 className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
 											{ipInfo.data.org}
 										</div>
-										<div
-											className="flex items-center gap-2 text-xs"
-											style={{ color: 'var(--text-muted)' }}
-										>
+										<div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
 											<Clock className="w-3 h-3" />
 											{ipInfo.data.timezone}
 										</div>
@@ -410,14 +394,8 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 											className="flex items-center gap-2 px-3 py-2 rounded-lg"
 											style={{ backgroundColor: 'var(--bg-tertiary)' }}
 										>
-											<div
-												className="w-1.5 h-1.5 rounded-full"
-												style={{ backgroundColor: 'var(--accent)' }}
-											/>
-											<span
-												className="font-mono text-sm"
-												style={{ color: 'var(--text-primary)' }}
-											>
+											<div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--accent)' }} />
+											<span className="font-mono text-sm" style={{ color: 'var(--text-primary)' }}>
 												{server}
 											</span>
 										</div>
@@ -448,8 +426,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 							</span>
 							{ifaces.data && (
 								<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-									{ifaces.data.filter((i) => i.addr_info?.some((a) => a.family === 'inet')).length}{' '}
-									active
+									{ifaces.data.filter((i) => i.addr_info?.some((a) => a.family === 'inet')).length} active
 								</span>
 							)}
 						</div>
@@ -467,11 +444,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								className="w-full py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
 								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 							>
-								{ifaces.status === 'loading' ? (
-									<Loader2 className="w-4 h-4 animate-spin" />
-								) : (
-									'List Interfaces'
-								)}
+								{ifaces.status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'List Interfaces'}
 							</button>
 							{ifaces.status === 'error' && (
 								<p className="text-xs" style={{ color: 'var(--error)' }}>
@@ -492,23 +465,14 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 													<span
 														className="w-2 h-2 rounded-full"
 														style={{
-															backgroundColor:
-																iface.operstate === 'UP'
-																	? '#a6e3a1'
-																	: 'var(--text-muted)',
+															backgroundColor: iface.operstate === 'UP' ? '#a6e3a1' : 'var(--text-muted)',
 														}}
 													/>
-													<span
-														className="text-xs font-medium"
-														style={{ color: 'var(--text-secondary)' }}
-													>
+													<span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
 														{iface.ifname}
 													</span>
 												</div>
-												<span
-													className="font-mono text-xs"
-													style={{ color: 'var(--text-primary)' }}
-												>
+												<span className="font-mono text-xs" style={{ color: 'var(--text-primary)' }}>
 													{iface.addr_info?.find((a) => a.family === 'inet')?.local}
 												</span>
 											</div>
@@ -571,14 +535,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								<div className="flex items-center gap-3 pt-2">
 									<div className="relative w-12 h-12">
 										<svg className="w-12 h-12 -rotate-90">
-											<circle
-												cx="24"
-												cy="24"
-												r="20"
-												fill="none"
-												stroke="var(--border)"
-												strokeWidth="4"
-											/>
+											<circle cx="24" cy="24" r="20" fill="none" stroke="var(--border)" strokeWidth="4" />
 											<circle
 												cx="24"
 												cy="24"
@@ -613,18 +570,12 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 									<div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
 										<div className="flex items-center gap-1.5 mb-1">
 											<ArrowDown className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-											<span
-												className="text-xs uppercase tracking-wider"
-												style={{ color: 'var(--text-muted)' }}
-											>
+											<span className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
 												Down
 											</span>
 										</div>
 										<div className="flex items-baseline gap-1">
-											<span
-												className="text-2xl font-mono font-bold"
-												style={{ color: 'var(--accent)' }}
-											>
+											<span className="text-2xl font-mono font-bold" style={{ color: 'var(--accent)' }}>
 												{formatBandwidth(speedtest.data.download.bandwidth)}
 											</span>
 											<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -635,10 +586,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 									<div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
 										<div className="flex items-center gap-1.5 mb-1">
 											<ArrowUp className="w-3 h-3" style={{ color: '#a6e3a1' }} />
-											<span
-												className="text-xs uppercase tracking-wider"
-												style={{ color: 'var(--text-muted)' }}
-											>
+											<span className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
 												Up
 											</span>
 										</div>
@@ -654,18 +602,12 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 									<div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
 										<div className="flex items-center gap-1.5 mb-1">
 											<Activity className="w-3 h-3" style={{ color: 'var(--warning)' }} />
-											<span
-												className="text-xs uppercase tracking-wider"
-												style={{ color: 'var(--text-muted)' }}
-											>
+											<span className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
 												Ping
 											</span>
 										</div>
 										<div className="flex items-baseline gap-1">
-											<span
-												className="text-2xl font-mono font-bold"
-												style={{ color: 'var(--warning)' }}
-											>
+											<span className="text-2xl font-mono font-bold" style={{ color: 'var(--warning)' }}>
 												{speedtest.data.ping.latency.toFixed(0)}
 											</span>
 											<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -676,17 +618,11 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 									<div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
 										<div className="flex items-center gap-1.5 mb-1">
 											<Server className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
-											<span
-												className="text-xs uppercase tracking-wider"
-												style={{ color: 'var(--text-muted)' }}
-											>
+											<span className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
 												Server
 											</span>
 										</div>
-										<div
-											className="text-xs font-medium truncate"
-											style={{ color: 'var(--text-primary)' }}
-										>
+										<div className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>
 											{speedtest.data.server.name}
 										</div>
 										<div className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
@@ -776,11 +712,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 									className="w-full py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
 									style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 								>
-									{commandResult.status === 'loading' ? (
-										<Loader2 className="w-4 h-4 animate-spin" />
-									) : (
-										'Execute'
-									)}
+									{commandResult.status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Execute'}
 								</button>
 							</form>
 							<div
@@ -788,9 +720,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border)' }}
 							>
 								{commandResult.status === 'idle' && (
-									<span style={{ color: 'var(--text-muted)' }}>
-										ping, dig, nslookup, traceroute, curl, wget
-									</span>
+									<span style={{ color: 'var(--text-muted)' }}>ping, dig, nslookup, traceroute, curl, wget</span>
 								)}
 								{commandResult.status === 'loading' && (
 									<div className="flex items-center gap-2">
@@ -803,10 +733,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								)}
 								{commandResult.status === 'success' && commandResult.data && (
 									<>
-										<pre
-											className="whitespace-pre-wrap break-all"
-											style={{ color: 'var(--text-secondary)' }}
-										>
+										<pre className="whitespace-pre-wrap break-all" style={{ color: 'var(--text-secondary)' }}>
 											{commandResult.data.output || '(no output)'}
 										</pre>
 										{commandResult.data.error && (

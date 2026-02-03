@@ -1,5 +1,15 @@
 import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react'
-import { Search, FolderOpen, AlertTriangle, Rss, FileText, ArrowLeftRight, ChevronRight, BarChart3, Network } from 'lucide-react'
+import {
+	Search,
+	FolderOpen,
+	AlertTriangle,
+	Rss,
+	FileText,
+	ArrowLeftRight,
+	ChevronRight,
+	BarChart3,
+	Network,
+} from 'lucide-react'
 import { type Instance } from '../api/instances'
 
 const MobileSearchPanel = lazy(() => import('./MobileSearchPanel').then((m) => ({ default: m.MobileSearchPanel })))

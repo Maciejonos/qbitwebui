@@ -198,7 +198,15 @@ export function InstanceManager({
 			}
 			setShowForm(false)
 			setEditingId(null)
-			setFormData({ label: '', url: '', qbt_username: '', qbt_password: '', skip_auth: false, agent_enabled: false, agent_url: '' })
+			setFormData({
+				label: '',
+				url: '',
+				qbt_username: '',
+				qbt_password: '',
+				skip_auth: false,
+				agent_enabled: false,
+				agent_url: '',
+			})
 			setTestResult(null)
 			await loadInstances()
 		} catch (err) {

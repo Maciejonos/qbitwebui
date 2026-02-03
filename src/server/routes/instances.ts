@@ -9,6 +9,15 @@ import { fetchWithTls } from '../utils/fetch'
 
 const instances = new Hono()
 
+interface InstanceBackoff {
+	nextRetry: number
+	attempt: number
+}
+
+const instanceBackoff = new Map<number, InstanceBackoff>()
+const BACKOFF_DELAYS = [10000, 15000, 30000]
+const INITIAL_TIMEOUT = 3000
+
 instances.use('*', authMiddleware)
 
 interface InstanceResponse {
@@ -95,21 +104,39 @@ async function fetchInstanceStats(instance: Instance): Promise<InstanceStats> {
 		freeSpaceOnDisk: 0,
 	}
 
+	const backoff = instanceBackoff.get(instance.id)
+	if (backoff && Date.now() < backoff.nextRetry) {
+		return base
+	}
+
+	const setBackoff = () => {
+		const attempt = backoff ? Math.min(backoff.attempt + 1, BACKOFF_DELAYS.length - 1) : 0
+		instanceBackoff.set(instance.id, {
+			nextRetry: Date.now() + BACKOFF_DELAYS[attempt],
+			attempt,
+		})
+	}
+
 	try {
-		const loginResult = await loginToQbt(instance)
+		const loginResult = await loginToQbt(instance, INITIAL_TIMEOUT)
 		if (!loginResult.success) {
+			setBackoff()
 			return base
 		}
 
 		const headers: Record<string, string> = {}
 		if (loginResult.cookie) headers.Cookie = loginResult.cookie
 		const [torrentsRes, transferRes, syncRes] = await Promise.all([
-			fetchWithTls(`${instance.url}/api/v2/torrents/info`, { headers }),
-			fetchWithTls(`${instance.url}/api/v2/transfer/info`, { headers }),
-			fetchWithTls(`${instance.url}/api/v2/sync/maindata?rid=0`, { headers }),
+			fetchWithTls(`${instance.url}/api/v2/torrents/info`, { headers, signal: AbortSignal.timeout(INITIAL_TIMEOUT) }),
+			fetchWithTls(`${instance.url}/api/v2/transfer/info`, { headers, signal: AbortSignal.timeout(INITIAL_TIMEOUT) }),
+			fetchWithTls(`${instance.url}/api/v2/sync/maindata?rid=0`, {
+				headers,
+				signal: AbortSignal.timeout(INITIAL_TIMEOUT),
+			}),
 		])
 
 		if (!torrentsRes.ok || !transferRes.ok || !syncRes.ok) {
+			setBackoff()
 			return base
 		}
 
@@ -117,6 +144,7 @@ async function fetchInstanceStats(instance: Instance): Promise<InstanceStats> {
 		const transfer = (await transferRes.json()) as TransferInfo
 		const sync = (await syncRes.json()) as SyncMaindata
 
+		instanceBackoff.delete(instance.id)
 		base.online = true
 		base.total = torrents.length
 		base.dlSpeed = transfer.dl_info_speed
@@ -139,6 +167,7 @@ async function fetchInstanceStats(instance: Instance): Promise<InstanceStats> {
 
 		return base
 	} catch {
+		setBackoff()
 		return base
 	}
 }

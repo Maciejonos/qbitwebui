@@ -21,7 +21,7 @@ export type QbtLoginResult =
 			status?: number
 	  }
 
-export async function loginToQbt(instance: QbtInstance): Promise<QbtLoginResult> {
+export async function loginToQbt(instance: QbtInstance, timeout?: number): Promise<QbtLoginResult> {
 	if (instance.skip_auth) {
 		return { success: true, cookie: null }
 	}
@@ -39,6 +39,7 @@ export async function loginToQbt(instance: QbtInstance): Promise<QbtLoginResult>
 				username: instance.qbt_username,
 				password,
 			}),
+			signal: timeout ? AbortSignal.timeout(timeout) : undefined,
 		})
 
 		if (!res.ok) {
