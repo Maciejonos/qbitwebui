@@ -307,6 +307,7 @@ export function TorrentRow({
 
 	return (
 		<tr
+			onMouseDown={(e) => { if (e.shiftKey) e.preventDefault() }}
 			onClick={(e) => onSelect(torrent.hash, e.ctrlKey || e.metaKey, e.shiftKey)}
 			onContextMenu={onContextMenu}
 			className={`group cursor-pointer transition-colors duration-150 ${isDownloading ? 'downloading' : ''}`}
