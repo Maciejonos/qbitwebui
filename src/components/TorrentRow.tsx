@@ -273,7 +273,7 @@ function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): React
 interface Props {
 	torrent: Torrent
 	selected: boolean
-	onSelect: (hash: string, multi: boolean) => void
+	onSelect: (hash: string, multi: boolean, range: boolean) => void
 	onContextMenu: (e: React.MouseEvent) => void
 	ratioThreshold: number
 	hideAddedTime: boolean
@@ -307,7 +307,8 @@ export function TorrentRow({
 
 	return (
 		<tr
-			onClick={(e) => onSelect(torrent.hash, e.ctrlKey || e.metaKey)}
+			onMouseDown={(e) => { if (e.shiftKey) e.preventDefault() }}
+			onClick={(e) => onSelect(torrent.hash, e.ctrlKey || e.metaKey, e.shiftKey)}
 			onContextMenu={onContextMenu}
 			className={`group cursor-pointer transition-colors duration-150 ${isDownloading ? 'downloading' : ''}`}
 			style={{

@@ -94,6 +94,7 @@ export function TorrentList() {
 	const [trackerFilter, setTrackerFilter] = useState<string | null>(null)
 	const [search, setSearch] = useState('')
 	const [selected, setSelected] = useState<Set<string>>(new Set())
+	const [lastSelected, setLastSelected] = useState<string | null>(null)
 	const [sortKey, setSortKey] = useState<SortKey>(() => {
 		const stored = localStorage.getItem('sortKey')
 		if (stored && COLUMNS.some((c) => c.sortKey === stored || stored === 'name')) return stored as SortKey
@@ -380,17 +381,41 @@ export function TorrentList() {
 		return filtered.slice(start, start + perPage)
 	}, [filtered, page, perPage])
 
-	function handleSelect(hash: string, multi: boolean) {
-		setSelected((prev) => {
-			if (multi) {
-				const next = new Set(prev)
-				if (next.has(hash)) next.delete(hash)
-				else next.add(hash)
-				return next
+	function handleSelect(hash: string, multi: boolean, range: boolean) {
+		if (range && lastSelected && filtered.some((t) => t.hash === lastSelected)) {
+			const idx1 = filtered.findIndex((t) => t.hash === lastSelected)
+			const idx2 = filtered.findIndex((t) => t.hash === hash)
+			if (idx1 !== -1 && idx2 !== -1) {
+				const start = Math.min(idx1, idx2)
+				const end = Math.max(idx1, idx2)
+				const rangeHashes = filtered.slice(start, end + 1).map((t) => t.hash)
+				setSelected((prev) => {
+					const next = new Set(prev)
+					rangeHashes.forEach((h) => next.add(h))
+					return next
+				})
 			}
-			if (prev.has(hash) && prev.size === 1) return new Set()
-			return new Set([hash])
-		})
+		} else {
+			setSelected((prev) => {
+				if (multi) {
+					const next = new Set(prev)
+					if (next.has(hash)) next.delete(hash)
+					else next.add(hash)
+					return next
+				}
+				if (prev.has(hash) && prev.size === 1) return new Set()
+				return new Set([hash])
+			})
+			setLastSelected(hash)
+		}
+	}
+
+	function handleSelectAll() {
+		if (selected.size === filtered.length && filtered.length > 0) {
+			setSelected(new Set())
+		} else {
+			setSelected(new Set(filtered.map((t) => t.hash)))
+		}
 	}
 
 	useEffect(() => {
@@ -584,14 +609,38 @@ export function TorrentList() {
 									className="px-4 py-1.5 text-left relative"
 									style={columnWidths.name ? { width: columnWidths.name } : undefined}
 								>
-									<button
-										onClick={() => handleSort('name')}
-										className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-widest transition-colors"
-										style={{ color: 'var(--text-muted)' }}
-									>
-										Name
-										<SortIcon active={sortKey === 'name'} asc={sortAsc} />
-									</button>
+									<div className="flex items-center gap-3">
+										<button
+											onClick={handleSelectAll}
+											className="flex items-center justify-center w-4 h-4 rounded border transition-colors"
+											style={{
+												borderColor: 'var(--border)',
+												backgroundColor:
+													selected.size > 0 ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+											}}
+										>
+											{selected.size === filtered.length && filtered.length > 0 && (
+												<Square className="w-2.5 h-2.5 fill-current" style={{ color: 'var(--accent)' }} />
+											)}
+											{selected.size > 0 &&
+												selected.size < filtered.length &&
+												// Indeterminate state icon (minus/dash)
+												(
+													<div
+														className="w-2 h-0.5 rounded-full"
+														style={{ backgroundColor: 'var(--accent)' }}
+													/>
+												)}
+										</button>
+										<button
+											onClick={() => handleSort('name')}
+											className="flex items-center gap-2 text-[9px] font-medium uppercase tracking-widest transition-colors"
+											style={{ color: 'var(--text-muted)' }}
+										>
+											Name
+											<SortIcon active={sortKey === 'name'} asc={sortAsc} />
+										</button>
+									</div>
 									<div className="resize-handle" onMouseDown={(e) => handleResizeStart(e, 'name')} />
 								</th>
 								{orderedColumns
