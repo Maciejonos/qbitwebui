@@ -17,7 +17,7 @@ docker run -d \
   -p 3000:3000 \
   -v ./data:/data \
   -e ENCRYPTION_KEY=$(openssl rand -hex 32) \
-  ghcr.io/Maciejonos/qbitwebui:latest
+  ghcr.io/maciejonos/qbitwebui:latest
 ```
 
 ## Docker Compose Examples
