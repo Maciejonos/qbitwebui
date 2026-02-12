@@ -4,8 +4,8 @@
 
 | Image | Description |
 |-------|-------------|
-| `ghcr.io/Maciejonos/qbitwebui` | Main application |
-| `ghcr.io/Maciejonos/qbitwebui-agent` | Network diagnostics agent |
+| `ghcr.io/maciejonos/qbitwebui` | Main application |
+| `ghcr.io/maciejonos/qbitwebui-agent` | Network diagnostics agent |
 
 Both support `linux/amd64` and `linux/arm64`.
 
@@ -27,7 +27,7 @@ docker run -d \
 ```yaml
 services:
   qbitwebui:
-    image: ghcr.io/Maciejonos/qbitwebui:latest
+    image: ghcr.io/maciejonos/qbitwebui:latest
     container_name: qbitwebui
     ports:
       - "3000:3000"
@@ -43,7 +43,7 @@ services:
 ```yaml
 services:
   qbitwebui:
-    image: ghcr.io/Maciejonos/qbitwebui:latest
+    image: ghcr.io/maciejonos/qbitwebui:latest
     container_name: qbitwebui
     ports:
       - "3000:3000"
@@ -81,7 +81,7 @@ services:
     restart: unless-stopped
 
   net-agent:
-    image: ghcr.io/Maciejonos/qbitwebui-agent:latest
+    image: ghcr.io/maciejonos/qbitwebui-agent:latest
     container_name: net-agent
     network_mode: "service:qbittorrent"
     environment:
@@ -91,7 +91,7 @@ services:
     restart: unless-stopped
 
   qbitwebui:
-    image: ghcr.io/Maciejonos/qbitwebui:latest
+    image: ghcr.io/maciejonos/qbitwebui:latest
     container_name: qbitwebui
     ports:
       - "3000:3000"
@@ -148,7 +148,7 @@ services:
     restart: unless-stopped
 
   net-agent:
-    image: ghcr.io/Maciejonos/qbitwebui-agent:latest
+    image: ghcr.io/maciejonos/qbitwebui-agent:latest
     container_name: net-agent
     network_mode: "service:gluetun"
     environment:
@@ -158,7 +158,7 @@ services:
     restart: unless-stopped
 
   qbitwebui:
-    image: ghcr.io/Maciejonos/qbitwebui:latest
+    image: ghcr.io/maciejonos/qbitwebui:latest
     container_name: qbitwebui
     ports:
       - "3000:3000"
@@ -216,7 +216,7 @@ services:
     restart: unless-stopped
 
   qbitwebui:
-    image: ghcr.io/Maciejonos/qbitwebui:latest
+    image: ghcr.io/maciejonos/qbitwebui:latest
     container_name: qbitwebui
     ports:
       - "3000:3000"
@@ -267,7 +267,7 @@ qbit.example.com {
 ```yaml
 services:
   qbitwebui:
-    image: ghcr.io/Maciejonos/qbitwebui:latest
+    image: ghcr.io/maciejonos/qbitwebui:latest
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.qbitwebui.rule=Host(`qbit.example.com`)"
@@ -285,7 +285,7 @@ Using Authelia, Authentik, or similar:
 ```yaml
 services:
   qbitwebui:
-    image: ghcr.io/Maciejonos/qbitwebui:latest
+    image: ghcr.io/maciejonos/qbitwebui:latest
     environment:
       - ENCRYPTION_KEY=your-key
       - DISABLE_AUTH=true  # Let reverse proxy handle auth
