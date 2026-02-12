@@ -13,7 +13,7 @@ docker run -d \
   -p 3000:3000 \
   -v ./data:/data \
   -e ENCRYPTION_KEY=$(openssl rand -hex 32) \
-  ghcr.io/Maciejonos/qbitwebui:latest
+  ghcr.io/maciejonos/qbitwebui:latest
 ```
 
 Open `http://localhost:3000` in your browser.
@@ -38,7 +38,7 @@ If qBittorrent has "Bypass authentication for clients on localhost" enabled, che
 ```yaml
 services:
   qbitwebui:
-    image: ghcr.io/Maciejonos/qbitwebui:latest
+    image: ghcr.io/maciejonos/qbitwebui:latest
     container_name: qbitwebui
     ports:
       - "3000:3000"
@@ -54,7 +54,7 @@ services:
 ```yaml
 services:
   qbitwebui:
-    image: ghcr.io/Maciejonos/qbitwebui:latest
+    image: ghcr.io/maciejonos/qbitwebui:latest
     container_name: qbitwebui
     ports:
       - "3000:3000"
