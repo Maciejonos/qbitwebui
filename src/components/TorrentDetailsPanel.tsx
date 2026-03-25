@@ -23,6 +23,7 @@ import {
 	useAddTrackers,
 	useRemoveTrackers,
 } from '../hooks/useTorrentDetails'
+import { useSetTorrentDownloadPath, useSetTorrentLocation } from '../hooks/useTorrents'
 import { formatSize, formatSpeed, formatDate, formatDuration, formatEta } from '../utils/format'
 import type { Tracker, Peer } from '../types/torrentDetails'
 import { buildFileTree, flattenVisibleNodes, getInitialExpanded } from '../utils/fileTree'
@@ -142,7 +143,11 @@ function InfoCell({
 }
 
 function GeneralTab({ hash, category, tags }: { hash: string; category: string; tags: string }) {
+	const [editorMode, setEditorMode] = useState<'savePath' | 'downloadPath' | null>(null)
+	const [inputValue, setInputValue] = useState('')
 	const { data: p, isLoading } = useTorrentProperties(hash)
+	const setLocationMutation = useSetTorrentLocation()
+	const setDownloadPathMutation = useSetTorrentDownloadPath()
 	if (isLoading) return <LoadingSkeleton />
 	if (!p) return <EmptyState message="Failed to load" />
 
@@ -153,6 +158,28 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 		p.seeding_time > 0
 			? `${formatDuration(p.time_elapsed)} (seeded ${formatDuration(p.seeding_time)})`
 			: formatDuration(p.time_elapsed)
+	const pathMutationPending = setLocationMutation.isPending || setDownloadPathMutation.isPending
+
+	function openEditor(mode: 'savePath' | 'downloadPath') {
+		setInputValue(p.save_path)
+		setEditorMode(mode)
+	}
+
+	function handlePathSave() {
+		const trimmed = inputValue.trim()
+		if (!trimmed) return
+
+		if (editorMode === 'savePath') {
+			setLocationMutation.mutate({ hashes: [hash], location: trimmed })
+			setEditorMode(null)
+			return
+		}
+
+		if (editorMode === 'downloadPath') {
+			setDownloadPathMutation.mutate({ hashes: [hash], downloadPath: trimmed })
+			setEditorMode(null)
+		}
+	}
 
 	return (
 		<div className="p-3 overflow-auto h-full space-y-3">
@@ -224,6 +251,64 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 				<div className="mt-1.5">
 					<InfoCell label="Save Path" value={p.save_path} wide />
 				</div>
+				<div className="flex flex-wrap gap-2 mt-1.5">
+					<button
+						onClick={() => openEditor('savePath')}
+						disabled={pathMutationPending}
+						className="px-2.5 py-1.5 rounded text-[10px] font-medium disabled:opacity-50"
+						style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+					>
+						Change Save Path
+					</button>
+					<button
+						onClick={() => openEditor('downloadPath')}
+						disabled={pathMutationPending}
+						className="px-2.5 py-1.5 rounded text-[10px] font-medium disabled:opacity-50"
+						style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+					>
+						Change Download Path
+					</button>
+				</div>
+				{editorMode && (
+					<div className="mt-1.5 rounded border p-2 space-y-2" style={{ ...cellBase }}>
+						<div className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+							{editorMode === 'savePath' ? 'Change Save Path' : 'Change Download Path'}
+						</div>
+						<input
+							type="text"
+							value={inputValue}
+							onChange={(e) => setInputValue(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter') handlePathSave()
+								if (e.key === 'Escape') setEditorMode(null)
+							}}
+							className="w-full px-3 py-2 rounded border text-xs"
+							style={{
+								backgroundColor: 'var(--bg-secondary)',
+								borderColor: 'var(--border)',
+								color: 'var(--text-primary)',
+							}}
+							autoFocus
+						/>
+						<div className="flex gap-2">
+							<button
+								onClick={() => setEditorMode(null)}
+								className="px-2.5 py-1.5 rounded text-[10px] font-medium"
+								style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-muted)' }}
+							>
+								Cancel
+							</button>
+							<button
+								onClick={handlePathSave}
+								disabled={!inputValue.trim() || pathMutationPending}
+								className="px-2.5 py-1.5 rounded text-[10px] font-medium disabled:opacity-50"
+								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
+							>
+								{pathMutationPending ? 'Saving...' : 'Save'}
+							</button>
+						</div>
+					</div>
+				)}
 				{p.comment && (
 					<div className="mt-1.5">
 						<InfoCell label="Comment" value={p.comment} wide />
@@ -797,3 +882,4 @@ export function TorrentDetailsPanel({ hash, name, category, tags, expanded, onTo
 		</div>
 	)
 }
+

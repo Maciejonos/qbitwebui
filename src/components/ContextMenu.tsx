@@ -12,6 +12,8 @@ import {
 	useAddTags,
 	useRemoveTags,
 	useRenameTorrent,
+	useSetTorrentDownloadPath,
+	useSetTorrentLocation,
 	useExportTorrents,
 } from '../hooks/useTorrents'
 import type { Torrent } from '../types/qbittorrent'
@@ -24,11 +26,12 @@ interface Props {
 }
 
 type Submenu = 'category' | 'addTag' | 'removeTag' | 'delete' | null
+type EditorMode = 'rename' | 'savePath' | 'downloadPath' | null
 
 export function ContextMenu({ x, y, torrents, onClose }: Props) {
 	const [submenu, setSubmenu] = useState<Submenu>(null)
-	const [renaming, setRenaming] = useState(false)
-	const [newName, setNewName] = useState('')
+	const [editorMode, setEditorMode] = useState<EditorMode>(null)
+	const [inputValue, setInputValue] = useState('')
 	const ref = useRef<HTMLDivElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -42,6 +45,8 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 	const addTagsMutation = useAddTags()
 	const removeTagsMutation = useRemoveTags()
 	const renameMutation = useRenameTorrent()
+	const setLocationMutation = useSetTorrentLocation()
+	const setDownloadPathMutation = useSetTorrentDownloadPath()
 	const deleteMutation = useDeleteTorrents()
 	const exportMutation = useExportTorrents()
 
@@ -70,11 +75,11 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 	}, [onClose])
 
 	useEffect(() => {
-		if (renaming && inputRef.current) {
+		if (editorMode && inputRef.current) {
 			inputRef.current.focus()
 			inputRef.current.select()
 		}
-	}, [renaming])
+	}, [editorMode])
 
 	const menuStyle: React.CSSProperties = {
 		position: 'fixed',
@@ -119,16 +124,45 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 		onClose()
 	}
 
-	function handleRename() {
-		if (isSingle && newName.trim()) {
-			renameMutation.mutate({ hash: hashes[0], name: newName.trim() })
+	function handleEditorSubmit() {
+		const value = inputValue.trim()
+		if (!value) return
+
+		if (editorMode === 'rename' && isSingle) {
+			renameMutation.mutate({ hash: hashes[0], name: value })
+			onClose()
+			return
+		}
+
+		if (editorMode === 'savePath') {
+			setLocationMutation.mutate({ hashes, location: value })
+			onClose()
+			return
+		}
+
+		if (editorMode === 'downloadPath') {
+			setDownloadPathMutation.mutate({ hashes, downloadPath: value })
 			onClose()
 		}
 	}
 
 	function startRename() {
-		setNewName(torrents[0].name)
-		setRenaming(true)
+		setInputValue(torrents[0].name)
+		setEditorMode('rename')
+		setSubmenu(null)
+	}
+
+	function startSetSavePath() {
+		const uniquePaths = new Set(torrents.map((torrent) => torrent.save_path).filter(Boolean))
+		setInputValue(uniquePaths.size === 1 ? torrents[0].save_path : '')
+		setEditorMode('savePath')
+		setSubmenu(null)
+	}
+
+	function startSetDownloadPath() {
+		const uniquePaths = new Set(torrents.map((torrent) => torrent.save_path).filter(Boolean))
+		setInputValue(uniquePaths.size === 1 ? torrents[0].save_path : '')
+		setEditorMode('downloadPath')
 		setSubmenu(null)
 	}
 
@@ -142,19 +176,34 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 		onClose()
 	}
 
-	if (renaming && isSingle) {
+	const editorTitle =
+		editorMode === 'rename'
+			? 'Rename torrent'
+			: editorMode === 'savePath'
+				? 'Change save path'
+				: 'Change download path'
+	const editorActionLabel = editorMode === 'rename' ? 'Rename' : 'Save'
+	const editorPlaceholder =
+		editorMode === 'rename'
+			? 'Enter torrent name'
+			: editorMode === 'savePath'
+				? 'Enter save path'
+				: 'Enter download path'
+
+	if (editorMode && (editorMode !== 'rename' || isSingle)) {
 		return (
 			<div ref={ref} className="rounded-lg border shadow-xl z-[200] p-3" style={menuStyle}>
 				<div className="text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
-					Rename torrent
+					{editorTitle}
 				</div>
 				<input
 					ref={inputRef}
 					type="text"
-					value={newName}
-					onChange={(e) => setNewName(e.target.value)}
+					value={inputValue}
+					onChange={(e) => setInputValue(e.target.value)}
+					placeholder={editorPlaceholder}
 					onKeyDown={(e) => {
-						if (e.key === 'Enter') handleRename()
+						if (e.key === 'Enter') handleEditorSubmit()
 						if (e.key === 'Escape') onClose()
 					}}
 					className="w-full px-3 py-2 rounded-lg border text-sm mb-2"
@@ -169,11 +218,12 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 						Cancel
 					</button>
 					<button
-						onClick={handleRename}
+						onClick={handleEditorSubmit}
 						className="flex-1 py-1.5 rounded-lg text-xs"
+						disabled={!inputValue.trim()}
 						style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 					>
-						Rename
+						{editorActionLabel}
 					</button>
 				</div>
 			</div>
@@ -242,6 +292,8 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 					<MenuItem onClick={startRename}>Rename</MenuItem>
 				</>
 			)}
+			<MenuItem onClick={startSetSavePath}>Change Save Path</MenuItem>
+			<MenuItem onClick={startSetDownloadPath}>Change Download Path</MenuItem>
 			<div className="h-px my-1" style={{ backgroundColor: 'var(--border)' }} />
 			<MenuItem onClick={handleExport}>Export</MenuItem>
 			<MenuItem onClick={() => setSubmenu(submenu === 'delete' ? null : 'delete')} hasSubmenu>
@@ -283,3 +335,4 @@ function MenuItem({
 		</button>
 	)
 }
+

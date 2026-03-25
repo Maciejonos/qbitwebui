@@ -273,6 +273,22 @@ export async function renameTorrent(instanceId: number, hash: string, name: stri
 	})
 }
 
+export async function setTorrentLocation(instanceId: number, hashes: string[], location: string): Promise<void> {
+	await action(instanceId, '/torrents/setLocation', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+		body: new URLSearchParams({ hashes: hashes.join('|'), location }),
+	})
+}
+
+export async function setTorrentDownloadPath(instanceId: number, hashes: string[], downloadPath: string): Promise<void> {
+	await action(instanceId, '/torrents/setDownloadPath', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+		body: new URLSearchParams({ hashes: hashes.join('|'), downloadPath }),
+	})
+}
+
 export async function addTrackers(instanceId: number, hash: string, urls: string[]): Promise<void> {
 	await action(instanceId, '/torrents/addTrackers', {
 		method: 'POST',

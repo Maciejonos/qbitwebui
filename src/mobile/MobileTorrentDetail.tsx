@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Drawer } from 'vaul'
-import { Play, Pause, Trash2 } from 'lucide-react'
+import { Play, Pause, Trash2, FolderInput, Download } from 'lucide-react'
 import * as api from '../api/qbittorrent'
 import type { TorrentState } from '../types/qbittorrent'
 import { formatSize, formatSpeed, formatDate, formatDuration } from '../utils/format'
 
 type Tab = 'general' | 'files' | 'trackers' | 'peers' | 'http'
+type PathEditorMode = 'savePath' | 'downloadPath' | null
 
 const PAUSED_STATES: TorrentState[] = ['pausedDL', 'pausedUP', 'stoppedDL', 'stoppedUP']
 
@@ -43,6 +44,8 @@ interface Props {
 export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props) {
 	const [tab, setTab] = useState<Tab>('general')
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+	const [pathEditorMode, setPathEditorMode] = useState<PathEditorMode>(null)
+	const [pathValue, setPathValue] = useState('')
 	const [deleteFiles, setDeleteFiles] = useState(false)
 	const queryClient = useQueryClient()
 
@@ -97,6 +100,20 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 		mutationFn: (deleteFiles: boolean) => api.deleteTorrents(instanceId, [torrentHash], deleteFiles),
 		onSuccess: () => queryClient.invalidateQueries({ queryKey: ['torrents', instanceId] }),
 	})
+	const setLocationMutation = useMutation({
+		mutationFn: (location: string) => api.setTorrentLocation(instanceId, [torrentHash], location),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['torrents', instanceId] })
+			queryClient.invalidateQueries({ queryKey: ['torrent-properties', instanceId, torrentHash] })
+		},
+	})
+	const setDownloadPathMutation = useMutation({
+		mutationFn: (downloadPath: string) => api.setTorrentDownloadPath(instanceId, [torrentHash], downloadPath),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['torrents', instanceId] })
+			queryClient.invalidateQueries({ queryKey: ['torrent-properties', instanceId, torrentHash] })
+		},
+	})
 
 	const isPaused = torrent ? PAUSED_STATES.includes(torrent.state) : false
 	const peers = peersData?.peers ? Object.values(peersData.peers) : []
@@ -113,6 +130,32 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 		deleteMutation.mutate(deleteFiles)
 		onClose()
 	}
+
+	function openPathEditor(mode: Exclude<PathEditorMode, null>) {
+		setPathValue(torrent?.save_path ?? '')
+		setPathEditorMode(mode)
+	}
+
+	function handlePathSave() {
+		const trimmed = pathValue.trim()
+		if (!trimmed) return
+
+		if (pathEditorMode === 'savePath') {
+			setLocationMutation.mutate(trimmed, {
+				onSuccess: () => setPathEditorMode(null),
+			})
+			return
+		}
+
+		if (pathEditorMode === 'downloadPath') {
+			setDownloadPathMutation.mutate(trimmed, {
+				onSuccess: () => setPathEditorMode(null),
+			})
+		}
+	}
+
+	const pathMutationPending = setLocationMutation.isPending || setDownloadPathMutation.isPending
+	const pathEditorTitle = pathEditorMode === 'savePath' ? 'Change Save Path' : 'Change Download Path'
 
 	const tabs: { id: Tab; label: string; count?: number }[] = [
 		{ id: 'general', label: 'General' },
@@ -206,6 +249,27 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 							>
 								<Trash2 className="w-5 h-5" strokeWidth={2} />
 								Delete
+							</button>
+						</div>
+
+						<div className="grid grid-cols-2 gap-3 px-4 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
+							<button
+								onClick={() => openPathEditor('savePath')}
+								disabled={pathMutationPending}
+								className="py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-50"
+								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+							>
+								<FolderInput className="w-5 h-5" strokeWidth={1.8} />
+								Save Path
+							</button>
+							<button
+								onClick={() => openPathEditor('downloadPath')}
+								disabled={pathMutationPending}
+								className="py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-50"
+								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+							>
+								<Download className="w-5 h-5" strokeWidth={1.8} />
+								Download Path
 							</button>
 						</div>
 
@@ -394,6 +458,55 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 				</Drawer.Portal>
 			</Drawer.Root>
 
+			{pathEditorMode && (
+				<>
+					<div
+						className="fixed inset-0 z-[60]"
+						style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+						onClick={() => !pathMutationPending && setPathEditorMode(null)}
+					/>
+					<div
+						className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-[60] rounded-2xl border p-5"
+						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+					>
+						<h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+							{pathEditorTitle}
+						</h3>
+						<input
+							type="text"
+							value={pathValue}
+							onChange={(e) => setPathValue(e.target.value)}
+							onKeyDown={(e) => e.key === 'Enter' && handlePathSave()}
+							className="w-full px-4 py-3 rounded-xl border text-base"
+							style={{
+								backgroundColor: 'var(--bg-tertiary)',
+								borderColor: 'var(--border)',
+								color: 'var(--text-primary)',
+							}}
+							autoFocus
+						/>
+						<div className="flex gap-3 mt-5">
+							<button
+								onClick={() => setPathEditorMode(null)}
+								disabled={pathMutationPending}
+								className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
+								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+							>
+								Cancel
+							</button>
+							<button
+								onClick={handlePathSave}
+								disabled={!pathValue.trim() || pathMutationPending}
+								className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
+								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
+							>
+								{pathMutationPending ? 'Saving...' : 'Save'}
+							</button>
+						</div>
+					</div>
+				</>
+			)}
+
 			{showDeleteConfirm && (
 				<>
 					<div
@@ -470,3 +583,4 @@ function InfoRow({
 		</div>
 	)
 }
+

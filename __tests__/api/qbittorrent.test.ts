@@ -17,6 +17,8 @@ import {
     getTorrentTrackers,
     getTorrentFiles,
     renameTorrent,
+    setTorrentLocation,
+    setTorrentDownloadPath,
     addTrackers,
     removeTrackers,
     getPreferences,
@@ -166,6 +168,28 @@ describe('qBittorrent API', () => {
 
             const call = mockFetch.mock.calls[0]
             expect(call[1].body.get('deleteFiles')).toBe('true')
+        })
+
+	it('changes torrent save path', async () => {
+            mockFetch.mockResolvedValueOnce(jsonResponse({}))
+
+            await setTorrentLocation(instanceId, ['hash1', 'hash2'], '/downloads/new-path')
+
+            const call = mockFetch.mock.calls[0]
+            expect(call[0]).toBe('/api/instances/1/qbt/v2/torrents/setLocation')
+            expect(call[1].body.get('hashes')).toBe('hash1|hash2')
+            expect(call[1].body.get('location')).toBe('/downloads/new-path')
+        })
+
+        it('changes torrent download path', async () => {
+            mockFetch.mockResolvedValueOnce(jsonResponse({}))
+
+            await setTorrentDownloadPath(instanceId, ['hash1'], '/downloads/incomplete')
+
+            const call = mockFetch.mock.calls[0]
+            expect(call[0]).toBe('/api/instances/1/qbt/v2/torrents/setDownloadPath')
+            expect(call[1].body.get('hashes')).toBe('hash1')
+            expect(call[1].body.get('downloadPath')).toBe('/downloads/incomplete')
         })
     })
 

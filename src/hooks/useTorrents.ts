@@ -125,6 +125,32 @@ export function useRenameTorrent() {
 	})
 }
 
+export function useSetTorrentLocation() {
+	const instance = useInstance()
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: ({ hashes, location }: { hashes: string[]; location: string }) =>
+			api.setTorrentLocation(instance.id, hashes, location),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['torrents', instance.id] })
+			queryClient.invalidateQueries({ queryKey: ['torrent-properties', instance.id] })
+		},
+	})
+}
+
+export function useSetTorrentDownloadPath() {
+	const instance = useInstance()
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: ({ hashes, downloadPath }: { hashes: string[]; downloadPath: string }) =>
+			api.setTorrentDownloadPath(instance.id, hashes, downloadPath),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['torrents', instance.id] })
+			queryClient.invalidateQueries({ queryKey: ['torrent-properties', instance.id] })
+		},
+	})
+}
+
 export function useCreateTag() {
 	const instance = useInstance()
 	const queryClient = useQueryClient()
