@@ -206,13 +206,13 @@ describe('integrations API', () => {
                 guid: 'abc123',
                 indexerId: 1,
                 downloadUrl: 'http://example.com/download',
-            }, 5)
+            }, 5, { savepath: '/downloads/complete', downloadPath: '/downloads/incomplete' })
 
             expect(mockFetch).toHaveBeenCalledWith('/api/integrations/1/grab', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: expect.stringContaining('"instanceId":5'),
+                body: expect.stringMatching(/"instanceId":5.*"savepath":"\/downloads\/complete".*"downloadPath":"\/downloads\/incomplete"|"instanceId":5.*"downloadPath":"\/downloads\/incomplete".*"savepath":"\/downloads\/complete"/),
             })
         })
 

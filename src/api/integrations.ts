@@ -120,7 +120,7 @@ export async function grabRelease(
 	integrationId: number,
 	release: { guid: string; indexerId: number; downloadUrl?: string; magnetUrl?: string },
 	instanceId: number,
-	options?: { category?: string; savepath?: string }
+	options?: { category?: string; savepath?: string; downloadPath?: string }
 ): Promise<void> {
 	const res = await fetch(`/api/integrations/${integrationId}/grab`, {
 		method: 'POST',

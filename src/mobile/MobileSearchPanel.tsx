@@ -59,6 +59,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 	const [grabCategories, setGrabCategories] = useState<Record<string, Category>>({})
 	const [grabCategory, setGrabCategory] = useState('')
 	const [grabSavepath, setGrabSavepath] = useState('')
+	const [grabDownloadPath, setGrabDownloadPath] = useState('')
 	const [loadingCategories, setLoadingCategories] = useState(false)
 	const [showIndexerPicker, setShowIndexerPicker] = useState(false)
 	const [showIntegrationPicker, setShowIntegrationPicker] = useState(false)
@@ -107,6 +108,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 		if (!showGrabSheet) return
 		setGrabCategory('')
 		setGrabSavepath('')
+		setGrabDownloadPath('')
 		setGrabInstance(instances.length === 1 ? instances[0].id : null)
 	}, [showGrabSheet, instances])
 
@@ -185,9 +187,10 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 		if (!selectedIntegration) return
 		setGrabbing(result.guid)
 		setGrabResult(null)
-		const options: { category?: string; savepath?: string } = {}
+		const options: { category?: string; savepath?: string; downloadPath?: string } = {}
 		if (grabCategory) options.category = grabCategory
 		if (grabSavepath.trim()) options.savepath = grabSavepath.trim()
+		if (grabDownloadPath.trim()) options.downloadPath = grabDownloadPath.trim()
 		try {
 			await grabRelease(
 				selectedIntegration.id,
@@ -912,6 +915,24 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 									}}
 								/>
 							</div>
+							<div>
+								<div className="text-xs font-medium px-1 pb-2" style={{ color: 'var(--text-muted)' }}>
+									Download Path
+								</div>
+								<input
+									type="text"
+									value={grabDownloadPath}
+									onChange={(e) => setGrabDownloadPath(e.target.value)}
+									disabled={!grabInstance}
+									placeholder="Default"
+									className="w-full px-4 py-3 rounded-xl border text-base disabled:opacity-50"
+									style={{
+										backgroundColor: 'var(--bg-secondary)',
+										borderColor: 'var(--border)',
+										color: 'var(--text-primary)',
+									}}
+								/>
+							</div>
 							<button
 								onClick={() => grabInstance && handleGrab(showGrabSheet, grabInstance)}
 								disabled={!grabInstance || grabbing === showGrabSheet.guid}
@@ -1131,3 +1152,4 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 		</div>
 	)
 }
+

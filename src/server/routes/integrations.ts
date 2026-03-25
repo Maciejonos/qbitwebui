@@ -212,6 +212,7 @@ integrations.post('/:id/grab', async (c) => {
 		instanceId: number
 		category?: string
 		savepath?: string
+		downloadPath?: string
 	}>()
 
 	if (!body.instanceId) {
@@ -248,6 +249,9 @@ integrations.post('/:id/grab', async (c) => {
 		}
 		if (body.savepath) {
 			formData.append('savepath', body.savepath)
+		}
+		if (body.downloadPath) {
+			formData.append('downloadPath', body.downloadPath)
 		}
 
 		if (body.magnetUrl) {
@@ -292,3 +296,4 @@ integrations.post('/:id/grab', async (c) => {
 })
 
 export default integrations
+

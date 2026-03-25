@@ -54,6 +54,7 @@ export function SearchPanel() {
 	const [grabCategories, setGrabCategories] = useState<Record<string, Category>>({})
 	const [grabCategory, setGrabCategory] = useState('')
 	const [grabSavepath, setGrabSavepath] = useState('')
+	const [grabDownloadPath, setGrabDownloadPath] = useState('')
 	const [loadingCategories, setLoadingCategories] = useState(false)
 	const [sortKey, setSortKey] = useState<SortKey>('seeders')
 	const [sortAsc, setSortAsc] = useState(false)
@@ -186,6 +187,7 @@ export function SearchPanel() {
 		setGrabModal(result)
 		setGrabCategory('')
 		setGrabSavepath('')
+		setGrabDownloadPath('')
 		if (instances.length === 1) {
 			setGrabInstance(instances[0].id)
 		} else {
@@ -199,6 +201,7 @@ export function SearchPanel() {
 		setGrabCategories({})
 		setGrabCategory('')
 		setGrabSavepath('')
+		setGrabDownloadPath('')
 		setInstanceDropdownOpen(false)
 		setCategoryDropdownOpen(false)
 	}
@@ -207,9 +210,10 @@ export function SearchPanel() {
 		if (!selectedIntegration || !grabModal || !grabInstance) return
 		setGrabbing(grabModal.guid)
 		setGrabResult(null)
-		const options: { category?: string; savepath?: string } = {}
+		const options: { category?: string; savepath?: string; downloadPath?: string } = {}
 		if (grabCategory) options.category = grabCategory
 		if (grabSavepath.trim()) options.savepath = grabSavepath.trim()
+		if (grabDownloadPath.trim()) options.downloadPath = grabDownloadPath.trim()
 		try {
 			await grabRelease(
 				selectedIntegration.id,
@@ -1063,6 +1067,27 @@ export function SearchPanel() {
 									}}
 								/>
 							</div>
+							<div>
+								<label
+									className="block text-xs font-medium mb-2 uppercase tracking-wider"
+									style={{ color: 'var(--text-muted)' }}
+								>
+									Download Path
+								</label>
+								<input
+									type="text"
+									value={grabDownloadPath}
+									onChange={(e) => setGrabDownloadPath(e.target.value)}
+									disabled={!grabInstance}
+									placeholder="Default"
+									className="w-full px-3 py-2 rounded-lg border text-sm disabled:opacity-50"
+									style={{
+										backgroundColor: 'var(--bg-tertiary)',
+										borderColor: 'var(--border)',
+										color: 'var(--text-primary)',
+									}}
+								/>
+							</div>
 						</div>
 						<div className="flex gap-3 justify-end mt-6">
 							<button
@@ -1087,3 +1112,4 @@ export function SearchPanel() {
 		</div>
 	)
 }
+
