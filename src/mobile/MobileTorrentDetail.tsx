@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Drawer } from 'vaul'
 import { Play, Pause, Trash2, FolderInput, Download } from 'lucide-react'
@@ -176,8 +177,8 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 	return (
 		<>
 			<Drawer.Root
-				open={!showDeleteConfirm}
-				onOpenChange={(open) => !open && !showDeleteConfirm && onClose()}
+				open={!showDeleteConfirm && !pathEditorMode}
+				onOpenChange={(open) => !open && !showDeleteConfirm && !pathEditorMode && onClose()}
 				shouldScaleBackground={false}
 			>
 				<Drawer.Portal>
@@ -459,9 +460,9 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 				</Drawer.Portal>
 			</Drawer.Root>
 
-			{pathEditorMode && (
+			{pathEditorMode && createPortal(
 				<div
-					className="fixed inset-0 z-[60] flex items-center justify-center"
+					className="fixed inset-0 z-[9999] flex items-center justify-center"
 					style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
 					onClick={() => !pathMutationPending && setPathEditorMode(null)}
 				>
@@ -474,17 +475,19 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 							{pathEditorTitle}
 						</h3>
 						<input
+							ref={(el) => { if (el) setTimeout(() => el.focus(), 50) }}
 							type="text"
 							value={pathValue}
 							onChange={(e) => setPathValue(e.target.value)}
 							onKeyDown={(e) => e.key === 'Enter' && handlePathSave()}
+							onTouchEnd={(e) => { e.stopPropagation(); (e.target as HTMLInputElement).focus() }}
 							className="w-full px-4 py-3 rounded-xl border text-base"
 							style={{
 								backgroundColor: 'var(--bg-tertiary)',
 								borderColor: 'var(--border)',
 								color: 'var(--text-primary)',
+								fontSize: '16px',
 							}}
-							autoFocus
 						/>
 						<div className="flex gap-3 mt-5">
 							<button
@@ -505,12 +508,13 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 							</button>
 						</div>
 					</div>
-				</div>
+				</div>,
+				document.body
 			)}
 
-			{showDeleteConfirm && (
+			{showDeleteConfirm && createPortal(
 				<div
-					className="fixed inset-0 z-[60] flex items-center justify-center"
+					className="fixed inset-0 z-[9999] flex items-center justify-center"
 					style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
 					onClick={() => setShowDeleteConfirm(false)}
 				>
@@ -553,7 +557,8 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 							</button>
 						</div>
 					</div>
-				</div>
+				</div>,
+				document.body
 			)}
 		</>
 	)
@@ -584,6 +589,4 @@ function InfoRow({
 		</div>
 	)
 }
-
-
 
