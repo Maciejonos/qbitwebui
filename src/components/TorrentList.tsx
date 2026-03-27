@@ -492,10 +492,10 @@ export function TorrentList() {
 	return (
 		<div className="flex flex-col flex-1 overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
 			<div
-				className="flex items-center gap-1 px-2 py-1.5 border-b"
+				className="flex items-center gap-1 px-2 py-1.5 border-b overflow-x-auto"
 				style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 			>
-				<div className="flex items-center">
+				<div className="flex items-center shrink-0">
 					<ActionButton
 						onClick={() => setAddModal(true)}
 						disabled={false}
@@ -526,23 +526,23 @@ export function TorrentList() {
 					/>
 				</div>
 
-				<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
+				<div className="w-px h-5 shrink-0" style={{ backgroundColor: 'var(--border)' }} />
 
-				<div className="flex items-center">
+				<div className="flex items-center shrink-0">
 					<FilterBar filter={filter} onFilterChange={setFilter} />
 				</div>
 
-				<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
+				<div className="w-px h-5 shrink-0" style={{ backgroundColor: 'var(--border)' }} />
 
-				<div className="flex items-center">
+				<div className="flex items-center shrink-0">
 					<CategoryDropdown value={categoryFilter} onChange={setCategoryFilter} categories={categories} />
 					<TagDropdown value={tagFilter} onChange={setTagFilter} tags={tags} />
 					<TrackerDropdown value={trackerFilter} onChange={setTrackerFilter} trackers={uniqueTrackers} />
 				</div>
 
-				<div className="w-px h-5" style={{ backgroundColor: 'var(--border)' }} />
+				<div className="w-px h-5 shrink-0" style={{ backgroundColor: 'var(--border)' }} />
 
-				<div className="flex items-center">
+				<div className="flex items-center shrink-0">
 					<ViewSelector
 						views={customViews}
 						isModified={isViewModified}
@@ -563,9 +563,11 @@ export function TorrentList() {
 					/>
 				</div>
 
-				<div className="flex-1 min-w-0" />
+				<div className="flex-1 min-w-4" />
 
-				<SearchInput value={search} onChange={setSearch} />
+				<div className="shrink-0">
+					<SearchInput value={search} onChange={setSearch} />
+				</div>
 			</div>
 
 			<div
@@ -875,3 +877,4 @@ export function TorrentList() {
 		</div>
 	)
 }
+

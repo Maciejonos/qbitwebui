@@ -254,6 +254,11 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 				<div className="mt-1.5">
 					<InfoCell label="Save Path" value={properties.save_path} wide />
 				</div>
+				{properties.download_path && (
+					<div className="mt-1.5">
+						<InfoCell label="Download Path" value={properties.download_path} wide />
+					</div>
+				)}
 				<div className="flex flex-wrap gap-2 mt-1.5">
 					<button
 						onClick={() => openEditor('savePath')}

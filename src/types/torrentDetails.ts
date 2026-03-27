@@ -1,5 +1,6 @@
 export interface TorrentProperties {
 	save_path: string
+	download_path: string
 	creation_date: number
 	piece_size: number
 	comment: string

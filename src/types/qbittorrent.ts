@@ -40,6 +40,7 @@ export interface Torrent {
 	completion_on: number
 	last_activity: number
 	save_path: string
+	download_path: string
 	downloaded: number
 	uploaded: number
 	tracker: string

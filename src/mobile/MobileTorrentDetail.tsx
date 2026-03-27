@@ -323,6 +323,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									<InfoRow label="Category" value={torrent.category || '-'} />
 									<InfoRow label="Tags" value={torrent.tags || '-'} />
 									<InfoRow label="Save Path" value={torrent.save_path} small />
+									{torrent.download_path && <InfoRow label="Download Path" value={torrent.download_path} small />}
 									{properties?.comment && <InfoRow label="Comment" value={properties.comment} small />}
 								</div>
 							)}
@@ -462,12 +463,21 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 				<>
 					<div
 						className="fixed inset-0 z-[60]"
-						style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+						style={{ backgroundColor: 'rgba(0,0,0,0.6)', touchAction: 'none' }}
 						onClick={() => !pathMutationPending && setPathEditorMode(null)}
+						onTouchStart={(e) => { e.preventDefault(); e.stopPropagation() }}
+						onTouchMove={(e) => { e.preventDefault(); e.stopPropagation() }}
+						onTouchEnd={(e) => {
+							e.preventDefault()
+							e.stopPropagation()
+							if (!pathMutationPending) setPathEditorMode(null)
+						}}
 					/>
 					<div
 						className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-[60] rounded-2xl border p-5"
-						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', touchAction: 'auto' }}
+						onTouchStart={(e) => e.stopPropagation()}
+						onTouchMove={(e) => e.stopPropagation()}
 					>
 						<h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
 							{pathEditorTitle}
@@ -511,12 +521,21 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 				<>
 					<div
 						className="fixed inset-0 z-[60]"
-						style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+						style={{ backgroundColor: 'rgba(0,0,0,0.6)', touchAction: 'none' }}
 						onClick={() => setShowDeleteConfirm(false)}
+						onTouchStart={(e) => { e.preventDefault(); e.stopPropagation() }}
+						onTouchMove={(e) => { e.preventDefault(); e.stopPropagation() }}
+						onTouchEnd={(e) => {
+							e.preventDefault()
+							e.stopPropagation()
+							setShowDeleteConfirm(false)
+						}}
 					/>
 					<div
 						className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-[60] rounded-2xl border p-5"
-						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', touchAction: 'auto' }}
+						onTouchStart={(e) => e.stopPropagation()}
+						onTouchMove={(e) => e.stopPropagation()}
 					>
 						<h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
 							Delete Torrent
@@ -583,4 +602,5 @@ function InfoRow({
 		</div>
 	)
 }
+
 
