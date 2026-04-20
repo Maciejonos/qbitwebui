@@ -265,12 +265,17 @@ integrations.post('/:id/grab', async (c) => {
 				: `${integration.url}/api/v1/indexer/${body.indexerId}/download?link=${encodeURIComponent(body.downloadUrl)}`
 			const torrentRes = await fetch(fetchUrl, {
 				headers: { 'X-Api-Key': apiKey },
+				redirect: 'manual',
 			})
-			if (!torrentRes.ok) {
+			const location = torrentRes.headers.get('location')
+			if ((torrentRes.status === 301 || torrentRes.status === 302) && location?.startsWith('magnet:')) {
+				formData.append('urls', location.replace(/&amp;/g, '&'))
+			} else if (!torrentRes.ok) {
 				return c.json({ error: `Failed to download from Prowlarr: HTTP ${torrentRes.status}` }, 400)
+			} else {
+				const torrentData = await torrentRes.arrayBuffer()
+				formData.append('torrents', new Blob([torrentData], { type: 'application/x-bittorrent' }), 'release.torrent')
 			}
-			const torrentData = await torrentRes.arrayBuffer()
-			formData.append('torrents', new Blob([torrentData], { type: 'application/x-bittorrent' }), 'release.torrent')
 		} else {
 			return c.json({ error: 'No download URL available' }, 400)
 		}
