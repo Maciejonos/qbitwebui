@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { usePathHistory } from '../hooks/usePathHistory'
+import { usePathHistory } from '../../hooks/usePathHistory'
 
 interface PathInputProps {
 	value: string
 	onChange: (value: string) => void
 	onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
-	onSubmit?: () => void
 	placeholder?: string
 	className?: string
 	style?: React.CSSProperties
@@ -19,7 +18,6 @@ export function PathInput({
 	value,
 	onChange,
 	onKeyDown,
-	onSubmit,
 	placeholder,
 	className,
 	style,
@@ -126,7 +124,7 @@ export function PathInput({
 						borderColor: 'var(--border)',
 					}}
 				>
-					{suggestions.map((path, i) => (
+					{suggestions.map((path: string, i: number) => (
 						<li
 							key={path}
 							onMouseDown={(e) => {
@@ -148,4 +146,5 @@ export function PathInput({
 		</div>
 	)
 }
+
 
