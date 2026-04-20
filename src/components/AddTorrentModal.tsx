@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
 import { Plus, X, Upload, CheckCircle, Check } from 'lucide-react'
 import { useAddTorrent, useCategories } from '../hooks/useTorrents'
+import { PathInput } from './ui/PathInput'
+import { usePathHistory } from '../hooks/usePathHistory'
 
 interface Props {
 	open: boolean
@@ -22,6 +24,7 @@ export function AddTorrentModal({ open, onClose }: Props) {
 
 	const { data: categories = {} } = useCategories()
 	const addMutation = useAddTorrent()
+	const { addPath } = usePathHistory()
 
 	if (!open) return null
 
@@ -44,6 +47,7 @@ export function AddTorrentModal({ open, onClose }: Props) {
 			},
 			{
 				onSuccess: () => {
+					if (savepath.trim()) addPath(savepath.trim())
 					setUrl('')
 					setFiles([])
 					setCategory('')
@@ -257,10 +261,9 @@ export function AddTorrentModal({ open, onClose }: Props) {
 							<label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
 								Save path
 							</label>
-							<input
-								type="text"
+							<PathInput
 								value={savepath}
-								onChange={(e) => setSavepath(e.target.value)}
+								onChange={setSavepath}
 								placeholder="Default"
 								className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none transition-colors"
 								style={{
@@ -348,3 +351,4 @@ export function AddTorrentModal({ open, onClose }: Props) {
 		</div>
 	)
 }
+

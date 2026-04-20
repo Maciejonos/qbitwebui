@@ -6,6 +6,8 @@ import { Play, Pause, Trash2, FolderInput, Download } from 'lucide-react'
 import * as api from '../api/qbittorrent'
 import type { TorrentState } from '../types/qbittorrent'
 import { formatSize, formatSpeed, formatDate, formatDuration } from '../utils/format'
+import { PathInput } from '../components/ui/PathInput'
+import { usePathHistory } from '../hooks/usePathHistory'
 
 type Tab = 'general' | 'files' | 'trackers' | 'peers' | 'http'
 type PathEditorMode = 'savePath' | 'downloadPath' | null
@@ -49,6 +51,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 	const [pathValue, setPathValue] = useState('')
 	const [deleteFiles, setDeleteFiles] = useState(false)
 	const queryClient = useQueryClient()
+	const { addPath } = usePathHistory()
 
 	useEffect(() => {
 		if (document.activeElement instanceof HTMLElement) {
@@ -140,6 +143,8 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 	function handlePathSave() {
 		const trimmed = pathValue.trim()
 		if (!trimmed) return
+
+		addPath(trimmed)
 
 		if (pathEditorMode === 'savePath') {
 			setLocationMutation.mutate(trimmed, {
@@ -474,13 +479,12 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 						<h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
 							{pathEditorTitle}
 						</h3>
-						<input
-							ref={(el) => { if (el) setTimeout(() => el.focus(), 50) }}
-							type="text"
+						<PathInput
 							value={pathValue}
-							onChange={(e) => setPathValue(e.target.value)}
+							onChange={setPathValue}
 							onKeyDown={(e) => e.key === 'Enter' && handlePathSave()}
 							onTouchEnd={(e) => { e.stopPropagation(); (e.target as HTMLInputElement).focus() }}
+							autoFocus
 							className="w-full px-4 py-3 rounded-xl border text-base"
 							style={{
 								backgroundColor: 'var(--bg-tertiary)',
@@ -589,4 +593,5 @@ function InfoRow({
 		</div>
 	)
 }
+
 
