@@ -47,10 +47,6 @@ export function PathInput({
 	}, [])
 
 	useEffect(() => {
-		setSelectedIndex(-1)
-	}, [value])
-
-	useEffect(() => {
 		if (selectedIndex >= 0 && listRef.current) {
 			const item = listRef.current.children[selectedIndex] as HTMLElement
 			item?.scrollIntoView({ block: 'nearest' })
@@ -102,6 +98,7 @@ export function PathInput({
 				value={value}
 				onChange={(e) => {
 					onChange(e.target.value)
+					setSelectedIndex(-1)
 					setShowSuggestions(true)
 				}}
 				onFocus={() => setShowSuggestions(true)}
@@ -146,5 +143,6 @@ export function PathInput({
 		</div>
 	)
 }
+
 
 
