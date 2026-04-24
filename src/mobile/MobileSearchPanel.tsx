@@ -18,6 +18,8 @@ import { type Instance } from '../api/instances'
 import { getCategories, type Category } from '../api/qbittorrent'
 import { formatSize } from '../utils/format'
 import { extractTags, sortResults, filterResults, type SortKey } from '../utils/search'
+import { PathInput } from '../components/ui/PathInput'
+import { usePathHistory } from '../hooks/usePathHistory'
 
 function formatAge(dateStr: string): string {
 	const date = new Date(dateStr)
@@ -39,6 +41,7 @@ interface Props {
 export function MobileSearchPanel({ instances, onBack }: Props) {
 	const [integrations, setIntegrations] = useState<Integration[]>([])
 	const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null)
+	const { addPath } = usePathHistory()
 	const [indexers, setIndexers] = useState<Indexer[]>([])
 	const [prowlarrCategories, setProwlarrCategories] = useState<ProwlarrCategory[]>([])
 	const [selectedIndexer, setSelectedIndexer] = useState<string>('-2')
@@ -189,8 +192,14 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 		setGrabResult(null)
 		const options: { category?: string; savepath?: string; downloadPath?: string } = {}
 		if (grabCategory) options.category = grabCategory
-		if (grabSavepath.trim()) options.savepath = grabSavepath.trim()
-		if (grabDownloadPath.trim()) options.downloadPath = grabDownloadPath.trim()
+		if (grabSavepath.trim()) {
+			options.savepath = grabSavepath.trim()
+			addPath(grabSavepath.trim())
+		}
+		if (grabDownloadPath.trim()) {
+			options.downloadPath = grabDownloadPath.trim()
+			addPath(grabDownloadPath.trim())
+		}
 		try {
 			await grabRelease(
 				selectedIntegration.id,
@@ -901,10 +910,9 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								<div className="text-xs font-medium px-1 pb-2" style={{ color: 'var(--text-muted)' }}>
 									Save Path
 								</div>
-								<input
-									type="text"
+								<PathInput
 									value={grabSavepath}
-									onChange={(e) => setGrabSavepath(e.target.value)}
+									onChange={setGrabSavepath}
 									disabled={!grabInstance}
 									placeholder="Default"
 									className="w-full px-4 py-3 rounded-xl border text-base disabled:opacity-50"
@@ -919,10 +927,9 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								<div className="text-xs font-medium px-1 pb-2" style={{ color: 'var(--text-muted)' }}>
 									Download Path
 								</div>
-								<input
-									type="text"
+								<PathInput
 									value={grabDownloadPath}
-									onChange={(e) => setGrabDownloadPath(e.target.value)}
+									onChange={setGrabDownloadPath}
 									disabled={!grabInstance}
 									placeholder="Default"
 									className="w-full px-4 py-3 rounded-xl border text-base disabled:opacity-50"
@@ -1152,4 +1159,5 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 		</div>
 	)
 }
+
 
