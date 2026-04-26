@@ -8,7 +8,7 @@ import { MobileInstancePicker } from './MobileInstancePicker'
 import { MobileStats } from './MobileStats'
 import { MobileTorrentList } from './MobileTorrentList'
 import { MobileThemeSwitcher } from './MobileThemeSwitcher'
-import { InstanceProvider } from '../contexts/InstanceContext'
+import { InstanceProvider } from '../contexts/InstanceProvider'
 
 const MobileTorrentDetail = lazy(() =>
 	import('./MobileTorrentDetail').then((m) => ({ default: m.MobileTorrentDetail }))
