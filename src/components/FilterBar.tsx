@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, type FC } from 'react'
+import { createPortal } from 'react-dom'
 import {
 	LayoutGrid,
 	Download,
@@ -333,9 +334,18 @@ interface ColumnSelectorProps {
 export function ColumnSelector({ columns, visible, onChange, columnOrder, onReorder, onReset }: ColumnSelectorProps) {
 	const [open, setOpen] = useState(false)
 	const [draggedId, setDraggedId] = useState<string | null>(null)
-	const ref = useRef<HTMLDivElement>(null)
-	const close = useCallback(() => setOpen(false), [])
-	useClickOutside(ref, close)
+	const [pos, setPos] = useState<{ top: number; right: number } | null>(null)
+	const buttonRef = useRef<HTMLButtonElement>(null)
+
+	function handleToggle() {
+		if (open) {
+			setOpen(false)
+			return
+		}
+		const rect = buttonRef.current?.getBoundingClientRect()
+		if (rect) setPos({ top: rect.bottom, right: window.innerWidth - rect.right })
+		setOpen(true)
+	}
 
 	function toggle(id: string) {
 		const next = new Set(visible)
@@ -370,9 +380,10 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 		.filter((c): c is ColumnDef => c !== undefined)
 
 	return (
-		<div ref={ref} className="relative">
+		<>
 			<button
-				onClick={() => setOpen(!open)}
+				ref={buttonRef}
+				onClick={handleToggle}
 				className="flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
 				style={{ color: 'var(--text-muted)' }}
 				title="Configure columns"
@@ -380,11 +391,23 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 				<Columns3 className="w-3.5 h-3.5" strokeWidth={2} />
 				<span className="text-xs font-medium">Columns</span>
 			</button>
-			{open && (
-				<div
-					className="absolute top-full right-0 mt-1 min-w-[180px] max-h-[400px] overflow-auto rounded border shadow-xl z-[100]"
-					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
-				>
+			{open && pos && createPortal(
+				<>
+					<div
+						onMouseDown={() => setOpen(false)}
+						style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+					/>
+					<div
+						className="min-w-[180px] max-h-[400px] overflow-auto rounded border shadow-xl"
+						style={{
+							position: 'fixed',
+							top: pos.top + 4,
+							right: pos.right,
+							zIndex: 100,
+							backgroundColor: 'var(--bg-tertiary)',
+							borderColor: 'var(--border)',
+						}}
+					>
 					<div
 						className="flex items-center justify-between px-2.5 py-1.5 border-b"
 						style={{ borderColor: 'var(--border)' }}
@@ -422,8 +445,10 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 							</button>
 						</div>
 					))}
-				</div>
+					</div>
+				</>,
+				document.body
 			)}
-		</div>
+		</>
 	)
 }

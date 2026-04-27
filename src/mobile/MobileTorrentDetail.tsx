@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Drawer } from 'vaul'
-import { Play, Pause, Trash2, FolderInput, Download } from 'lucide-react'
+import { Play, Pause, Trash2 } from 'lucide-react'
 import * as api from '../api/qbittorrent'
 import type { TorrentState } from '../types/qbittorrent'
 import { formatSize, formatSpeed, formatDate, formatDuration } from '../utils/format'
@@ -136,7 +136,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 	}
 
 	function openPathEditor(mode: Exclude<PathEditorMode, null>) {
-		setPathValue(torrent?.save_path ?? '')
+		setPathValue((mode === 'downloadPath' ? torrent?.download_path : torrent?.save_path) ?? '')
 		setPathEditorMode(mode)
 	}
 
@@ -258,28 +258,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 							</button>
 						</div>
 
-						<div className="grid grid-cols-2 gap-3 px-4 pb-4 border-b" style={{ borderColor: 'var(--border)' }}>
-							<button
-								onClick={() => openPathEditor('savePath')}
-								disabled={pathMutationPending}
-								className="py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-50"
-								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
-							>
-								<FolderInput className="w-5 h-5" strokeWidth={1.8} />
-								Save Path
-							</button>
-							<button
-								onClick={() => openPathEditor('downloadPath')}
-								disabled={pathMutationPending}
-								className="py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-50"
-								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
-							>
-								<Download className="w-5 h-5" strokeWidth={1.8} />
-								Download Path
-							</button>
-						</div>
-
-						<div className="mx-4 mt-3">
+<div className="mx-4 mt-3">
 							<div className="flex p-1.5 rounded-xl" style={{ backgroundColor: 'var(--bg-secondary)' }}>
 								{tabs.map((t) => (
 									<button
@@ -328,8 +307,20 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									<div className="h-px my-2" style={{ backgroundColor: 'var(--border)' }} />
 									<InfoRow label="Category" value={torrent.category || '-'} />
 									<InfoRow label="Tags" value={torrent.tags || '-'} />
-									<InfoRow label="Save Path" value={torrent.save_path} small />
-									{torrent.download_path && <InfoRow label="Download Path" value={torrent.download_path} small />}
+									<PathRow
+										label="Save Path"
+										value={torrent.save_path}
+										onEdit={() => openPathEditor('savePath')}
+										editDisabled={pathMutationPending}
+									/>
+									{torrent.download_path && torrent.download_path !== torrent.save_path && (
+										<PathRow
+											label="Download Path"
+											value={torrent.download_path}
+											onEdit={torrent.progress < 1 ? () => openPathEditor('downloadPath') : undefined}
+											editDisabled={pathMutationPending}
+										/>
+									)}
 									{properties?.comment && <InfoRow label="Comment" value={properties.comment} small />}
 								</div>
 							)}
@@ -590,6 +581,41 @@ function InfoRow({
 			>
 				{value}
 			</span>
+		</div>
+	)
+}
+
+function PathRow({
+	label,
+	value,
+	onEdit,
+	editDisabled,
+}: {
+	label: string
+	value: string
+	onEdit?: () => void
+	editDisabled?: boolean
+}) {
+	return (
+		<div className="flex items-start justify-between gap-3">
+			<div className="min-w-0 flex-1">
+				<div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+					{label}
+				</div>
+				<div className="text-xs break-all mt-0.5" style={{ color: 'var(--text-primary)' }}>
+					{value}
+				</div>
+			</div>
+			{onEdit && (
+				<button
+					onClick={onEdit}
+					disabled={editDisabled}
+					className="shrink-0 text-xs hover:opacity-80 disabled:opacity-50"
+					style={{ color: 'var(--accent)' }}
+				>
+					Edit
+				</button>
+			)}
 		</div>
 	)
 }

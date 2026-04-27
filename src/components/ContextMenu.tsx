@@ -165,11 +165,13 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 	}
 
 	function startSetDownloadPath() {
-		const uniquePaths = new Set(torrents.map((torrent) => torrent.save_path).filter(Boolean))
-		setInputValue(uniquePaths.size === 1 ? torrents[0].save_path : '')
+		const uniquePaths = new Set(torrents.map((torrent) => torrent.download_path).filter(Boolean))
+		setInputValue(uniquePaths.size === 1 ? torrents[0].download_path : '')
 		setEditorMode('downloadPath')
 		setSubmenu(null)
 	}
+
+	const showDownloadPath = torrents.some((t) => t.download_path && t.progress < 1)
 
 	function handleDelete(deleteFiles: boolean) {
 		deleteMutation.mutate({ hashes, deleteFiles })
@@ -315,7 +317,7 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 				</>
 			)}
 			<MenuItem onClick={startSetSavePath}>Change Save Path</MenuItem>
-			<MenuItem onClick={startSetDownloadPath}>Change Download Path</MenuItem>
+			{showDownloadPath && <MenuItem onClick={startSetDownloadPath}>Change Download Path</MenuItem>}
 			<div className="h-px my-1" style={{ backgroundColor: 'var(--border)' }} />
 			<MenuItem onClick={handleExport}>Export</MenuItem>
 			<MenuItem onClick={() => setSubmenu(submenu === 'delete' ? null : 'delete')} hasSubmenu>

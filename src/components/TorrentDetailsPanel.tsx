@@ -167,7 +167,7 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 	const pathMutationPending = setLocationMutation.isPending || setDownloadPathMutation.isPending
 
 	function openEditor(mode: 'savePath' | 'downloadPath') {
-		setInputValue(properties.save_path)
+		setInputValue(mode === 'downloadPath' ? properties.download_path : properties.save_path)
 		setEditorMode(mode)
 	}
 
@@ -256,32 +256,46 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 					<InfoCell label="Info Hash v1" value={properties.infohash_v1 || hash} wide />
 					<InfoCell label="Info Hash v2" value={properties.infohash_v2 || 'N/A'} muted={!properties.infohash_v2} wide />
 				</div>
-				<div className="mt-1.5">
-					<InfoCell label="Save Path" value={properties.save_path} wide />
-				</div>
-				{properties.download_path && (
-					<div className="mt-1.5">
-						<InfoCell label="Download Path" value={properties.download_path} wide />
+				<div className="mt-1.5 px-3 py-2 rounded border flex items-start gap-3" style={cellBase}>
+					<div className="flex-1 min-w-0">
+						<div className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+							Save Path
+						</div>
+						<div className="text-xs font-mono mt-0.5 break-all" style={{ color: 'var(--text-primary)' }}>
+							{properties.save_path}
+						</div>
 					</div>
-				)}
-				<div className="flex flex-wrap gap-2 mt-1.5">
 					<button
 						onClick={() => openEditor('savePath')}
 						disabled={pathMutationPending}
-						className="px-2.5 py-1.5 rounded text-[10px] font-medium disabled:opacity-50"
-						style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+						className="shrink-0 text-[9px] uppercase tracking-widest font-medium hover:opacity-80 disabled:opacity-50"
+						style={{ color: 'var(--accent)' }}
 					>
-						Change Save Path
-					</button>
-					<button
-						onClick={() => openEditor('downloadPath')}
-						disabled={pathMutationPending}
-						className="px-2.5 py-1.5 rounded text-[10px] font-medium disabled:opacity-50"
-						style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-					>
-						Change Download Path
+						Edit
 					</button>
 				</div>
+				{properties.download_path && properties.download_path !== properties.save_path && (
+					<div className="mt-1.5 px-3 py-2 rounded border flex items-start gap-3" style={cellBase}>
+						<div className="flex-1 min-w-0">
+							<div className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+								Download Path
+							</div>
+							<div className="text-xs font-mono mt-0.5 break-all" style={{ color: 'var(--text-primary)' }}>
+								{properties.download_path}
+							</div>
+						</div>
+						{properties.pieces_have < properties.pieces_num && (
+							<button
+								onClick={() => openEditor('downloadPath')}
+								disabled={pathMutationPending}
+								className="shrink-0 text-[9px] uppercase tracking-widest font-medium hover:opacity-80 disabled:opacity-50"
+								style={{ color: 'var(--accent)' }}
+							>
+								Edit
+							</button>
+						)}
+					</div>
+				)}
 				{editorMode && (
 					<div className="mt-1.5 rounded border p-2 space-y-2" style={{ ...cellBase }}>
 						<div className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
