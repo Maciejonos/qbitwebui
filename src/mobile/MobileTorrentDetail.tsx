@@ -308,7 +308,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 										onEdit={() => openPathEditor('savePath')}
 										editDisabled={pathMutationPending}
 									/>
-									{torrent.download_path && torrent.download_path !== torrent.save_path && (
+									{torrent.download_path && (torrent.download_path !== torrent.save_path || torrent.progress < 1) && (
 										<PathRow
 											label="Download Path"
 											value={torrent.download_path}
@@ -615,4 +615,5 @@ function PathRow({
 		</div>
 	)
 }
+
 

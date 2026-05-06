@@ -269,7 +269,7 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 						Edit
 					</button>
 				</div>
-				{properties.download_path && properties.download_path !== properties.save_path && (
+				{properties.download_path && (properties.download_path !== properties.save_path || properties.pieces_have < properties.pieces_num) && (
 					<div className="mt-1.5 px-3 py-2 rounded border flex items-start gap-3" style={cellBase}>
 						<div className="flex-1 min-w-0">
 							<div className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
@@ -904,5 +904,6 @@ export function TorrentDetailsPanel({ hash, name, category, tags, expanded, onTo
 		</div>
 	)
 }
+
 
 
