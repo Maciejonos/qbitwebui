@@ -274,6 +274,7 @@ interface Props {
 	torrent: Torrent
 	selected: boolean
 	onSelect: (hash: string, multi: boolean, range: boolean) => void
+	onCheckboxToggle: (hash: string) => void
 	onContextMenu: (e: React.MouseEvent) => void
 	ratioThreshold: number
 	hideAddedTime: boolean
@@ -287,6 +288,7 @@ export function TorrentRow({
 	torrent,
 	selected,
 	onSelect,
+	onCheckboxToggle,
 	onContextMenu,
 	ratioThreshold,
 	hideAddedTime,
@@ -321,7 +323,11 @@ export function TorrentRow({
 			>
 				<div className="flex items-center gap-3">
 					<div
-						className="shrink-0 w-4 h-4 rounded border transition-colors duration-150 flex items-center justify-center"
+						onClick={(e) => {
+							e.stopPropagation()
+							onCheckboxToggle(torrent.hash)
+						}}
+						className="shrink-0 w-4 h-4 rounded border transition-colors duration-150 flex items-center justify-center cursor-pointer"
 						style={{
 							borderColor: selected ? 'var(--text-muted)' : 'var(--border)',
 							backgroundColor: selected ? 'color-mix(in srgb, white 3%, transparent)' : 'transparent',
@@ -353,3 +359,4 @@ export function TorrentRow({
 		</tr>
 	)
 }
+

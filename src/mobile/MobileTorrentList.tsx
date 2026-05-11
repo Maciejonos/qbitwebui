@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import {
 	ChevronDown,
 	ArrowDown,
@@ -10,6 +10,10 @@ import {
 	LayoutGrid,
 	List,
 	Archive,
+	Square,
+	Trash2,
+	X,
+	Check,
 } from 'lucide-react'
 import { useQueries, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/qbittorrent'
@@ -172,6 +176,11 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 	const [status, setStatus] = useState<StatusFilter>('all')
 	const [sortBy, setSortBy] = useState<SortField>('added_on')
 	const [swipedHash, setSwipedHash] = useState<string | null>(null)
+	const [multiSelectMode, setMultiSelectMode] = useState(false)
+	const [selectedHashes, setSelectedHashes] = useState<Set<string>>(new Set())
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+	const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const longPressTriggeredRef = useRef(false)
 	const queryClient = useQueryClient()
 
 	const torrentQueries = useQueries({
@@ -205,6 +214,87 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 			api.startTorrents(instanceId, hashes),
 		onSuccess: (_, { instanceId }) => queryClient.invalidateQueries({ queryKey: ['torrents', instanceId] }),
 	})
+
+	const deleteMutation = useMutation({
+		mutationFn: ({ instanceId, hashes, deleteFiles }: { instanceId: number; hashes: string[]; deleteFiles: boolean }) =>
+			api.deleteTorrents(instanceId, hashes, deleteFiles),
+		onSuccess: (_, { instanceId }) => queryClient.invalidateQueries({ queryKey: ['torrents', instanceId] }),
+	})
+
+	const getSelectedTorrents = useCallback(() => {
+		return torrents.filter((t) => selectedHashes.has(t.hash))
+	}, [torrents, selectedHashes])
+
+	const groupByInstance = useCallback((selected: TorrentWithInstance[]) => {
+		const groups = new Map<number, string[]>()
+		for (const t of selected) {
+			const arr = groups.get(t.instanceId) || []
+			arr.push(t.hash)
+			groups.set(t.instanceId, arr)
+		}
+		return groups
+	}, [])
+
+	function handleBulkStart() {
+		const groups = groupByInstance(getSelectedTorrents())
+		groups.forEach((hashes, instanceId) => startMutation.mutate({ instanceId, hashes }))
+	}
+
+	function handleBulkStop() {
+		const groups = groupByInstance(getSelectedTorrents())
+		groups.forEach((hashes, instanceId) => stopMutation.mutate({ instanceId, hashes }))
+	}
+
+	function handleBulkDelete(deleteFiles: boolean) {
+		const groups = groupByInstance(getSelectedTorrents())
+		groups.forEach((hashes, instanceId) => deleteMutation.mutate({ instanceId, hashes, deleteFiles }))
+		setSelectedHashes(new Set())
+		setMultiSelectMode(false)
+		setShowDeleteConfirm(false)
+	}
+
+	function exitMultiSelect() {
+		setMultiSelectMode(false)
+		setSelectedHashes(new Set())
+	}
+
+	function handleTorrentTap(torrent: TorrentWithInstance) {
+		if (multiSelectMode) {
+			setSelectedHashes((prev) => {
+				const next = new Set(prev)
+				if (next.has(torrent.hash)) next.delete(torrent.hash)
+				else next.add(torrent.hash)
+				if (next.size === 0) setMultiSelectMode(false)
+				return next
+			})
+		} else {
+			onSelectTorrent(torrent.hash, torrent.instanceId)
+		}
+	}
+
+	function handleLongPressStart(torrent: TorrentWithInstance) {
+		longPressTriggeredRef.current = false
+		longPressTimerRef.current = setTimeout(() => {
+			longPressTriggeredRef.current = true
+			setMultiSelectMode(true)
+			setSelectedHashes((prev) => new Set(prev).add(torrent.hash))
+			if (navigator.vibrate) navigator.vibrate(50)
+		}, 500)
+	}
+
+	function handleLongPressEnd() {
+		if (longPressTimerRef.current) {
+			clearTimeout(longPressTimerRef.current)
+			longPressTimerRef.current = null
+		}
+	}
+
+	function handleLongPressMove() {
+		if (longPressTimerRef.current) {
+			clearTimeout(longPressTimerRef.current)
+			longPressTimerRef.current = null
+		}
+	}
 
 	const filteredTorrents = useMemo(() => {
 		let result = torrents
@@ -294,14 +384,32 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 						const progress = Math.round(torrent.progress * 100)
 
 						if (compact) {
+							const isSelected = selectedHashes.has(torrent.hash)
 							return (
 								<button
 									key={torrent.hash}
-									onClick={() => onSelectTorrent(torrent.hash, torrent.instanceId)}
+									onClick={() => handleTorrentTap(torrent)}
+									onTouchStart={() => handleLongPressStart(torrent)}
+									onTouchEnd={handleLongPressEnd}
+									onTouchMove={handleLongPressMove}
 									className="w-full text-left px-3 py-2.5 rounded-xl border active:scale-[0.99] transition-transform"
-									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+									style={{
+										backgroundColor: isSelected ? 'color-mix(in srgb, var(--accent) 12%, var(--bg-secondary))' : 'var(--bg-secondary)',
+										borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
+									}}
 								>
 									<div className="flex items-center gap-2 mb-1">
+										{multiSelectMode && (
+											<div
+												className="shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
+												style={{
+													borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
+													backgroundColor: isSelected ? 'var(--accent)' : 'transparent',
+												}}
+											>
+												{isSelected && <Check className="w-3 h-3" style={{ color: 'var(--accent-contrast)' }} strokeWidth={3} />}
+											</div>
+										)}
 										<div className="text-xs font-medium truncate flex-1" style={{ color: 'var(--text-primary)' }}>
 											{torrent.name}
 										</div>
@@ -378,6 +486,7 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 
 						return (
 							<div key={torrent.hash} className="relative overflow-hidden rounded-2xl">
+								{!multiSelectMode && (
 								<div
 									className="absolute inset-y-0 right-0 flex items-center px-4 transition-transform"
 									style={{
@@ -393,28 +502,60 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 										)}
 									</button>
 								</div>
+								)}
 
 								<button
-									onClick={() => onSelectTorrent(torrent.hash, torrent.instanceId)}
-									onTouchStart={() => {}}
+									onClick={(e) => {
+										if (longPressTriggeredRef.current) {
+											e.preventDefault()
+											return
+										}
+										handleTorrentTap(torrent)
+									}}
+									onTouchStart={() => handleLongPressStart(torrent)}
+									onTouchEnd={handleLongPressEnd}
+									onTouchMove={handleLongPressMove}
 									onContextMenu={(e) => {
 										e.preventDefault()
-										setSwipedHash(isSwiped ? null : torrent.hash)
+										if (!multiSelectMode) setSwipedHash(isSwiped ? null : torrent.hash)
 									}}
 									className="w-full text-left p-4 rounded-2xl border transition-transform active:scale-[0.98]"
 									style={{
-										backgroundColor: 'var(--bg-secondary)',
-										borderColor: 'var(--border)',
-										transform: isSwiped ? 'translateX(-60px)' : 'translateX(0)',
+										backgroundColor: selectedHashes.has(torrent.hash) ? 'color-mix(in srgb, var(--accent) 12%, var(--bg-secondary))' : 'var(--bg-secondary)',
+										borderColor: selectedHashes.has(torrent.hash) ? 'var(--accent)' : 'var(--border)',
+										transform: isSwiped && !multiSelectMode ? 'translateX(-60px)' : 'translateX(0)',
 									}}
 								>
 									<div className="flex items-start gap-3">
+										{multiSelectMode ? (
+											<div
+												className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+												style={{
+													backgroundColor: selectedHashes.has(torrent.hash)
+														? 'color-mix(in srgb, var(--accent) 20%, transparent)'
+														: 'var(--bg-tertiary)',
+												}}
+											>
+												<div
+													className="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors"
+													style={{
+														borderColor: selectedHashes.has(torrent.hash) ? 'var(--accent)' : 'var(--border)',
+														backgroundColor: selectedHashes.has(torrent.hash) ? 'var(--accent)' : 'transparent',
+													}}
+												>
+													{selectedHashes.has(torrent.hash) && (
+														<Check className="w-3.5 h-3.5" style={{ color: 'var(--accent-contrast)' }} strokeWidth={3} />
+													)}
+												</div>
+											</div>
+										) : (
 										<div
 											className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
 											style={{ backgroundColor: `color-mix(in srgb, ${stateInfo.color} 15%, transparent)` }}
 										>
 											<StateIcon type={stateInfo.icon} color={stateInfo.color} />
 										</div>
+										)}
 										<div className="flex-1 min-w-0">
 											<div
 												className="font-medium text-sm leading-snug line-clamp-2"
@@ -540,6 +681,114 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 					})}
 				</div>
 			)}
+
+			{multiSelectMode && (
+				<div
+					className="fixed bottom-[calc(70px+env(safe-area-inset-bottom,0px)+12px)] left-4 right-4 z-40 flex items-center gap-2 px-4 py-3 rounded-2xl border shadow-2xl backdrop-blur-xl"
+					style={{
+						backgroundColor: 'color-mix(in srgb, var(--bg-secondary) 95%, transparent)',
+						borderColor: 'var(--border)',
+					}}
+				>
+					<button
+						onClick={exitMultiSelect}
+						className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-95 transition-transform"
+						style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-muted)' }}
+						title="Cancel"
+					>
+						<X className="w-5 h-5" strokeWidth={2} />
+					</button>
+
+					<span className="text-xs font-medium tabular-nums" style={{ color: 'var(--text-muted)' }}>
+						{selectedHashes.size} selected
+					</span>
+
+					<div className="flex-1" />
+
+					<button
+						onClick={handleBulkStart}
+						disabled={selectedHashes.size === 0}
+						className="w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition-transform disabled:opacity-40"
+						style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)' }}
+						title="Start / Resume"
+					>
+						<Play className="w-5 h-5" strokeWidth={2} />
+					</button>
+
+					<button
+						onClick={handleBulkStop}
+						disabled={selectedHashes.size === 0}
+						className="w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition-transform disabled:opacity-40"
+						style={{ backgroundColor: 'color-mix(in srgb, var(--warning) 15%, transparent)', color: 'var(--warning)' }}
+						title="Stop"
+					>
+						<Square className="w-5 h-5" strokeWidth={2} />
+					</button>
+
+					<button
+						onClick={() => setShowDeleteConfirm(true)}
+						disabled={selectedHashes.size === 0}
+						className="w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition-transform disabled:opacity-40"
+						style={{ backgroundColor: 'color-mix(in srgb, var(--error) 15%, transparent)', color: 'var(--error)' }}
+						title="Delete"
+					>
+						<Trash2 className="w-5 h-5" strokeWidth={2} />
+					</button>
+				</div>
+			)}
+
+			{showDeleteConfirm && (
+				<div
+					className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+					style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+					onClick={() => setShowDeleteConfirm(false)}
+				>
+					<div
+						className="w-full max-w-xs mx-4 rounded-2xl p-5 border shadow-2xl"
+						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
+						onClick={(e) => e.stopPropagation()}
+					>
+						<h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+							Delete {selectedHashes.size} torrent{selectedHashes.size > 1 ? 's' : ''}?
+						</h3>
+						<p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+							This action cannot be undone.
+						</p>
+						<div className="space-y-2">
+							<button
+								onClick={() => handleBulkDelete(false)}
+								className="w-full py-2.5 rounded-xl border text-sm font-medium active:scale-[0.98] transition-transform"
+								style={{
+									backgroundColor: 'color-mix(in srgb, var(--error) 10%, transparent)',
+									borderColor: 'color-mix(in srgb, var(--error) 20%, transparent)',
+									color: 'var(--error)',
+								}}
+							>
+								Remove from list
+							</button>
+							<button
+								onClick={() => handleBulkDelete(true)}
+								className="w-full py-2.5 rounded-xl text-sm font-medium text-white active:scale-[0.98] transition-transform"
+								style={{ backgroundColor: 'var(--error)' }}
+							>
+								Delete with files
+							</button>
+							<button
+								onClick={() => setShowDeleteConfirm(false)}
+								className="w-full py-2.5 rounded-xl border text-sm font-medium active:scale-[0.98] transition-transform"
+								style={{
+									backgroundColor: 'var(--bg-tertiary)',
+									borderColor: 'var(--border)',
+									color: 'var(--text-muted)',
+								}}
+							>
+								Cancel
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }
+

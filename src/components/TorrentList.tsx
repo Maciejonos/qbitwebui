@@ -418,6 +418,16 @@ export function TorrentList() {
 		}
 	}
 
+	function handleCheckboxToggle(hash: string) {
+		setSelected((prev) => {
+			const next = new Set(prev)
+			if (next.has(hash)) next.delete(hash)
+			else next.add(hash)
+			return next
+		})
+		setLastSelected(hash)
+	}
+
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
 			if (e.key === 'Escape') {
@@ -741,6 +751,7 @@ export function TorrentList() {
 									torrent={t}
 									selected={selected.has(t.hash)}
 									onSelect={handleSelect}
+									onCheckboxToggle={handleCheckboxToggle}
 									onContextMenu={(e) => handleContextMenu(e, t)}
 									ratioThreshold={ratioThreshold}
 									hideAddedTime={hideAddedTime}
@@ -839,6 +850,7 @@ export function TorrentList() {
 					onToggle={() => setPanelExpanded(!panelExpanded)}
 					height={panelHeight}
 					onHeightChange={setPanelHeight}
+					selectedCount={selected.size}
 				/>
 			</Suspense>
 
@@ -877,4 +889,5 @@ export function TorrentList() {
 		</div>
 	)
 }
+
 
