@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Save, Trash2, Pencil, Check, X, Eye } from 'lucide-react'
 import type { CustomView, CustomViewsStorage } from '../types/views'
-import { useClickOutside } from '../hooks/useClickOutside'
 
 interface ViewSelectorProps {
 	views: CustomViewsStorage
@@ -27,13 +27,22 @@ export function ViewSelector({
 	const [newName, setNewName] = useState('')
 	const [editingId, setEditingId] = useState<string | null>(null)
 	const [editName, setEditName] = useState('')
+	const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
 	const ref = useRef<HTMLDivElement>(null)
+	const buttonRef = useRef<HTMLButtonElement>(null)
+	const dropdownRef = useRef<HTMLDivElement>(null)
 	const closeDropdown = useCallback(() => {
 		setOpen(false)
 		setSaveAsMode(false)
 		setEditingId(null)
 	}, [])
-	useClickOutside(ref, closeDropdown)
+
+	useEffect(() => {
+		if (open && buttonRef.current) {
+			const rect = buttonRef.current.getBoundingClientRect()
+			setPos({ top: rect.bottom, left: rect.left })
+		}
+	}, [open])
 
 	const activeView = views.activeViewId ? views.views.find((v) => v.id === views.activeViewId) : null
 
@@ -64,6 +73,7 @@ export function ViewSelector({
 	return (
 		<div ref={ref} className="relative flex items-center">
 			<button
+				ref={buttonRef}
 				onClick={() => setOpen(!open)}
 				title={activeView?.name ?? 'Default View'}
 				className="flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
@@ -90,11 +100,24 @@ export function ViewSelector({
 				</button>
 			)}
 
-			{open && (
-				<div
-					className="absolute top-full left-0 mt-1 min-w-[200px] max-h-[400px] overflow-auto rounded border shadow-xl z-[100]"
-					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
-				>
+			{open && pos && createPortal(
+				<>
+					<div
+						onMouseDown={closeDropdown}
+						style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+					/>
+					<div
+						ref={dropdownRef}
+						className="min-w-[200px] max-h-[400px] overflow-auto rounded border shadow-xl"
+						style={{
+							position: 'fixed',
+							top: pos.top + 4,
+							left: pos.left,
+							zIndex: 100,
+							backgroundColor: 'var(--bg-tertiary)',
+							borderColor: 'var(--border)',
+						}}
+					>
 					<button
 						onClick={() => {
 							onViewSelect(null)
@@ -241,7 +264,10 @@ export function ViewSelector({
 						</button>
 					)}
 				</div>
+				</>,
+				document.body,
 			)}
 		</div>
 	)
 }
+
