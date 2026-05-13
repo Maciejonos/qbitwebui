@@ -217,11 +217,9 @@ export function SearchPanel() {
 		if (grabCategory) options.category = grabCategory
 		if (grabSavepath.trim()) {
 			options.savepath = grabSavepath.trim()
-			addPath(grabSavepath.trim())
 		}
 		if (grabDownloadPath.trim()) {
 			options.downloadPath = grabDownloadPath.trim()
-			addPath(grabDownloadPath.trim())
 		}
 		try {
 			await grabRelease(
@@ -235,6 +233,8 @@ export function SearchPanel() {
 				grabInstance,
 				Object.keys(options).length > 0 ? options : undefined
 			)
+			if (grabSavepath.trim()) addPath(grabSavepath.trim())
+			if (grabDownloadPath.trim()) addPath(grabDownloadPath.trim())
 			setGrabResult({ guid: grabModal.guid, success: true })
 			closeGrabModal()
 			setTimeout(() => setGrabResult(null), 3000)

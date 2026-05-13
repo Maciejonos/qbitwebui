@@ -138,15 +138,13 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 		}
 
 		if (editorMode === 'savePath') {
-			addPath(value)
-			setLocationMutation.mutate({ hashes, location: value })
+			setLocationMutation.mutate({ hashes, location: value }, { onSuccess: () => addPath(value) })
 			onClose()
 			return
 		}
 
 		if (editorMode === 'downloadPath') {
-			addPath(value)
-			setDownloadPathMutation.mutate({ hashes, downloadPath: value })
+			setDownloadPathMutation.mutate({ hashes, downloadPath: value }, { onSuccess: () => addPath(value) })
 			onClose()
 		}
 	}

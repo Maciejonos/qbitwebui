@@ -175,16 +175,14 @@ function GeneralTab({ hash, category, tags }: { hash: string; category: string; 
 		const trimmed = inputValue.trim()
 		if (!trimmed) return
 
-		addPath(trimmed)
-
 		if (editorMode === 'savePath') {
-			setLocationMutation.mutate({ hashes: [hash], location: trimmed })
+			setLocationMutation.mutate({ hashes: [hash], location: trimmed }, { onSuccess: () => addPath(trimmed) })
 			setEditorMode(null)
 			return
 		}
 
 		if (editorMode === 'downloadPath') {
-			setDownloadPathMutation.mutate({ hashes: [hash], downloadPath: trimmed })
+			setDownloadPathMutation.mutate({ hashes: [hash], downloadPath: trimmed }, { onSuccess: () => addPath(trimmed) })
 			setEditorMode(null)
 		}
 	}
@@ -908,6 +906,5 @@ export function TorrentDetailsPanel({ hash, name, category, tags, expanded, onTo
 		</div>
 	)
 }
-
 
 

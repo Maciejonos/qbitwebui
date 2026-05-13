@@ -194,11 +194,9 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 		if (grabCategory) options.category = grabCategory
 		if (grabSavepath.trim()) {
 			options.savepath = grabSavepath.trim()
-			addPath(grabSavepath.trim())
 		}
 		if (grabDownloadPath.trim()) {
 			options.downloadPath = grabDownloadPath.trim()
-			addPath(grabDownloadPath.trim())
 		}
 		try {
 			await grabRelease(
@@ -212,6 +210,8 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 				instanceId,
 				Object.keys(options).length > 0 ? options : undefined
 			)
+			if (grabSavepath.trim()) addPath(grabSavepath.trim())
+			if (grabDownloadPath.trim()) addPath(grabDownloadPath.trim())
 			setGrabResult({ guid: result.guid, success: true })
 			setShowGrabSheet(null)
 			setTimeout(() => setGrabResult(null), 3000)

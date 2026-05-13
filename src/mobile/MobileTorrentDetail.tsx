@@ -144,18 +144,16 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 		const trimmed = pathValue.trim()
 		if (!trimmed) return
 
-		addPath(trimmed)
-
 		if (pathEditorMode === 'savePath') {
 			setLocationMutation.mutate(trimmed, {
-				onSuccess: () => setPathEditorMode(null),
+				onSuccess: () => { addPath(trimmed); setPathEditorMode(null) },
 			})
 			return
 		}
 
 		if (pathEditorMode === 'downloadPath') {
 			setDownloadPathMutation.mutate(trimmed, {
-				onSuccess: () => setPathEditorMode(null),
+				onSuccess: () => { addPath(trimmed); setPathEditorMode(null) },
 			})
 		}
 	}
