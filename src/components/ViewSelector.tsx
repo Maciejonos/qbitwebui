@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { Save, Trash2, Pencil, Check, X, Eye } from 'lucide-react'
 import type { CustomView, CustomViewsStorage } from '../types/views'
@@ -27,22 +27,20 @@ export function ViewSelector({
 	const [newName, setNewName] = useState('')
 	const [editingId, setEditingId] = useState<string | null>(null)
 	const [editName, setEditName] = useState('')
-	const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
-	const ref = useRef<HTMLDivElement>(null)
+	const [pos, setPos] = useState<{ top: number; right: number } | null>(null)
 	const buttonRef = useRef<HTMLButtonElement>(null)
-	const dropdownRef = useRef<HTMLDivElement>(null)
 	const closeDropdown = useCallback(() => {
 		setOpen(false)
 		setSaveAsMode(false)
 		setEditingId(null)
 	}, [])
 
-	useEffect(() => {
-		if (open && buttonRef.current) {
-			const rect = buttonRef.current.getBoundingClientRect()
-			setPos({ top: rect.bottom, left: rect.left })
-		}
-	}, [open])
+	function handleToggle() {
+		if (open) { setOpen(false); return }
+		const rect = buttonRef.current?.getBoundingClientRect()
+		if (rect) setPos({ top: rect.bottom, right: window.innerWidth - rect.right })
+		setOpen(true)
+	}
 
 	const activeView = views.activeViewId ? views.views.find((v) => v.id === views.activeViewId) : null
 
@@ -71,10 +69,10 @@ export function ViewSelector({
 	const displayName = activeView?.name ?? 'View'
 
 	return (
-		<div ref={ref} className="relative flex items-center">
+		<div className="relative flex items-center">
 			<button
 				ref={buttonRef}
-				onClick={() => setOpen(!open)}
+				onClick={handleToggle}
 				title={activeView?.name ?? 'Default View'}
 				className="flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
 				style={{
@@ -107,12 +105,11 @@ export function ViewSelector({
 						style={{ position: 'fixed', inset: 0, zIndex: 99 }}
 					/>
 					<div
-						ref={dropdownRef}
 						className="min-w-[200px] max-h-[400px] overflow-auto rounded border shadow-xl"
 						style={{
 							position: 'fixed',
 							top: pos.top + 4,
-							left: pos.left,
+							right: pos.right,
 							zIndex: 100,
 							backgroundColor: 'var(--bg-tertiary)',
 							borderColor: 'var(--border)',
@@ -270,4 +267,5 @@ export function ViewSelector({
 		</div>
 	)
 }
+
 
