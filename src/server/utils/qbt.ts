@@ -47,7 +47,7 @@ export async function loginToQbt(instance: QbtInstance, timeout?: number): Promi
 		}
 
 		const text = await res.text()
-		if (text !== 'Ok.') {
+		if (res.status !== 204 && text.trim() !== 'Ok.') {
 			return { success: false, error: 'Invalid credentials', status: 401 }
 		}
 
@@ -88,7 +88,7 @@ export async function testQbtConnection(
 			}
 
 			const loginText = await loginRes.text()
-			if (loginText !== 'Ok.') {
+			if (loginRes.status !== 204 && loginText.trim() !== 'Ok.') {
 				return { success: false, error: 'Invalid credentials', status: 401 }
 			}
 
