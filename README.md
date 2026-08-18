@@ -93,7 +93,7 @@ React 19, TypeScript, Tailwind CSS v4, Vite, TanStack Query, Hono, SQLite, Bun
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=mkbula/qbitwebui&type=date&legend=top-left)](https://www.star-history.com/#mkbula/qbitwebui&type=date&legend=top-left)
+[![Star History Chart](https://star-history.dera.page/svg?repos=mkbula/qbitwebui&type=date&legend=top-left)](https://star-history.dera.page/#mkbula/qbitwebui&type=date&legend=top-left)
 ## Credits
 
 Big thanks to [cross-seed](https://github.com/cross-seed/cross-seed). A huge chunk of Qbitwebui cross seed implementation is basically taken from cross-seed directly, or ported and slightly adjusted. Qbitwebui is of course in no way associated or endorsed by cross-seed.
